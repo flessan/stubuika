@@ -64,7 +64,23 @@ fi
 fetch_header() {
     url=$1
     out=$2
-    [ -s "$out" ] || curl --fail --location --silent --show-error "$url" --output "$out"
+    fallback=${3:-}
+    if [ ! -s "$out" ]; then
+        if ! curl --fail --location --silent --show-error \
+            --connect-timeout 15 --max-time 45 \
+            --retry 2 --retry-all-errors --retry-delay 2 \
+            "$url" --output "$out"; then
+            rm -f "$out"
+            if [ -z "$fallback" ]; then
+                return 1
+            fi
+            echo "Primary header source unavailable; using pinned mirror: $fallback" >&2
+            curl --fail --location --silent --show-error \
+                --connect-timeout 15 --max-time 45 \
+                --retry 2 --retry-all-errors --retry-delay 2 \
+                "$fallback" --output "$out"
+        fi
+    fi
 }
 
 egl=https://raw.githubusercontent.com/KhronosGroup/EGL-Registry/main/api
@@ -81,12 +97,14 @@ fetch_header "$gl/GLES3/gl3.h"             "$khr/GLES3/gl3.h"
 fetch_header "$gl/GLES3/gl3platform.h"     "$khr/GLES3/gl3platform.h"
 fetch_header "$egl/KHR/khrplatform.h"      "$khr/KHR/khrplatform.h"
 # macOS deliberately has no <elf.h>, but Lunaria loads Android ELF images.
-# Use musl's self-contained ABI header; this is target metadata, not a Linux
-# host dependency.
+# Use musl's self-contained ABI headers; these describe the guest ELF ABI, not
+# a Linux host dependency. Keep a commit-pinned Git mirror as a fallback for
+# intermittent outages of the upstream cgit host.
+musl_mirror=https://raw.githubusercontent.com/ifduyue/musl/7813e9119eb5fe681b6750b8a033a0490bca0941/include
 fetch_header "https://git.musl-libc.org/cgit/musl/plain/include/elf.h" \
-             "$linux_abi/elf.h"
+             "$linux_abi/elf.h" "$musl_mirror/elf.h"
 fetch_header "https://git.musl-libc.org/cgit/musl/plain/include/link.h" \
-             "$linux_abi/link.h"
+             "$linux_abi/link.h" "$musl_mirror/link.h"
 # The Vulkan bridge includes the official C headers even when a title uses
 # GLES.  Keep the header version fixed with the other local build inputs.
 if [ ! -f "$deps/vulkan/include/vulkan/vulkan.h" ]; then

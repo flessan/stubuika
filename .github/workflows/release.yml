@@ -1,9 +1,9 @@
-name: Rust Release & Deploy
+name: Stubuika Release
 
 on:
   push:
     tags:
-      - '*-*-*'  # git tag v1.2.3 && git push --tags でトリガー
+      - 'stubuika-v*'
 
 permissions:
   contents: write
@@ -188,7 +188,7 @@ jobs:
             ```bash
             tar -xzf stubuika-*-linux-x86_64.tar.gz
             cd stubuika-*-linux-x86_64
-            ./stubuika /path/to/app.apk      # or .xapk / .apks
+            ./stubuika /path/to/app.apk      # or .apkm / .xapk / .apks / .aab
             ```
             The archive carries its own shim libraries, the host libraries it
             was built against and its fonts; it uses the running system's C

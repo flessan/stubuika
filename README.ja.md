@@ -5,7 +5,6 @@
 [![License: MPL 2.0](https://img.shields.io/badge/license-MPL--2.0-5b5bd6.svg)](LICENSE)
 [![Guests](https://img.shields.io/badge/guest-ARM32%20%7C%20ARM64-20232a.svg)](#仕組み)
 [![Engines](https://img.shields.io/badge/engines-Unity%20%7C%20Unreal%20%7C%20native-20232a.svg)](#互換性)
-[![Sponsor](https://img.shields.io/badge/sponsor-%E2%99%A5-ea4aaa.svg)](https://github.com/sponsors/yui0)
 
 [English](README.md)
 
@@ -806,3 +805,9 @@ python3 scripts/install-framework.py /tmp/platform-31_r01.zip
 ## プロジェクトの由来
 
 Stubuikaは、Yuichiro Nakada氏が開発した[Lunaria](https://github.com/yui0/lunaria)をベースに再ブランド化した継続プロジェクトです。元のMPL-2.0ライセンスと著作権表示は維持しています。Androidアプリ向けの実行環境であり、iOSの`.ipa`には対応しません。macOS対応はホストOS向けビルドであり、iOS対応を意味しません。
+
+
+## APKMirror APKM
+
+APKMirrorの`.apkm`は、base APKとsplit APKを含むZIP形式のAndroidパッケージです。Stubuikaは内部のAPKマニフェストを調べてbase APKを特定し、splitのパッケージIDを検証してランタイム用に統合します。現在は`info.json`を起動判断の必須データとして扱わず、外側のAPKMirror JAR署名も検証しません。
+

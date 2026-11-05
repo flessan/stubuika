@@ -1917,17 +1917,17 @@ static int obb_setup(const char *input, const char *container, const char *inst,
 }
 static void apk_help(void)
 {
-   puts("Usage: lunaria [--config FILE] [--data-root DIR] [--profile NAME] APP.apk|APP.aab|APP.xapk|APP.apks\n"
-        "       lunaria [--list-profiles | --choose-profile | --prepare-profile | --install-only] APP.apk\n"
-        "       lunaria --install-system APP.apk\n"
-        "       lunaria --google-services [--data-root DIR]\n"
-        "       lunaria MODULE.so\n\n"
+   puts("Usage: stubuika [--config FILE] [--data-root DIR] [--profile NAME] APP.apk|APP.apkm|APP.aab|APP.xapk|APP.apks\n"
+        "       stubuika [--list-profiles | --choose-profile | --prepare-profile | --install-only] APP.apk|APP.apkm\n"
+        "       stubuika --install-system APP.apk\n"
+        "       stubuika --google-services [--data-root DIR]\n"
+        "       stubuika MODULE.so\n\n"
         "APK archives are installed once in cache/packages; application data persists in data/.\n"
-        "Environment settings override lunaria.conf; command-line options override both.");
+        "Environment settings override stubuika.conf; command-line options override both.");
 }
-/* ---- lunaria.conf: where it lives, and its common (outside any [package]) part */
+/* ---- stubuika.conf: where it lives, and its common (outside any [package]) part */
 
-/* An explicit LUNARIA_CONF wins.  Otherwise it is lunaria.conf in the startup
+/* An explicit LUNARIA_CONF wins.  Otherwise it is stubuika.conf in the startup
  * directory -- except for a macOS .app, which Finder starts from "/", where no
  * one's settings can live: that one keeps it in the user's Application
  * Support, next to nothing else of ours. */
@@ -1942,9 +1942,9 @@ static int conf_default_path(char *out, size_t cap)
    const char *home = getenv("HOME");
    if (home && *home && !luna_os_executable_path(exe, sizeof exe) && strstr(exe, ".app/Contents/")) {
       char dir[APK_PATH];
-      if (path_join(dir, sizeof dir, home, "Library/Application Support/Lunaria") || mkdirs(dir))
+      if (path_join(dir, sizeof dir, home, "Library/Application Support/Stubuika") || mkdirs(dir))
          return -1;
-      return path_join(out, cap, dir, "lunaria.conf");
+      return path_join(out, cap, dir, "stubuika.conf");
    }
 #endif
    if (!apk_getcwd(cwd, sizeof cwd))
@@ -2092,7 +2092,7 @@ done:
  * earlier one downloaded. */
 static int launcher_ask(int *argc, const char ***argv)
 {
-   static const char *const devices[] = {"", "pixel6", "pixel7", "galaxys21", "lunaria", NULL};
+   static const char *const devices[] = {"", "pixel6", "pixel7", "galaxys21", "stubuika", NULL};
    static const struct { const char *key, *label, *hint; int folder, compact; } fields[] = {
       {"LUNARIA_DATA_ROOT", "Data folder", "Where the app's files live. Keep it set: a different folder starts from nothing.", 1, 0},
       {"LUNARIA_CACHE_DIR", "Package cache folder", "Empty: cache/packages inside the data folder.", 1, 0},
@@ -2252,7 +2252,7 @@ static int apk_prepare_inner(int *argc, const char ***argv)
       if (at >= *argc || *argc - at != 1) return apk_error("specify one APK or module");
       argument = (*argv)[at];
    }
-   bool container = suffix(argument, ".xapk") || suffix(argument, ".apks");
+   bool container = suffix(argument, ".xapk") || suffix(argument, ".apks") || suffix(argument, ".apkm");
    if (!container && !suffix(argument, ".apk") && !suffix(argument, ".aab")) {
       if (at != 1)
          return apk_error("APK options require an APK archive");
@@ -2515,7 +2515,7 @@ static int apk_prepare_inner(int *argc, const char ***argv)
       struct zip_entry *e = apk.entries + i;
       if (!strncasecmp(e->name, "META-INF/", 9) && (suffix(e->name, ".RSA") || suffix(e->name, ".DSA") || suffix(e->name, ".EC"))) {
          char signer[APK_PATH];
-         if (path_join(signer, sizeof signer, inst, ".lunaria-apk-signer.p7b"))
+         if (path_join(signer, sizeof signer, inst, ".stubuika-apk-signer.p7b"))
             goto done;
          FILE *f = open_file(signer, "wb");
          if (!f)

@@ -86,7 +86,7 @@ int luna_temp_path(char *path, size_t capacity, const char *name)
    if (!temp_root[0]) {
       char base[4096];
       if (luna_file_temp_directory(base, sizeof base) ||
-          (size_t)snprintf(temp_root, sizeof temp_root, "%s/lunaria-XXXXXX", base) >= sizeof temp_root ||
+          (size_t)snprintf(temp_root, sizeof temp_root, "%s/stubuika-XXXXXX", base) >= sizeof temp_root ||
           !luna_file_mkdtemp(temp_root)) {
          temp_root[0] = 0;
          pthread_mutex_unlock(&temp_lock);

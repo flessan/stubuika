@@ -14,14 +14,15 @@
 #   --uninstall       Remove the installed binary / app (keep config)
 #
 # Environment overrides:
-#   LUNARIA_VERSION, LUNARIA_PREFIX, LUNARIA_APP_DIR, LUNARIA_REPO
+#   STUBUIKA_VERSION, STUBUIKA_PREFIX, STUBUIKA_APP_DIR, STUBUIKA_REPO
+#   Legacy LUNARIA_* aliases remain available for existing install scripts.
 set -euo pipefail
 
-REPO="${LUNARIA_REPO:-flessan/stubuika}"
+REPO="${STUBUIKA_REPO:-${LUNARIA_REPO:-flessan/stubuika}}"
 GH_API="https://api.github.com"
-VERSION="${LUNARIA_VERSION:-latest}"
-PREFIX="${LUNARIA_PREFIX:-}"
-APP_DIR="${LUNARIA_APP_DIR:-}"
+VERSION="${STUBUIKA_VERSION:-${LUNARIA_VERSION:-latest}}"
+PREFIX="${STUBUIKA_PREFIX:-${LUNARIA_PREFIX:-}}"
+APP_DIR="${STUBUIKA_APP_DIR:-${LUNARIA_APP_DIR:-}}"
 DO_UNINSTALL=0
 _TMP=""
 

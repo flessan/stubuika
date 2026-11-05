@@ -27,7 +27,7 @@ See [Compatibility](#compatibility) for the tested stages and remaining limits.
 
 Stubuika is deliberately Android-focused: it runs Android application packages, not iOS `.ipa` bundles. macOS is an optional desktop host build, not an iOS runtime.
 
-APKMirror `.apkm` files are ZIP-based split bundles. Stubuika inspects the embedded APK manifests to find the base package and validate the package identity of its splits, then exposes those APKs through the same runtime package view used for XAPK and APKS. The current loader does not use APKMirror's `info.json` as the source of truth or claim to verify the archive-level APKMirror JAR signature.
+APKMirror `.apkm` files are handled as ZIP-based split bundles. Details about base APK selection and split validation are covered in [package loading](#3-launch-a-package).
 
 Stubuika follows the app's normal Android startup sequence: its `Application` and content providers initialize
 before the launcher `Activity`. Engines using `NativeActivity`, including Unreal Engine titles,

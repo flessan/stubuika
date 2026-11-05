@@ -197,9 +197,15 @@ jobs:
           body: |
             ## Stubuika
 
-            An Android runtime that runs an APK on the desktop: AArch64 and
-            ARM32 guest code on dynarmic, the platform's Java on its own
-            bytecode interpreter, and GLES straight through to the host.
+            An Android compatibility runtime for desktop hosts, built on the
+            existing [Lunaria](https://github.com/yui0/lunaria) project by
+            Yuichiro Nakada. Stubuika is a downstream fork and continuation;
+            the upstream runtime is the foundation of this work.
+
+            This release includes desktop Android package loading for APK,
+            APKMirror APKM, XAPK, APKS, and AAB inputs. APKM split selection
+            reads the contained APK manifests and validates package IDs; the
+            outer APKMirror JAR signature is not verified.
 
             ### Linux (x86_64)
             ```bash

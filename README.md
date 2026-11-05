@@ -1,4 +1,4 @@
-# Lunaria
+# Stubuika
 
 ### Android apps and games, on your desktop.
 
@@ -11,12 +11,12 @@ No Android system image required. ARM32 and ARM64, from the original package.
 
 [Install](#install) · [Gallery](#gallery) · [Compatibility](#compatibility) · [Build from source](#quick-start) · [日本語](README.ja.md)
 
-**Lunaria brings Android applications and games to the desktop without running a full Android OS.**
+**Stubuika brings Android applications and games to the desktop without running a full Android OS.**
 Instead of booting a virtual device, it loads the app's own package, executes its ARM32 or ARM64 code with
 [dynarmic](https://github.com/merryhime/dynarmic), and bridges Android services such as JNI, EGL, OpenGL ES,
 and MediaCodec to the host. A built-in Dalvik interpreter handles Java bytecode from the app's `classes*.dex`.
 
-Open an `.apk`, `.xapk`, `.apks`, or `.aab` directly. Lunaria takes care of extraction, manifests,
+Open an `.apk`, `.apkm`, `.xapk`, `.apks`, or `.aab` directly. Stubuika takes care of extraction, manifests,
 split APKs, package caching, and separate account profiles. For WebView content, it uses an installed
 Chrome/Chromium browser or the included [luna-browser](luna-browser/) through the Chrome DevTools protocol.
 
@@ -25,14 +25,18 @@ Kikyu! Aeronaut (a 2013 ARM32 APK), Black Clover: Asta Fight, and other Unity an
 Java-based apps are also progressing: TVer displays its welcome screen, and APKPure renders its store and download manager.
 See [Compatibility](#compatibility) for the tested stages and remaining limits.
 
-Lunaria follows the app's normal Android startup sequence: its `Application` and content providers initialize
+Stubuika is deliberately Android-focused: it runs Android application packages, not iOS `.ipa` bundles. macOS is an optional desktop host build, not an iOS runtime.
+
+APKMirror `.apkm` files are ZIP-based split bundles. Stubuika inspects the embedded APK manifests to find the base package and validate the package identity of its splits, then exposes those APKs through the same runtime package view used for XAPK and APKS. The current loader does not use APKMirror's `info.json` as the source of truth or claim to verify the archive-level APKMirror JAR signature.
+
+Stubuika follows the app's normal Android startup sequence: its `Application` and content providers initialize
 before the launcher `Activity`. Engines using `NativeActivity`, including Unreal Engine titles,
 follow the corresponding Android lifecycle. There's no game-specific loader to write.
 
 > [!IMPORTANT]
-> **Experimental software.** Lunaria is an actively developed compatibility layer, not a complete
+> **Experimental software.** Stubuika is an actively developed compatibility layer, not a complete
 > Android emulator. Some titles reach gameplay; others stop at menus or fail to render.
-> The screenshots below show actual Lunaria output, including native game frames and Android UI rendered by the host.
+> The screenshots below show actual Stubuika output, including native game frames and Android UI rendered by the host.
 
 <p align="center">
   <img src="shots/genshin-mondstadt-night.png" width="100%" alt="Genshin Impact: Lumine gliding through Mondstadt at night, windmills lit below, full touch HUD">
@@ -72,57 +76,57 @@ As of **October 20, 2026**, the tested paths include open-world gameplay in Gens
 
 ## Install
 
-Prebuilt binaries are on [GitHub Releases](https://github.com/yui0/lunaria/releases).
+Prebuilt binaries are on [GitHub Releases](https://github.com/flessan/stubuika/releases).
 
 ### Linux / macOS
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | bash
 ```
 
-The script picks the asset for your OS and CPU from the latest release, installs under `~/.local` (or `/usr/local` with `sudo`), and adds a `lunaria` command. On macOS it also places `Lunaria.app` in `~/Applications` (or `/Applications` with `sudo`). Apple Silicon only for the macOS build.
+The script picks the asset for your OS and CPU from the latest release, installs under `~/.local` (or `/usr/local` with `sudo`), and adds a `stubuika` command. On macOS it also places `Stubuika.app` in `~/Applications` (or `/Applications` with `sudo`). Apple Silicon only for the macOS build.
 
 ```bash
 # Specific release tag
-curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | bash -s -- --version 2026.10.15
+curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | bash -s -- --version 2026.10.15
 
 # System-wide prefix
-curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | sudo bash -s -- --prefix /usr/local
+curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | sudo bash -s -- --prefix /usr/local
 
-# Uninstall (keeps lunaria.conf and app data)
-curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | bash -s -- --uninstall
+# Uninstall (keeps stubuika.conf and app data)
+curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | bash -s -- --uninstall
 ```
 
 ```bash
-lunaria /path/to/app.apk    # or .xapk / .apks / .aab
-lunaria                      # graphical launcher
+stubuika /path/to/app.apk    # or .xapk / .apks / .aab
+stubuika                      # graphical launcher
 ```
 
 If `~/.local/bin` is not on your `PATH`, add it (for example `export PATH="$HOME/.local/bin:$PATH"`).
 
-**Manual Linux:** unpack `lunaria-*-linux-x86_64.tar.gz` or `…-aarch64.tar.gz`, then run `./lunaria` from that directory. The archive ships its own shim libraries, host libraries, and fonts; it uses the system C library.
+**Manual Linux:** unpack `stubuika-*-linux-x86_64.tar.gz` or `…-aarch64.tar.gz`, then run `./stubuika` from that directory. The archive ships its own shim libraries, host libraries, and fonts; it uses the system C library.
 
-**Manual macOS:** open the `.dmg`, drag `Lunaria.app` where you like, then run  
-`/Applications/Lunaria.app/Contents/MacOS/Lunaria /path/to/app.apk`.
+**Manual macOS:** open the `.dmg`, drag `Stubuika.app` where you like, then run  
+`/Applications/Stubuika.app/Contents/MacOS/Stubuika /path/to/app.apk`.
 
 ### Windows
 
-Download `lunaria-*-windows-x86_64.zip` from [Releases](https://github.com/yui0/lunaria/releases), unzip it, and run `lunaria.exe /path/to/app.apk` (or drag an APK onto the executable). No MSYS2 or extra runtime install is required.
+Download `stubuika-*-windows-x86_64.zip` from [Releases](https://github.com/flessan/stubuika/releases), unzip it, and run `stubuika.exe /path/to/app.apk` (or drag an APK onto the executable). No MSYS2 or extra runtime install is required.
 
 To build from source instead, see [Quick start](#quick-start).
 
-## What makes Lunaria different
+## What makes Stubuika different
 
 | Feature | What it does |
 |---|---|
-| **No Android system image** | Launch `.apk`, `.xapk`, `.apks`, and `.aab` packages without booting Android in a VM. |
+| **No Android system image** | Launch `.apk`, `.apkm`, `.xapk`, `.apks`, and `.aab` packages without booting Android in a VM. |
 | **ARM32 and ARM64 support** | Run ARMv7 and AArch64 instructions through dynarmic's JIT compiler. |
 | **Host-side graphics** | Forward EGL and OpenGL ES 3 to the host GPU; expose Vulkan when the host bridge is available. |
 | **Android services, without the full OS** | Provide JNI, AssetManager, OBB, pthread, OpenSL ES, and compatibility implementations of Android APIs. |
 | **Java and Android UI** | Execute `classes*.dex` with the built-in Dalvik interpreter; render Android views, text, layouts, and app resources through host implementations. |
 | **Video and audio** | Decode supported H.264 streams with OpenH264 and AAC with libavcodec when available. |
 | **WebView integration** | Render web content through Chrome/Chromium or the included luna-browser. |
-| **Configurable device identity** | Choose a device profile in `lunaria.conf`; the default emulates the identity of a Pixel 6. |
+| **Configurable device identity** | Choose a device profile in `stubuika.conf`; the default emulates the identity of a Pixel 6. |
 | **Parallel AArch64 execution** | Distribute guest execution across host threads using `LUNARIA_A64_ENGINES`. |
 | **Keyboard and mouse controls** | Map keyboard input to touch controls, including movement, abilities, and camera control; support macros and input replay. |
 | **Persistent settings and profiles** | Preserve app preferences between launches and isolate account data with `--profile` while sharing installed files. |
@@ -130,11 +134,11 @@ To build from source instead, see [Quick start](#quick-start).
 
 ## Gallery
 
-These captures show Lunaria's game rendering and Android application UI. Captions distinguish gameplay from welcome and loading screens.
+These captures show Stubuika's game rendering and Android application UI. Captions distinguish gameplay from welcome and loading screens.
 
 ### Beyond native game rendering
 
-Lunaria executes application dex bytecode and implements Android views, layouts, text, resources, and lifecycle callbacks on the host. This path is still under development; displaying an app's UI does not establish that all of its services work.
+Stubuika executes application dex bytecode and implements Android views, layouts, text, resources, and lifecycle callbacks on the host. This path is still under development; displaying an app's UI does not establish that all of its services work.
 
 <p align="center">
   <img src="shots/trickcal-server-loading.jpg" width="66%" alt="Trickcal Chibi+Go 1.6.1 displaying its illustrated town and server configuration loading progress">
@@ -277,7 +281,7 @@ a guest pixel. GLFW ignores `xdotool` synthetic clicks.
 
 ### Alchemia Story
 
-ASOBIMO's Japanese RPG runs on Unity IL2CPP (`arm64-v8a`). Lunaria renders its title screen, Japanese story dialogue, and character-creation scenes. The framebuffer is **1024 × 576** in landscape and **576 × 1024** in portrait.
+ASOBIMO's Japanese RPG runs on Unity IL2CPP (`arm64-v8a`). Stubuika renders its title screen, Japanese story dialogue, and character-creation scenes. The framebuffer is **1024 × 576** in landscape and **576 × 1024** in portrait.
 
 <p align="center">
   <img src="shots/alchemia-story-cave.png" width="48%" alt="Alchemia Story: a black-haired heroine covers her mouth in surprise inside a cave, Japanese dialogue box below">
@@ -289,7 +293,7 @@ ASOBIMO's Japanese RPG runs on Unity IL2CPP (`arm64-v8a`). Lunaria renders its t
 
 ### [Kikyu! Aeronaut](https://github.com/yui0/Kikyu)
 
-Even this 2013 `armeabi` APK runs through Lunaria’s ARM32 path. Its original `libCatNative.so` renders the moonlit skyline, pixel-art protagonist, and *Press Return to Embark* title screen.
+Even this 2013 `armeabi` APK runs through Stubuika’s ARM32 path. Its original `libCatNative.so` renders the moonlit skyline, pixel-art protagonist, and *Press Return to Embark* title screen.
 
 <p align="center">
   <img src="shots/kikyu-title.png" width="48%" alt="Kikyu! Aeronaut title screen: a crescent moon over a city skyline, the pixel-art heroine on a pile of rubble, Press Return to Embark">
@@ -337,25 +341,25 @@ Even this 2013 `armeabi` APK runs through Lunaria’s ARM32 path. Its original `
 
 <p align="center"><sub>Demo Project Light · Unreal first-person sample · Mesa llvmpipe &nbsp;·&nbsp; TIME LOCKER · 720×1280</sub></p>
 
-### Lunaria itself
+### Stubuika itself
 
-Launch Lunaria without arguments to open its graphical launcher. Drop an `.apk`, `.xapk`, `.apks`, or `.aab` onto the window, choose the data directory and device profile, and save your preferences in `lunaria.conf`. Large games may need time to load libraries, translate ARM instructions, and compile dex bytecode; a startup screen displays progress until the first guest frame appears.
+Launch Stubuika without arguments to open its graphical launcher. Drop an `.apk`, `.apkm`, `.xapk`, `.apks`, or `.aab` onto the window, choose the data directory and device profile, and save your preferences in `stubuika.conf`. Large games may need time to load libraries, translate ARM instructions, and compile dex bytecode; a startup screen displays progress until the first guest frame appears.
 
 Enter an application name under **Find an app on APKPure** and press Enter or Search.
 Select a result after checking its name and Android package ID to download and open the latest XAPK.
 Downloads go into `downloads` under the package cache folder, or `cache/packages/downloads` under
-the data folder when no cache folder is set. With neither set, they go into `Downloads/Lunaria`
+the data folder when no cache folder is set. With neither set, they go into `Downloads/Stubuika`
 under your home directory. Cancel stops a request; failed or cancelled transfers remove their partial files.
 If APKPure denies access, the launcher displays the HTTP error.
 
 Once a game is running, **right-click to open the host menu**. From there you can take screenshots (also **F12**), paste text, send Back, adjust audio, choose keyboard mappings and WebView settings, record or replay input, switch profiles, restart, toggle fullscreen, or quit.
 
 <p align="center">
-  <img src="shots/launcher.png" width="72%" alt="Lunaria graphical launcher with package selection, data directory, and device profile settings">
+  <img src="shots/launcher.png" width="72%" alt="Stubuika graphical launcher with package selection, data directory, and device profile settings">
 </p>
 
 <p align="center">
-  <img src="shots/host-menu-kikyu.png" width="72%" alt="Lunaria host menu over Kikyu! Aeronaut, with keyboard control layouts available">
+  <img src="shots/host-menu-kikyu.png" width="72%" alt="Stubuika host menu over Kikyu! Aeronaut, with keyboard control layouts available">
 </p>
 
 <p align="center"><sub>Choose a package in the launcher · change controls from the in-game host menu</sub></p>
@@ -377,11 +381,11 @@ sudo apt install \
   libasound2-dev libvulkan-dev
 ```
 
-`libvulkan-dev` provides headers for the optional Vulkan bridge. When a host Vulkan library is available, Lunaria enables the bridge by default. Set `LUNARIA_VULKAN=0` to disable it.
+`libvulkan-dev` provides headers for the optional Vulkan bridge. When a host Vulkan library is available, Stubuika enables the bridge by default. Set `LUNARIA_VULKAN=0` to disable it.
 
 **macOS (Apple Silicon)**
 
-Run `make` from this directory to download the pinned ANGLE, MoltenVK, and OpenH264 dependencies and build Lunaria. To open an XAPK, use `./lunaria /path/to/game.xapk`. See [Project status](#project-status) for current macOS display limitations.
+Run `make` from this directory to download the pinned ANGLE, MoltenVK, and OpenH264 dependencies and build Stubuika. To open an XAPK, use `./stubuika /path/to/game.xapk`. See [Project status](#project-status) for current macOS display limitations.
 
 **Windows (x86_64)**
 
@@ -398,11 +402,11 @@ Set `ANDROID_HOME` to the Android SDK directory (including the Build Tools' ARM6
 make -j4 dist CC=gcc CXX=g++ DYNARMIC_JOBS=4
 ```
 
-The Windows build combines the JVM, Dalvik interpreter, UI, and Android compatibility APIs into `lunaria.exe`. Run `.\lunaria.exe game.apk` from PowerShell after extracting the archive, or drag an APK onto the executable. The resulting application does **not** require MSYS2, Python, a separate shell, or ICU at runtime.
+The Windows build combines the JVM, Dalvik interpreter, UI, and Android compatibility APIs into `stubuika.exe`. Run `.\stubuika.exe game.apk` from PowerShell after extracting the archive, or drag an APK onto the executable. The resulting application does **not** require MSYS2, Python, a separate shell, or ICU at runtime.
 
-You can also cross-compile a Windows ZIP from Linux with `make -j4 dist-cross-win`. On its first run, this downloads MSYS2 UCRT64 dependencies, runtime DLLs, and Boost headers to `/tmp/lunaria-windows-deps`. Subsequent builds reuse the cache.
+You can also cross-compile a Windows ZIP from Linux with `make -j4 dist-cross-win`. On its first run, this downloads MSYS2 UCRT64 dependencies, runtime DLLs, and Boost headers to `/tmp/stubuika-windows-deps`. Subsequent builds reuse the cache.
 
-Cross-compilation requires UCRT-capable `x86_64-w64-mingw32-gcc/g++`, CMake, Ninja, Python 3.11 or newer, curl, tar with zstd support, zip, and the Android SDK/NDK described above. Intermediate files are stored under `/tmp/lunaria-cross-win` and `/tmp/lunaria-dist-build/cross-windows-x86_64`; the ZIP is written to this directory.
+Cross-compilation requires UCRT-capable `x86_64-w64-mingw32-gcc/g++`, CMake, Ninja, Python 3.11 or newer, curl, tar with zstd support, zip, and the Android SDK/NDK described above. Intermediate files are stored under `/tmp/stubuika-cross-win` and `/tmp/stubuika-dist-build/cross-windows-x86_64`; the ZIP is written to this directory.
 
 Set `WIN_DEPS=/path/to/deps` to reuse an existing dependency directory. Other overrides are `WIN_CROSS_PREFIX`, `WIN_ANGLE`, `WIN_GLFW_LIB`, `WIN_BOOST_INCLUDE`, `WIN_BUILD_DIR`, and `WIN_DIST_BUILD_DIR`. The ZIP includes required host DLLs, OpenH264, and the guest AArch64 libraries in `syslib-arm64/`; it omits ICU and host `runtime/*.so` shims. One recorded build produced an archive of approximately 35 MiB. Windows command-line arguments are converted from UTF-16 to UTF-8.
 
@@ -421,7 +425,7 @@ Run `make syslib` to populate `syslib-arm64/` with AArch64 `libm`, bionic `libc`
 
 `make guestlib` builds `liblunaria_guest.so` from `src/lib/guest.c`. It currently handles zero-duration `nanosleep` calls without returning to the host.
 
-Lunaria embeds Unicode classification, normalization, and IDN tables. Legacy character encodings use Windows code pages or `iconv` on Linux/macOS; Windows date handling uses OS timezone rules and a compact CLDR mapping. **ICU is not required** for building or running Lunaria.
+Stubuika embeds Unicode classification, normalization, and IDN tables. Legacy character encodings use Windows code pages or `iconv` on Linux/macOS; Windows date handling uses OS timezone rules and a compact CLDR mapping. **ICU is not required** for building or running Stubuika.
 
 ### Android framework resources
 
@@ -440,43 +444,43 @@ modified. Set `LUNARIA_FRAMEWORK_RES` to use another directory containing
 ### 3. Launch a package
 
 ```bash
-./lunaria                         # open the launcher UI
-./lunaria path/to/game.apk
-./lunaria path/to/game.xapk
-./lunaria path/to/game.apks
-./lunaria path/to/game.aab
-LUNARIA_ALSA_DEVICE="hw:7,0" ./lunaria Cross+Worlds_5.04.12_APKPure.xapk
+./stubuika                         # open the launcher UI
+./stubuika path/to/game.apk
+./stubuika path/to/game.xapk
+./stubuika path/to/game.apks
+./stubuika path/to/game.aab
+LUNARIA_ALSA_DEVICE="hw:7,0" ./stubuika Cross+Worlds_5.04.12_APKPure.xapk
 ```
 
 To create a distributable package that does not depend on the build directory:
 
 ```bash
-make dist        # lunaria-<version>-linux-x86_64.tar.gz
-make dist-mac    # Lunaria.app + .dmg (Darwin only)
+make dist        # stubuika-<version>-linux-x86_64.tar.gz
+make dist-mac    # Stubuika.app + .dmg (Darwin only)
 ```
 
-Lunaria handles package installation internally, including ZIP/ZIP64 archives, binary manifests, signature blocks, split APKs, OBB files, and extraction caches. It detects `arm64-v8a` or `armeabi-v7a`, locates the entry-point native library, and starts the Android compatibility runtime.
+Stubuika handles package installation internally, including ZIP/ZIP64 archives, binary manifests, signature blocks, split APKs, OBB files, and extraction caches. It detects `arm64-v8a` or `armeabi-v7a`, locates the entry-point native library, and starts the Android compatibility runtime.
 
-For XAPK and APKS files, Lunaria combines split APKs into its runtime view without modifying the base APK. For AAB files, it reads the protobuf `BundleConfig` and loads the base module and available asset packs. Extracted content is cached under `cache/packages/` in the selected data directory. Set `LUNARIA_CACHE_DIR` to move the cache or `LUNARIA_NO_CACHE=1` to unpack the package on every launch.
+For XAPK and APKS files, Stubuika combines split APKs into its runtime view without modifying the base APK. For AAB files, it reads the protobuf `BundleConfig` and loads the base module and available asset packs. Extracted content is cached under `cache/packages/` in the selected data directory. Set `LUNARIA_CACHE_DIR` to move the cache or `LUNARIA_NO_CACHE=1` to unpack the package on every launch.
 
 Extraction progress includes the percentage completed, MiB processed, file count, and current filename—even while copying individual large files. OBB aliases use hard links or symbolic links where possible, avoiding repeated multi-gigabyte copies.
 
-Save persistent settings in `lunaria.conf` (see `lunaria.conf.sample`): device identity, guest data directory (`LUNARIA_DATA_ROOT`), WebView engine, and more. Environment variables override configuration-file values for the current run.
+Save persistent settings in `stubuika.conf` (see `stubuika.conf.sample`): device identity, guest data directory (`LUNARIA_DATA_ROOT`), WebView engine, and more. Environment variables override configuration-file values for the current run.
 
-By default, Lunaria looks for `lunaria.conf` in its startup working directory and also stores guest data there. To choose another configuration file, use `--config FILE` or `LUNARIA_CONF`; to choose another data directory, use `--data-root DIR` or `LUNARIA_DATA_ROOT`. Relative paths are resolved from the startup directory, and paths containing spaces are supported.
+By default, Stubuika looks for `stubuika.conf` in its startup working directory and also stores guest data there. To choose another configuration file, use `--config FILE` or `LUNARIA_CONF`; to choose another data directory, use `--data-root DIR` or `LUNARIA_DATA_ROOT`. Relative paths are resolved from the startup directory, and paths containing spaces are supported.
 
 ```bash
-./lunaria --config ./lunaria.conf --data-root "/mnt/games/Lunaria data" game.xapk
-# macOS: --data-root /Volumes/Games/Lunaria
-# Windows shell: --data-root D:/Games/Lunaria
+./stubuika --config ./stubuika.conf --data-root "/mnt/games/Stubuika data" game.xapk
+# macOS: --data-root /Volumes/Games/Stubuika
+# Windows shell: --data-root D:/Games/Stubuika
 ```
 
 **Multiple accounts, one installation.** Profiles share the installed package and designated game resources, but keep preferences, databases, login files, and other personal data separate. The `default` profile continues to use the existing data directories.
 
 ```bash
-./lunaria --choose-profile game.xapk
-./lunaria --profile account2 game.xapk
-./lunaria --list-profiles game.xapk
+./stubuika --choose-profile game.xapk
+./stubuika --profile account2 game.xapk
+./stubuika --list-profiles game.xapk
 ```
 
 Profile names are their data directory names under `profiles/<package>/`. The launcher, right-click menu, and `--list-profiles` use those same names. The `default` profile uses `data/<package>/`.
@@ -490,16 +494,16 @@ Use **Sign in to a new environment…** once to create a separate GMS environmen
 The `default` GMS environment retains the existing Google application data and `system/accounts.tsv`. Existing launches with `LUNARIA_LAUNCH_ACTIVITY=com.android.settings.accounts.AddAccountSettings` continue to use it. A named environment can also be selected with `LUNARIA_GMS_PROFILE=gms-2`; it is independent of the game's `--profile` setting.
 
 ```bash
-./lunaria --google-services --data-root /path/to/data
+./stubuika --google-services --data-root /path/to/data
 # Headless package installation, without starting authentication:
-./lunaria --data-root /path/to/data --install-system GooglePlayServices.xapk
+./stubuika --data-root /path/to/data --install-system GooglePlayServices.xapk
 ```
 
 If a package contains multiple ABIs, select one explicitly:
 
 ```bash
-LUNARIA_ARCH=armeabi-v7a ./lunaria game.apk
-LUNARIA_ARCH=arm64-v8a  ./lunaria game.apk
+LUNARIA_ARCH=armeabi-v7a ./stubuika game.apk
+LUNARIA_ARCH=arm64-v8a  ./stubuika game.apk
 ```
 
 ## Compatibility
@@ -542,7 +546,7 @@ curl -L -o test/FPSMobile-armv7.apk \
 curl -L -o test/main.1.com.YourCompany.FPSMobile.obb \
   "https://raw.githubusercontent.com/Abhishrut/UnrealEngineAndroidSamples/main/main.1.com.YourCompany.FPSMobile.obb"
 
-LUNARIA_ARCH=armeabi-v7a ./lunaria test/FPSMobile-armv7.apk
+LUNARIA_ARCH=armeabi-v7a ./stubuika test/FPSMobile-armv7.apk
 ```
 
 ### Between Two Worlds / Unity 2023 IL2CPP
@@ -552,8 +556,8 @@ Source: [ShutovKS/Between-two-worlds](https://github.com/ShutovKS/Between-two-wo
 ```bash
 make fetch-btw
 
-LUNARIA_ARCH=armeabi-v7a ./lunaria test/btw-android.apk
-LUNARIA_ARCH=arm64-v8a  ./lunaria test/btw-android.apk
+LUNARIA_ARCH=armeabi-v7a ./stubuika test/btw-android.apk
+LUNARIA_ARCH=arm64-v8a  ./stubuika test/btw-android.apk
 ```
 
 The release file is an Android App Bundle despite its `.apk` extension.
@@ -567,29 +571,29 @@ Source: [Vwing/daggerfall-unity-android](https://github.com/Vwing/daggerfall-uni
 
 ```bash
 make fetch-libunity
-./lunaria test/dfu-mono-32bit.apk
+./stubuika test/dfu-mono-32bit.apk
 ```
 
 </details>
 
 ## Keyboard controls
 
-Lunaria translates keyboard and mouse input into touchscreen gestures, making games with on-screen controls easier to use on a desktop.
+Stubuika translates keyboard and mouse input into touchscreen gestures, making games with on-screen controls easier to use on a desktop.
 
 Open **Keyboard Controls** from the right-click menu to select a bundled layout or load your own configuration file. You can switch layouts without restarting the game. Choose **Off** to disable mapping, or **Reload Current File** to apply your edits. If a configuration fails to load, the current mapping remains active.
 
 For pinch gestures, hold **Ctrl** and scroll over the game: scroll up to spread two fingers, down to bring them together. The cursor marks the center of the gesture. Release other mouse and keymap touches before pinching.
 
 ```sh
-LUNARIA_KEYMAP=genshin ./lunaria /path/to/Genshin.xapk
-LUNARIA_KEYMAP=crossworlds ./lunaria /path/to/CrossWorlds.apks
+LUNARIA_KEYMAP=genshin ./stubuika /path/to/Genshin.xapk
+LUNARIA_KEYMAP=crossworlds ./stubuika /path/to/CrossWorlds.apks
 ```
 
 The included Genshin Impact and Cross Worlds layouts use **WASD** for movement, **F** for attacks, **E/Q/1/2/3** for abilities or character selection, and **Space** and **Shift** for jumping, dashing, or dodging depending on the game. Drag with the left mouse button to move the camera. Keyboard movement, mapped touch buttons, and mouse controls work simultaneously.
 
-Text fields take precedence over game mappings, so you can type normally. When the window loses focus, Lunaria automatically releases held keys to prevent stuck input.
+Text fields take precedence over game mappings, so you can type normally. When the window loses focus, Stubuika automatically releases held keys to prevent stuck input.
 
-To create a custom layout, copy a file from `keymaps/*.conf`, edit its touch coordinates, then set `LUNARIA_KEYMAP=/path/to/my.conf`. You can also save this setting in `lunaria.conf`, or use `LUNARIA_KEYMAP=off` to disable it.
+To create a custom layout, copy a file from `keymaps/*.conf`, edit its touch coordinates, then set `LUNARIA_KEYMAP=/path/to/my.conf`. You can also save this setting in `stubuika.conf`, or use `LUNARIA_KEYMAP=off` to disable it.
 
 ```text
 stick 0.15625 0.764 0.18
@@ -613,7 +617,7 @@ macro X 0.1,0.1 loop                       # keep running while the key is held
 
 A `button` supports up to four simultaneous touch points. `repeat=MS` repeats a tap every 10–60,000 ms while a key is held; `hold=MS` controls its duration (30 ms by default, or half the repeat interval if shorter). A `macro` combines taps (`x,y`), simultaneous contacts (`|x,y`), hold times (`/MS`), and delays (`@MS`). Add `loop` to repeat while the key is held. Timing is tied to the frame clock, approximately 16 ms per frame at 60 fps.
 
-Press **F9** (or choose **Record Input**) to record touchscreen input from the mouse, keymaps, and macros. Recordings are saved as `~/Documents/Lunaria <date>.rec` (falling back to `~/`). Press **F10** (**Play Recording**) to replay the latest recording, or select a file with `LUNARIA_PLAY`. Set `LUNARIA_PLAY_LOOP=1` to repeat it. Positions are stored relative to the view, so recordings work at different window sizes.
+Press **F9** (or choose **Record Input**) to record touchscreen input from the mouse, keymaps, and macros. Recordings are saved as `~/Documents/Stubuika <date>.rec` (falling back to `~/`). Press **F10** (**Play Recording**) to replay the latest recording, or select a file with `LUNARIA_PLAY`. Set `LUNARIA_PLAY_LOOP=1` to repeat it. Positions are stored relative to the view, so recordings work at different window sizes.
 
 ## Capture frames
 
@@ -622,26 +626,26 @@ To freeze the game for inspection, right-click and choose **Pause**; choose **Re
 Capture selected swap indices:
 
 ```bash
-mkdir -p /tmp/lunaria-shots
-LUNARIA_DUMP_DIR=/tmp/lunaria-shots \
+mkdir -p /tmp/stubuika-shots
+LUNARIA_DUMP_DIR=/tmp/stubuika-shots \
 LUNARIA_DUMP_FRAME=0,60,120 \
-./lunaria game.apk
+./stubuika game.apk
 ```
 
 Or capture every *N* swaps:
 
 ```bash
-LUNARIA_DUMP_DIR=/tmp/lunaria-shots \
+LUNARIA_DUMP_DIR=/tmp/stubuika-shots \
 LUNARIA_SCREENSHOT_EVERY=60 \
-./lunaria game.xapk
+./stubuika game.xapk
 ```
 
-Captured frames are saved as PNG files such as `lunaria_0000.png`. Creating the file named by `$LUNARIA_SHOT_TRIGGER` (default `/tmp/lunaria-shot`) requests one additional capture. **F12** and **Take Screenshot** from the host menu instead save to `~/Pictures/Lunaria YYYY-MM-DD HH.MM.SS.png`.
+Captured frames are saved as PNG files such as `lunaria_0000.png`. Creating the file named by `$LUNARIA_SHOT_TRIGGER` (default `/tmp/stubuika-shot`) requests one additional capture. **F12** and **Take Screenshot** from the host menu instead save to `~/Pictures/Stubuika YYYY-MM-DD HH.MM.SS.png`.
 
 ## How it works
 
 ```text
- APK / XAPK / APKS / AAB
+ APK / APKM / XAPK / APKS / AAB
      │  extract base modules, splits, native libraries, assets and OBB
      ▼
  Android ELF loader ─── relocations and dependency resolution
@@ -667,7 +671,7 @@ Captured frames are saved as PNG files such as `lunaria_0000.png`. Creating the 
 - **Threads:** guest pthreads use cooperative round-robin scheduling, with a separate JIT context for each worker. Unlocking a mutex can hand execution directly to a waiting thread. Guest sleeps follow wall-clock time; blocking reads can be parked with `LUNARIA_FD_PARK`.
 - **Java:** when a JNI call has no host stub, `src/dvm/` executes the method
   from the APK's `classes*.dex` (`LUNARIA_DVM=1` by default).
-- **App lifecycle:** Lunaria starts the manifest-defined `Application` and content providers before calling the launcher `Activity`’s `onCreate`, `onStart`, and `onResume`. Native-activity engines reach `ANativeActivity_onCreate` through `android.app.NativeActivity`, with window and input events delivered through the usual `APP_CMD_*` commands.
+- **App lifecycle:** Stubuika starts the manifest-defined `Application` and content providers before calling the launcher `Activity`’s `onCreate`, `onStart`, and `onResume`. Native-activity engines reach `ANativeActivity_onCreate` through `android.app.NativeActivity`, with window and input events delivered through the usual `APP_CMD_*` commands.
 - **Libraries:** a `System.loadLibrary` root heads the lookup scope of its own
   dependencies, as Android's linker does, so an engine's allocator replaces the
   one inside `libc++_shared.so`.
@@ -683,7 +687,7 @@ Captured frames are saved as PNG files such as `lunaria_0000.png`. Creating the 
   `LUNARIA_WEB_BROWSER` names a binary directly. The page is shown as an image
   inside the view; touch and text go back over the same pipe. Build the
   fallback with `make luna-browser`.
-- **Vulkan:** when supported by the host bridge, guest `vk*` calls reach the host Vulkan loader. Lunaria emulates Android surfaces and swapchains and forwards the presented image to its compositor. Games that do not use Vulkan continue through GLES—the rendering path used for the demonstrated games above.
+- **Vulkan:** when supported by the host bridge, guest `vk*` calls reach the host Vulkan loader. Stubuika emulates Android surfaces and swapchains and forwards the presented image to its compositor. Games that do not use Vulkan continue through GLES—the rendering path used for the demonstrated games above.
 
 ## Runtime controls
 
@@ -707,11 +711,11 @@ The following options cover everyday use and common diagnostics. Additional deve
 | `LUNARIA_SYSLIB_DIR` | `syslib-arm64/` if that directory exists | AArch64 platform libraries that run as guest code. `make syslib` fetches libm, libc and libz; `make guestlib` builds `liblunaria_guest.so` |
 | `LUNARIA_VULKAN` | on when available | Set `0` to disable the Vulkan bridge and device feature. Titles may still choose GLES |
 | `LUNARIA_TOUCH_TEST` | off | Inject taps at `x,y[;x,y…]` (max 8). Bare numbers are framebuffer percentages; `640px` is a guest pixel |
-| `LUNARIA_TOUCH_FIFO` | off | Taps: `x,y[,hold]`; explicit drag samples: `down x,y`, `move x,y`, `up x,y`. Coordinates accept percentages or `px`. Windows: `\\.\pipe\lunaria-touch` (named pipe). |
+| `LUNARIA_TOUCH_FIFO` | off | Taps: `x,y[,hold]`; explicit drag samples: `down x,y`, `move x,y`, `up x,y`. Coordinates accept percentages or `px`. Windows: `\\.\pipe\stubuika-touch` (named pipe). |
 | `LUNARIA_KEYMAP` | off | `genshin`, `crossworlds`, `off`, or a path to a keymap file. The host menu can change it live |
-| `LUNARIA_DEVICE` | `pixel6` | Device profile: `pixel6`, `pixel7`, `galaxys21`, `lunaria`. Prefer `lunaria.conf` |
+| `LUNARIA_DEVICE` | `pixel6` | Device profile: `pixel6`, `pixel7`, `galaxys21`, `stubuika`. Prefer `stubuika.conf` |
 | `LUNARIA_DATA_ROOT` | Startup working directory | Guest `/data` and `/storage`. Also selectable with `--data-root DIR` |
-| `LUNARIA_CONF` | `lunaria.conf` in the startup working directory | Settings file to read and write. Also selectable with `--config FILE`; no fallback search |
+| `LUNARIA_CONF` | `stubuika.conf` in the startup working directory | Settings file to read and write. Also selectable with `--config FILE`; no fallback search |
 | `LUNARIA_WEB_ENGINE` | `auto` | `auto`, `chrome`, `luna`, or `off`. The host menu overrides it for the session |
 | `LUNARIA_SCALE` | off | Scale the selected device's own panel (`0.5` is half). Unset, the surface is `LUNARIA_WIDTH` × `LUNARIA_HEIGHT` |
 | `LUNARIA_TOUCH_FRAME` / `_HOLD` / `_GAP` | `60` / `10` / `60` | First DOWN frame / hold / gap between taps |
@@ -737,7 +741,7 @@ The following options cover everyday use and common diagnostics. Additional deve
 | `LUNARIA_CACHE_DIR` | `cache/packages/` under the data root selected at startup | Persistent package cache; independently relocatable |
 | `LUNARIA_NO_CACHE` | off | Force a fresh APK/XAPK/APKS unpack |
 
-Lunaria launches apps from their manifests, passing the launcher activity as `ANDROID_LAUNCH_ACTIVITY` and the application class as `ANDROID_APPLICATION_CLASS`. Their lifecycles run through the bytecode VM, and native engines are loaded by the app’s own `System.loadLibrary`.
+Stubuika launches apps from their manifests, passing the launcher activity as `ANDROID_LAUNCH_ACTIVITY` and the application class as `ANDROID_APPLICATION_CLASS`. Their lifecycles run through the bytecode VM, and native engines are loaded by the app’s own `System.loadLibrary`.
 
 Tick values accept `K`, `M`, and `G` suffixes—for example, `LUNARIA_ONLOAD_TICKS=5G`.
 
@@ -761,7 +765,7 @@ Tick values accept `K`, `M`, and `G` suffixes—for example, `LUNARIA_ONLOAD_TIC
 | `src/webview_cdp.c` | DevTools pipe client shared by Chrome and luna-browser |
 | `luna-browser/` | the built-in WebView engine (luna-ui + QuickJS); `make luna-browser` |
 | `keymaps/` | bundled touch maps (`genshin.conf`, `crossworlds.conf`) |
-| `lunaria.conf.sample` | device profile, data root, screen scale, package ledger, WebView engine |
+| `stubuika.conf.sample` | device profile, data root, screen scale, package ledger, WebView engine |
 | `runtime/` | generated Android-compatible host shared libraries |
 | `src/apk.c` | Package extraction, APK/XAPK/APKS/AAB handling, manifest parsing, caching, and launch |
 | `src/luna_unicode.c` | compiled Unicode classification, normalization and IDNA2003 |
@@ -772,9 +776,9 @@ Tick values accept `K`, `M`, and `G` suffixes—for example, `LUNARIA_ONLOAD_TIC
 <details>
 <summary><strong>The startup movie does not play</strong></summary>
 
-Lunaria uses OpenH264 for H.264 decoding. The supported Constrained Baseline profile does not cover every game's videos: many startup movies use Main or High profile features such as CABAC and B-frames. This is the case for Blade & Soul Revolution.
+Stubuika uses OpenH264 for H.264 decoding. The supported Constrained Baseline profile does not cover every game's videos: many startup movies use Main or High profile features such as CABAC and B-frames. This is the case for Blade & Soul Revolution.
 
-If Lunaria processes 16 access units without producing a decoded frame, it reports `MEDIA_ERROR_UNSUPPORTED` to the guest. This lets a compatible game engine skip the video rather than waiting indefinitely on a blank screen.
+If Stubuika processes 16 access units without producing a decoded frame, it reports `MEDIA_ERROR_UNSUPPORTED` to the guest. This lets a compatible game engine skip the video rather than waiting indefinitely on a blank screen.
 
 Streams using the supported profile, including the opening video of Blade & Soul Masia, can reach `BUFFER_FLAG_END_OF_STREAM` when OpenH264 is installed (`make fetch-openh264`). AAC decoding uses the host's libavcodec when available. Set `LUNARIA_TRACE_MEDIA=1` to inspect codec activity.
 
@@ -805,7 +809,7 @@ First verify that all split APKs and required OBB files are present. If the app 
 
 ```bash
 LUNARIA_TRACE_EXC=1 LUNARIA_DUMP_LAST_SVC=1 \
-./lunaria game.apk 2>&1 | tee lunaria.log
+./stubuika game.apk 2>&1 | tee stubuika.log
 ```
 
 For Unreal Engine 5 titles, use a hardware-accelerated OpenGL driver when possible. `LIBGL_ALWAYS_SOFTWARE=1` forces llvmpipe software rendering, which can make startup dramatically slower and resemble a hang.
@@ -822,13 +826,13 @@ Mesa llvmpipe is useful for headless rendering tests, but its software rasteriza
 <details>
 <summary><strong>Clicks do nothing</strong></summary>
 
-GLFW ignores synthetic clicks from `xdotool` and `XSendEvent`. Click in the actual GLFW window, inject taps with `LUNARIA_TOUCH_TEST='50,84;…'` (framebuffer percentages, or append `px` for guest pixels), or use `LUNARIA_TOUCH_FIFO` after startup. Right-click is reserved for Lunaria’s host menu.
+GLFW ignores synthetic clicks from `xdotool` and `XSendEvent`. Click in the actual GLFW window, inject taps with `LUNARIA_TOUCH_TEST='50,84;…'` (framebuffer percentages, or append `px` for guest pixels), or use `LUNARIA_TOUCH_FIFO` after startup. Right-click is reserved for Stubuika’s host menu.
 
 </details>
 
 ## Project status
 
-Lunaria is **research software under active development**. It has known API gaps, title-specific failures, diagnostic output, and breaking changes. Test results are snapshots of particular builds and machines—not guarantees of compatibility.
+Stubuika is **research software under active development**. It has known API gaps, title-specific failures, diagnostic output, and breaking changes. Test results are snapshots of particular builds and machines—not guarantees of compatibility.
 
 - **Linux:** Captured guest framebuffer output matches the GLFW window in the tested configuration.
 - **Apple Silicon macOS:** A distributable build is available through `make dist-mac`, but the visible window may remain black even when guest frames are being rendered. Some test runs, including Cross Worlds 5.04.12, reached the opening movie, 3D intro, and terms dialog.
@@ -840,4 +844,9 @@ Distribution builds use `-O3`, `-DNDEBUG`, and LTO. Dynarmic is rebuilt separate
 
 Licensed under the [Mozilla Public License 2.0](LICENSE).
 
-Project Lunaria © 2026 Yuichiro Nakada.
+Project Stubuika © 2026 Yuichiro Nakada.
+
+
+## Project lineage
+
+Stubuika is a rebranded continuation of [Lunaria](https://github.com/yui0/lunaria), originally authored by Yuichiro Nakada. The original MPL-2.0 license and copyright notices are retained. The inherited `LUNARIA_*` environment-variable namespace is kept for compatibility while the project transitions to the Stubuika name.

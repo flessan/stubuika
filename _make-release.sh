@@ -578,7 +578,7 @@ curl -fsSL https://raw.githubusercontent.com/yui0/stubuika/master/install.sh | b
 ### Linux (manual)
 ```bash
 tar -xzf stubuika-*-linux-x86_64.tar.gz && cd stubuika-*-linux-x86_64   # or -aarch64
-./stubuika /path/to/app.apk      # or .xapk / .apks
+./stubuika /path/to/app.apk      # or .apkm / .xapk / .apks / .aab
 ```
 The archive carries its own shim libraries, host libraries and fonts; it uses
 the running system's C library.

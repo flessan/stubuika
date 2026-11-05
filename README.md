@@ -354,13 +354,11 @@ If APKPure denies access, the launcher displays the HTTP error.
 
 Once a game is running, **right-click to open the host menu**. From there you can take screenshots (also **F12**), paste text, send Back, adjust audio, choose keyboard mappings and WebView settings, record or replay input, switch profiles, restart, toggle fullscreen, or quit.
 
-<p align="center">
-  <img src="shots/launcher.png" width="72%" alt="Stubuika graphical launcher with package selection, data directory, and device profile settings">
-</p>
+> Launcher and host-menu screenshots are being refreshed for the Stubuika branding. The gameplay captures above are retained from the upstream compatibility work.
 
-<p align="center">
-  <img src="shots/host-menu-kikyu.png" width="72%" alt="Stubuika host menu over Kikyu! Aeronaut, with keyboard control layouts available">
-</p>
+
+
+
 
 <p align="center"><sub>Choose a package in the launcher · change controls from the in-game host menu</sub></p>
 

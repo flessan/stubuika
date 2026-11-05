@@ -1,0 +1,43 @@
+name: Stubuika CI
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux-x86_64:
+    name: Linux x86_64 build and package tests
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential nasm cmake clang libclang-dev \
+            pkg-config libboost-dev libssl-dev libglfw3-dev libgles2-mesa-dev \
+            libegl1-mesa-dev libasound2-dev libbsd-dev libunwind-dev zlib1g-dev \
+            libxcb1-dev libxcb-shm0-dev libxcb-randr0-dev
+
+      - name: Build dynarmic
+        run: make dynarmic-build
+
+      - name: Build Stubuika
+        run: make -j"$(nproc)" stubuika
+
+      - name: Validate helper scripts
+        run: |
+          bash -n install.sh scripts/stubuika-server.sh test/run_tests.sh
+          python3 -m py_compile scripts/bundle-macos.py scripts/bundle-windows.py scripts/make-icon.py
+
+      - name: Test APKM bundle loading
+        run: sh test/run_tests.sh apkm_bundle

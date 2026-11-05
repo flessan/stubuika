@@ -707,7 +707,7 @@ static bool overlay_start(int w, int h)
    luna_overlay_prepare_platform();
 
    /* The engine's shader set differs between desktop GL and GLES; ask the
-    * context which one this is rather than assuming.  Lunaria runs on both:
+    * context which one this is rather than assuming.  Stubuika runs on both:
     * a desktop driver through GLFW, and GLES on the console session. */
    const char *ver = (const char *)glGetString(GL_VERSION);
    bool es = ver && strstr(ver, "OpenGL ES") != NULL;
@@ -1121,7 +1121,7 @@ static void overlay_maybe_test_card(void)
    }
    luna_overlay_set_document(
       "<body><div class=\"card\">"
-      "<div class=\"title\">Lunaria UI</div>"
+      "<div class=\"title\">Stubuika UI</div>"
       "<div class=\"body\">overlay compositing over the guest frame</div>"
       "</div></body>",
       "body{margin:0;background:transparent;}"
@@ -2243,7 +2243,7 @@ static int menu_main_rows(struct menu_buf *b, int parent_y[SUB_COUNT])
       y += menu_item(b, "restart", "Restart", false, NULL);
       y += menu_item(b, "launcher", "Back to launcher", false, NULL);
    }
-   y += menu_item(b, "quit", "Quit Lunaria", false, NULL);
+   y += menu_item(b, "quit", "Quit Stubuika", false, NULL);
    return y + PAD;
 }
 
@@ -2546,7 +2546,7 @@ static void menu_stamp_path(char *out, size_t cap, const char *folder, const cha
    time_t t = time(NULL);
    struct tm tm = {0};
    luna_localtime(&t, &tm);
-   snprintf(out, cap, "%s/Lunaria %04d-%02d-%02d %02d.%02d.%02d.%s", dir,
+   snprintf(out, cap, "%s/Stubuika %04d-%02d-%02d %02d.%02d.%02d.%s", dir,
             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ext);
 }
 
@@ -2606,7 +2606,7 @@ void luna_input_play_toggle(void)
 }
 
 /* The right-click menu writes into the running package's block of
- * lunaria.conf.  Lines outside any block are common and win the next launch;
+ * stubuika.conf.  Lines outside any block are common and win the next launch;
  * this only records what that app chose.  value == NULL drops the key, which
  * is how "follow the device density" is stored: the name is simply absent. */
 static bool menu_conf_write(const char *key, const char *value, bool apply)

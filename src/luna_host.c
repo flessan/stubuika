@@ -292,7 +292,7 @@ static void inspect_draw_state(GLuint program, GLint fbo)
         GLsizei used = 0;
         glGetShaderSource(shaders[i], length, &used, text);
         char path[160];
-        snprintf(path, sizeof path, "/tmp/lunaria-gl-%ld-p%u-s%u.glsl",
+        snprintf(path, sizeof path, "/tmp/stubuika-gl-%ld-p%u-s%u.glsl",
                  (long)getpid(), program, shaders[i]);
         FILE *out = fopen(path, "wb");
         if (out) { fwrite(text, 1, (size_t)used, out); fclose(out); }

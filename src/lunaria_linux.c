@@ -669,7 +669,7 @@ void *luna_os_native_window(void *glfw_window)
          memcpy(&g_wayland_egl_resize, &symbol, sizeof(g_wayland_egl_resize));
          void *surface = get_surface ? get_surface((GLFWwindow *)glfw_window) : NULL;
          if (!create || !g_wayland_egl_resize || !surface) {
-            fprintf(stderr, "[lunaria] Wayland EGL window unavailable\n");
+            fprintf(stderr, "[stubuika] Wayland EGL window unavailable\n");
             return NULL;
          }
          /* Lunaria owns one process-lifetime host window, like its EGL surface. */

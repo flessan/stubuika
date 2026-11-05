@@ -1,17 +1,17 @@
 #!/bin/sh
 #
-# Copyright © 2026 Yuichiro Nakada / Project Lunaria
+# Copyright © 2026 Yuichiro Nakada / Project Stubuika
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 #
-# Test suite for Lunaria
+# Test suite for Stubuika
 # Usage: sh test/run_tests.sh [test_name]
 #
 # All tests must be run from the project root directory.
 
-LUNARIA=./lunaria
+STUBUIKA=./stubuika
 RUNTIME_PATH=./runtime:.
 TESTDIR=./test
 PASS=0
@@ -40,26 +40,69 @@ t_build() {
 }
 
 # ---------------------------------------------------------------------------
-# t_lunaria_exists: lunaria binary must exist and be executable
+# t_stubuika_exists: stubuika binary must exist and be executable
 # ---------------------------------------------------------------------------
-t_lunaria_exists() {
-    if [ ! -x "$LUNARIA" ]; then
-        log_fail "lunaria_exists" "lunaria not found or not executable at $LUNARIA"
+t_stubuika_exists() {
+    if [ ! -x "$STUBUIKA" ]; then
+        log_fail "stubuika_exists" "stubuika not found or not executable at $STUBUIKA"
         return
     fi
-    log_pass "lunaria_exists"
+    log_pass "stubuika_exists"
 }
 
 # ---------------------------------------------------------------------------
-# t_lunaria_usage: running without args must print usage
+# t_stubuika_usage: running without args must print usage
 # ---------------------------------------------------------------------------
-t_lunaria_usage() {
-    out=$(run "$LUNARIA" 2>&1)
+t_stubuika_usage() {
+    out=$(run "$STUBUIKA" 2>&1)
     if echo "$out" | grep -q "usage:"; then
-        log_pass "lunaria_usage"
+        log_pass "stubuika_usage"
     else
-        log_fail "lunaria_usage" "expected 'usage:' in output, got: $out"
+        log_fail "stubuika_usage" "expected 'usage:' in output, got: $out"
     fi
+}
+
+# ---------------------------------------------------------------------------
+# t_apkm_bundle: APKMirror-style ZIP bundle must reach package preparation
+# ---------------------------------------------------------------------------
+t_apkm_bundle() {
+    source_apk="./Kikyu-debug.apk"
+    if [ ! -f "$source_apk" ]; then
+        log_skip "apkm_bundle" "$source_apk fixture is not present"
+        return
+    fi
+    tmp=$(mktemp -d "${TMPDIR:-/tmp}/stubuika-apkm-test.XXXXXX") || {
+        log_fail "apkm_bundle" "cannot create temporary directory"
+        return
+    }
+    for variant in legacy current; do
+        bundle="$tmp/$variant.apkm"
+        if ! python3 - "$source_apk" "$bundle" "$variant" <<'PY'
+import sys
+import zipfile
+from pathlib import Path
+source, target = map(Path, sys.argv[1:3])
+variant = sys.argv[3]
+with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+    archive.write(source, "base.apk")
+    if variant == "current":
+        archive.writestr("info.json", '{"apkm_version": 2, "file": []}')
+PY
+        then
+            rm -rf "$tmp"
+            log_fail "apkm_bundle" "could not construct $variant APKM fixture"
+            return
+        fi
+        out=$(run "$STUBUIKA" --config "$tmp/stubuika.conf" --data-root "$tmp/data-$variant" --prepare-profile "$bundle" 2>&1)
+        status=$?
+        if [ "$status" -ne 0 ] || ! echo "$out" | grep -q '^profile='; then
+            rm -rf "$tmp"
+            log_fail "apkm_bundle" "$variant APKM package preparation failed (exit $status): $out"
+            return
+        fi
+    done
+    rm -rf "$tmp"
+    log_pass "apkm_bundle"
 }
 
 # ---------------------------------------------------------------------------
@@ -115,7 +158,7 @@ t_sysv_hash() {
 }
 
 # ---------------------------------------------------------------------------
-# t_jni_onload: lunaria must call JNI_OnLoad and produce expected output
+# t_jni_onload: stubuika must call JNI_OnLoad and produce expected output
 # ---------------------------------------------------------------------------
 t_jni_onload() {
     so="$TESTDIR/hello_jni_i386.so"
@@ -123,7 +166,7 @@ t_jni_onload() {
         log_skip "jni_onload" "$so not built"
         return
     fi
-    out=$(run "$LUNARIA" "$so" 2>&1)
+    out=$(run "$STUBUIKA" "$so" 2>&1)
     if echo "$out" | grep -q "JNI_OnLoad called"; then
         log_pass "jni_onload"
     else
@@ -140,7 +183,7 @@ t_elf_load() {
         log_skip "elf_load" "$so not built"
         return
     fi
-    out=$(run "$LUNARIA" "$so" 2>&1)
+    out=$(run "$STUBUIKA" "$so" 2>&1)
     # "not a valid ELF object" or "dlopen failed" indicates a hard load error
     if echo "$out" | grep -qE "not a valid ELF|dlopen failed"; then
         log_fail "elf_load" "$out"
@@ -150,17 +193,17 @@ t_elf_load() {
 }
 
 # ---------------------------------------------------------------------------
-# t_bad_elf: passing a non-ELF file must not crash lunaria (exit cleanly)
+# t_bad_elf: passing a non-ELF file must not crash stubuika (exit cleanly)
 # ---------------------------------------------------------------------------
 t_bad_elf() {
     tmp=$(mktemp /tmp/not_an_elf_XXXX)
     printf 'this is not an elf file\n' > "$tmp"
-    run "$LUNARIA" "$tmp" > /dev/null 2>&1
+    run "$STUBUIKA" "$tmp" > /dev/null 2>&1
     status=$?
     rm -f "$tmp"
     # We expect a non-zero exit (error), but not a signal (crash = 128+N or 139)
     if [ "$status" -ge 128 ]; then
-        log_fail "bad_elf" "lunaria crashed with signal (exit $status) on non-ELF input"
+        log_fail "bad_elf" "stubuika crashed with signal (exit $status) on non-ELF input"
     else
         log_pass "bad_elf"
     fi
@@ -170,10 +213,10 @@ t_bad_elf() {
 # t_missing_file: passing a nonexistent path must not crash
 # ---------------------------------------------------------------------------
 t_missing_file() {
-    run "$LUNARIA" /nonexistent/path/lib.so > /dev/null 2>&1
+    run "$STUBUIKA" /nonexistent/path/lib.so > /dev/null 2>&1
     status=$?
     if [ "$status" -ge 128 ]; then
-        log_fail "missing_file" "lunaria crashed with signal (exit $status)"
+        log_fail "missing_file" "stubuika crashed with signal (exit $status)"
     else
         log_pass "missing_file"
     fi
@@ -188,7 +231,7 @@ t_x86_64_rejected() {
         log_skip "x86_64_rejected" "$so not present"
         return
     fi
-    out=$(run "$LUNARIA" "$so" 2>&1)
+    out=$(run "$STUBUIKA" "$so" 2>&1)
     if echo "$out" | grep -q "not a valid ELF object"; then
         log_pass "x86_64_rejected"
     else
@@ -216,7 +259,7 @@ t_libunity_elf() {
     fi
 }
 
-# t_libunity_jni_onload: must export JNI_OnLoad (entry point lunaria calls)
+# t_libunity_jni_onload: must export JNI_OnLoad (entry point stubuika calls)
 t_libunity_jni_onload() {
     so="$TESTDIR/libunity.so"
     if [ ! -f "$so" ]; then
@@ -245,8 +288,8 @@ t_libunity_reflectionhelper() {
     fi
 }
 
-# t_libunity_deps_covered: DT_NEEDED libs that lunaria must provide must exist in runtime/
-# System libs (libz, libm, libmediandk) are expected from the host OS, not lunaria runtime.
+# t_libunity_deps_covered: DT_NEEDED libs that stubuika must provide must exist in runtime/
+# System libs (libz, libm, libmediandk) are expected from the host OS, not stubuika runtime.
 t_libunity_deps_covered() {
     so="$TESTDIR/libunity.so"
     if [ ! -f "$so" ]; then
@@ -502,7 +545,7 @@ t_unity_logic() {
 # ---------------------------------------------------------------------------
 cd "$(dirname "$0")/.." || exit 1
 
-# Run a single test if named on command line (no lunaria required for static tests)
+# Run a single test if named on command line (no stubuika required for static tests)
 if [ -n "$1" ]; then
     if [ "${VERBOSE:-0}" = "1" ]; then
         t_build_unity || true
@@ -514,9 +557,9 @@ if [ -n "$1" ]; then
     exit "$([ "$FAIL" -eq 0 ] && echo 0 || echo 1)"
 fi
 
-# Full suite: require lunaria
-if [ ! -x "$LUNARIA" ]; then
-    printf 'lunaria binary not found. Build with: make x86_64\n' >&2
+# Full suite: require stubuika
+if [ ! -x "$STUBUIKA" ]; then
+    printf 'stubuika binary not found. Build with: make x86_64\n' >&2
     exit 1
 fi
 
@@ -529,8 +572,9 @@ else
     t_build_unity > /dev/null 2>&1 || { printf 'Build of unity test binary failed\n' >&2; exit 1; }
 fi
 
-t_lunaria_exists
-t_lunaria_usage
+t_stubuika_exists
+t_stubuika_usage
+t_apkm_bundle
 t_runtime_libs
 t_elf32_check
 t_sysv_hash

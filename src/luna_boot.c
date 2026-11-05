@@ -172,7 +172,7 @@ static const char *boot_html(void)
        "</div>"
      "</div>"
      "<div class=\"copy\">"
-       "<div class=\"wordmark\">LUNARIA</div>"
+       "<div class=\"wordmark\">STUBUIKA</div>"
        "<div id=\"jit\" class=\"line\">starting</div>"
        "<div id=\"dex\" class=\"sub\"></div>"
      "</div>"
@@ -658,8 +658,8 @@ static void qfkey_host_key(int hid, int down)
 static void launcher_qfkey_title(char *buf, size_t n)
 {
     const char *inst = getenv("LUNARIA_INSTANCE");
-    if (inst && *inst) snprintf(buf, n, "lunaria-%s", inst);
-    else snprintf(buf, n, "lunaria");
+    if (inst && *inst) snprintf(buf, n, "stubuika-%s", inst);
+    else snprintf(buf, n, "stubuika");
 }
 
 static void launcher_publish_qfkey(int w, int h)
@@ -812,7 +812,7 @@ static int launcher_window_open(int width, int height)
     } else {
         if (!glfwInit()) return 0;
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        window = glfwCreateWindow(width, height, "Lunaria — Preparing application", NULL, NULL);
+        window = glfwCreateWindow(width, height, "Stubuika — Preparing application", NULL, NULL);
         if (!window) return 0;
         display = eglGetDisplay((EGLNativeDisplayType)luna_os_native_display());
         const EGLint config_attrs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -1005,7 +1005,7 @@ static void pick_store_download(LunaElement *element)
             if (!root) root=getenv("USERPROFILE");
 #endif
             if (!root) {luna_set_text(luna_get_element_by_id("error"),"Choose a package cache folder first.");return;}
-            n=snprintf(pick_store.directory,sizeof pick_store.directory,"%s/Downloads/Lunaria",root);
+            n=snprintf(pick_store.directory,sizeof pick_store.directory,"%s/Downloads/Stubuika",root);
         }
     }
     if (n<0 || (size_t)n>=sizeof pick_store.directory || !pick_folder_usable(pick_store.directory)) {
@@ -1175,7 +1175,7 @@ static void pick_open_dialog(int field)
         config.title = "Open an application";
         config.initial_path = start[0] ? start : NULL;
         config.filter_name = "Android packages";
-        config.filter_patterns = "*.apk *.xapk *.apks *.aab *.so";
+        config.filter_patterns = "*.apk *.apkm *.xapk *.apks *.aab *.so";
     }
     if (luna_file_dialog_show(&config, pick_dialog_done, NULL) < 0)
         luna_set_text(luna_get_element_by_id("error"),
@@ -1214,7 +1214,7 @@ static int pick_clean(const char *in, char *out, size_t capacity)
 
 static int pick_acceptable(const char *path)
 {
-    static const char *const kinds[] = { ".apk", ".xapk", ".apks", ".aab", ".so" };
+    static const char *const kinds[] = { ".apk", ".apkm", ".xapk", ".apks", ".aab", ".so" };
     const size_t len = strlen(path);
     luna_file_info info;
     if (luna_file_infoat(LUNA_AT_FDCWD, path, &info, 0)) return 0;
@@ -1235,7 +1235,7 @@ static int pick_folder_usable(const char *dir)
         luna_file_mkdir(part, 0700);
     }
     luna_file_mkdir(dir, 0700);
-    snprintf(probe, sizeof probe, "%s/.lunaria-write-test", dir);
+    snprintf(probe, sizeof probe, "%s/.stubuika-write-test", dir);
     FILE *f = fopen(probe, "wb");
     if (!f) return 0;
     fclose(f);
@@ -1362,7 +1362,7 @@ static int launcher_form(char *path, size_t capacity,
     if (!launcher_window_open(960, 680)) return -1;
     if (count > PICK_FIELDS) count = PICK_FIELDS;
     pick_settings = settings; pick_count = count;
-    if (!use_pbuffer && window) glfwSetWindowTitle(window, "Lunaria");
+    if (!use_pbuffer && window) glfwSetWindowTitle(window, "Stubuika");
     choosing = 1; pick_chosen = 0; dropped[0] = 0; pick_folder[0] = 0; pick_folder_for = -1; pick_select_for = -1;
 
     /* luna-ui's file dialog is part of the document, hidden until Browse. */
@@ -1388,7 +1388,7 @@ static int launcher_form(char *path, size_t capacity,
         "<div class=\"flake\"></div><div class=\"flake\"></div><div class=\"flake\"></div>"
         "<div class=\"flake\"></div><div class=\"flake\"></div><div class=\"flake\"></div>"
         "<div class=\"flake\"></div><div class=\"flake\"></div><div class=\"flake\"></div>"
-        "</div><div class=\"mark\">LUNARIA</div>"
+        "</div><div class=\"mark\">STUBUIKA</div>"
         "<div class=\"card\" id=\"launcher-card\"><div class=\"main\"><h1 id=\"launcher-title\"></h1>"
         "<p class=\"sub\" id=\"launcher-sub\"></p>");
     if (!package) {
@@ -1451,7 +1451,7 @@ static int launcher_form(char *path, size_t capacity,
         "<div id=\"error\"></div></div>"
         "<div class=\"bar\"><div id=\"launcher-note\" class=\"note\">%s %s</div>"
         "<button id=\"continue\">Open</button></div></div>%s</body>",
-        package ? "Each profile keeps its own app data." : "Changes are saved to lunaria.conf.", pick_version, dialog_html);
+        package ? "Each profile keeps its own app data." : "Changes are saved to stubuika.conf.", pick_version, dialog_html);
     snprintf(css, sizeof boot_css_base + sizeof pick_css_extra + strlen(dialog_css) + 1,
              "%s%s%s", boot_css_base, pick_css_extra, dialog_css);
     luna_reset_document();
@@ -1462,7 +1462,7 @@ static int launcher_form(char *path, size_t capacity,
     luna_set_text(luna_get_element_by_id("launcher-title"), title ? title : package ? "Open a profile" : "Open an application");
     if (note) luna_set_text(luna_get_element_by_id("launcher-note"), note);
     if (title) luna_set_text(luna_get_element_by_id("continue"), "Install");
-    luna_set_text(luna_get_element_by_id("launcher-sub"), package ? package : "Choose an APK, XAPK, APKS or AAB package.");
+    luna_set_text(luna_get_element_by_id("launcher-sub"), package ? package : "Choose an APK, APKM, XAPK, APKS or AAB package.");
     if (!package) {
         luna_set_on_click(luna_get_element_by_id("drop"), pick_browse);
     }
@@ -1532,7 +1532,7 @@ static int launcher_form(char *path, size_t capacity,
             } else if (pick_clean(selected_path, cleaned, sizeof cleaned) ||
                 !pick_acceptable(cleaned) || strlen(cleaned) >= capacity) {
                 luna_set_text(luna_get_element_by_id("error"),
-                              "That is not an existing .apk, .xapk, .apks or .aab file.");
+                              "That is not an existing .apk, .apkm, .xapk, .apks or .aab file.");
             } else if (!pick_read_fields()) {
                 memcpy(path, cleaned, strlen(cleaned) + 1);
                 result = 0;

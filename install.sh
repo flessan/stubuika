@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Lunaria — Linux / macOS curl+bash installer
+# Stubuika — Linux / macOS curl+bash installer
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | bash
-#   curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | bash -s -- --version 2026.10.15
-#   curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | sudo bash -s -- --prefix /usr/local
-#   curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | bash -s -- --uninstall
+#   curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | bash -s -- --version 2026.10.15
+#   curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | sudo bash -s -- --prefix /usr/local
+#   curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | bash -s -- --uninstall
 #
 # Options:
 #   --version <tag>   Release tag (default: latest)
@@ -14,14 +14,15 @@
 #   --uninstall       Remove the installed binary / app (keep config)
 #
 # Environment overrides:
-#   LUNARIA_VERSION, LUNARIA_PREFIX, LUNARIA_APP_DIR, LUNARIA_REPO
+#   STUBUIKA_VERSION, STUBUIKA_PREFIX, STUBUIKA_APP_DIR, STUBUIKA_REPO
+#   Legacy LUNARIA_* aliases remain available for existing install scripts.
 set -euo pipefail
 
-REPO="${LUNARIA_REPO:-yui0/lunaria}"
+REPO="${STUBUIKA_REPO:-${LUNARIA_REPO:-flessan/stubuika}}"
 GH_API="https://api.github.com"
-VERSION="${LUNARIA_VERSION:-latest}"
-PREFIX="${LUNARIA_PREFIX:-}"
-APP_DIR="${LUNARIA_APP_DIR:-}"
+VERSION="${STUBUIKA_VERSION:-${LUNARIA_VERSION:-latest}}"
+PREFIX="${STUBUIKA_PREFIX:-${LUNARIA_PREFIX:-}}"
+APP_DIR="${STUBUIKA_APP_DIR:-${LUNARIA_APP_DIR:-}}"
 DO_UNINSTALL=0
 _TMP=""
 
@@ -111,7 +112,7 @@ download() {
 }
 
 # Resolve browser_download_url for the matching release asset via GitHub API.
-# Asset names look like: lunaria-2026-10-15-linux-x86_64.tar.gz
+# Asset names look like: stubuika-2026-10-15-linux-x86_64.tar.gz
 resolve_asset_url() {
   local os="$1" arch="$2" version="$3"
   local aarch api_url json pattern
@@ -123,8 +124,8 @@ resolve_asset_url() {
   fi
 
   case "$os" in
-    linux) pattern="lunaria-.*-linux-${aarch}\\.tar\\.gz" ;;
-    macos) pattern="lunaria-.*-macos-${aarch}\\.dmg" ;;
+    linux) pattern="stubuika-.*-linux-${aarch}\\.tar\\.gz" ;;
+    macos) pattern="stubuika-.*-macos-${aarch}\\.dmg" ;;
     *) die "Unsupported OS for assets: $os" ;;
   esac
 
@@ -161,16 +162,16 @@ install_linux() {
   local share_dir bin_dir stage src
 
   require_cmd tar
-  share_dir="${prefix}/lib/lunaria"
+  share_dir="${prefix}/lib/stubuika"
   bin_dir="${prefix}/bin"
 
   ensure_writable "$prefix"
   mkdir -p "$share_dir" "$bin_dir" "$_TMP/extract"
   tar -xzf "$archive" -C "$_TMP/extract"
 
-  src="$(find "$_TMP/extract" -mindepth 1 -maxdepth 1 -type d -name 'lunaria-*' | head -n1)"
+  src="$(find "$_TMP/extract" -mindepth 1 -maxdepth 1 -type d -name 'stubuika-*' | head -n1)"
   [ -n "$src" ] || src="$_TMP/extract"
-  [ -x "${src}/lunaria" ] || die "lunaria binary not found in the archive"
+  [ -x "${src}/stubuika" ] || die "stubuika binary not found in the archive"
 
   log "Installing tree → ${share_dir}"
   # Replace previous install atomically enough for a single-user machine.
@@ -184,20 +185,20 @@ install_linux() {
   mv "${share_dir}.new" "$share_dir"
   rm -rf "${share_dir}.old"
 
-  chmod 0755 "${share_dir}/lunaria"
-  ln -sfn "${share_dir}/lunaria" "${bin_dir}/lunaria"
-  log "Symlink: ${bin_dir}/lunaria → ${share_dir}/lunaria"
-  if [ -f "${share_dir}/scripts/lunaria-server.sh" ]; then
-    chmod 0755 "${share_dir}/scripts/lunaria-server.sh"
-    ln -sfn "${share_dir}/scripts/lunaria-server.sh" "${bin_dir}/lunaria-server"
-    log "Symlink: ${bin_dir}/lunaria-server → ${share_dir}/scripts/lunaria-server.sh"
+  chmod 0755 "${share_dir}/stubuika"
+  ln -sfn "${share_dir}/stubuika" "${bin_dir}/stubuika"
+  log "Symlink: ${bin_dir}/stubuika → ${share_dir}/stubuika"
+  if [ -f "${share_dir}/scripts/stubuika-server.sh" ]; then
+    chmod 0755 "${share_dir}/scripts/stubuika-server.sh"
+    ln -sfn "${share_dir}/scripts/stubuika-server.sh" "${bin_dir}/stubuika-server"
+    log "Symlink: ${bin_dir}/stubuika-server → ${share_dir}/scripts/stubuika-server.sh"
   fi
-  if [ -f "${share_dir}/systemd/lunaria@.service" ] && [ -d /etc/systemd/system ]; then
+  if [ -f "${share_dir}/systemd/stubuika@.service" ] && [ -d /etc/systemd/system ]; then
     if [ -w /etc/systemd/system ]; then
-      cp -f "${share_dir}/systemd/lunaria@.service" /etc/systemd/system/lunaria@.service
-      log "Installed systemd unit: lunaria@.service"
+      cp -f "${share_dir}/systemd/stubuika@.service" /etc/systemd/system/stubuika@.service
+      log "Installed systemd unit: stubuika@.service"
     else
-      warn "systemd unit present at ${share_dir}/systemd/lunaria@.service (install as root to enable)"
+      warn "systemd unit present at ${share_dir}/systemd/stubuika@.service (install as root to enable)"
     fi
   fi
 
@@ -211,12 +212,12 @@ install_linux() {
 
   cat <<EOF
 
-  Installed : ${share_dir}/lunaria
-  Command   : ${bin_dir}/lunaria
+  Installed : ${share_dir}/stubuika
+  Command   : ${bin_dir}/stubuika
 
   Run:
-    lunaria /path/to/app.apk
-    lunaria                  # graphical launcher
+    stubuika /path/to/app.apk
+    stubuika                  # graphical launcher
 
 EOF
 }
@@ -258,9 +259,9 @@ install_macos() {
   # shellcheck disable=SC2064
   trap 'hdiutil detach "'"$mount"'" -quiet 2>/dev/null || true; rm -rf "$_TMP"' EXIT
 
-  app_src="$(find "$mount" -maxdepth 2 -type d -name 'Lunaria.app' | head -n1)"
-  [ -n "$app_src" ] || die "Lunaria.app not found inside the DMG"
-  app_dst="${app_dir}/Lunaria.app"
+  app_src="$(find "$mount" -maxdepth 2 -type d -name 'Stubuika.app' | head -n1)"
+  [ -n "$app_src" ] || die "Stubuika.app not found inside the DMG"
+  app_dst="${app_dir}/Stubuika.app"
 
   log "Installing app → ${app_dst}"
   rm -rf "${app_dst}.new"
@@ -279,11 +280,11 @@ install_macos() {
   rm -rf "${app_dst}.old"
 
   bin_dir="${prefix}/bin"
-  bin_path="${app_dst}/Contents/MacOS/Lunaria"
+  bin_path="${app_dst}/Contents/MacOS/Stubuika"
   [ -x "$bin_path" ] || die "Missing executable: ${bin_path}"
   mkdir -p "$bin_dir"
-  ln -sfn "$bin_path" "${bin_dir}/lunaria"
-  log "Symlink: ${bin_dir}/lunaria → ${bin_path}"
+  ln -sfn "$bin_path" "${bin_dir}/stubuika"
+  log "Symlink: ${bin_dir}/stubuika → ${bin_path}"
 
   hdiutil detach "$mount" -quiet 2>/dev/null || true
   trap 'rm -rf "$_TMP"' EXIT
@@ -299,12 +300,12 @@ install_macos() {
   cat <<EOF
 
   App       : ${app_dst}
-  Command   : ${bin_dir}/lunaria
+  Command   : ${bin_dir}/stubuika
 
   Run:
-    lunaria /path/to/app.apk
-    open -a Lunaria
-    # or: ${app_dst}/Contents/MacOS/Lunaria /path/to/app.apk
+    stubuika /path/to/app.apk
+    open -a Stubuika
+    # or: ${app_dst}/Contents/MacOS/Stubuika /path/to/app.apk
 
 EOF
 }
@@ -315,16 +316,16 @@ uninstall() {
   prefix="${PREFIX:-$(default_prefix)}"
   app_dir="${APP_DIR:-$(default_app_dir)}"
 
-  log "Uninstalling Lunaria from ${prefix}"
-  rm -f "${prefix}/bin/lunaria"
+  log "Uninstalling Stubuika from ${prefix}"
+  rm -f "${prefix}/bin/stubuika"
   if [ "$os" = "macos" ]; then
-    rm -rf "${app_dir}/Lunaria.app"
-    log "Removed ${app_dir}/Lunaria.app"
+    rm -rf "${app_dir}/Stubuika.app"
+    log "Removed ${app_dir}/Stubuika.app"
   else
-    rm -rf "${prefix}/lib/lunaria"
-    log "Removed ${prefix}/lib/lunaria"
+    rm -rf "${prefix}/lib/stubuika"
+    log "Removed ${prefix}/lib/stubuika"
   fi
-  log "Uninstall complete (user config under ~/.config / lunaria.conf was kept)"
+  log "Uninstall complete (user config under ~/.config / stubuika.conf was kept)"
 }
 
 install_main() {
@@ -345,7 +346,7 @@ install_main() {
 
   log "Target: ${os}/$(asset_arch "$os" "$arch")  version: ${VERSION}  prefix: ${prefix}"
 
-  _TMP="$(mktemp -d "${TMPDIR:-/tmp}/lunaria-install.XXXXXX")"
+  _TMP="$(mktemp -d "${TMPDIR:-/tmp}/stubuika-install.XXXXXX")"
   trap 'rm -rf "$_TMP"' EXIT
 
   # resolve_asset_url prints: url\nname

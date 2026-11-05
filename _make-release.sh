@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# _make-release.sh — GitHub Actions の代替ローカルリリーススクリプト (lunaria 用)
+# _make-release.sh — GitHub Actions の代替ローカルリリーススクリプト (stubuika 用)
 # 使い方:
 #   ./_make-release.sh [OPTIONS] [TAG]     # TAGを指定 (省略時は YYYY.M.D)
 #   ./_make-release.sh                     # Linux ネイティブ + Linux 対向アーキ (aarch64 ⇄ x86_64) クロス
@@ -14,27 +14,27 @@
 #   ./_make-release.sh --no-upload         # ビルドのみ (GitHub Release を作らない)
 #   ./_make-release.sh --sync-os           # リリース後に yui0/qBerryOS へアセットを同期
 #
-# ビルド成果物 (Makefile の `make dist` が作る。名前は lunaria-YYYY-MM-DD-<os>-<arch>.*):
-#   lunaria-*-linux-aarch64.tar.gz / lunaria-*-linux-x86_64.tar.gz
+# ビルド成果物 (Makefile の `make dist` が作る。名前は stubuika-YYYY-MM-DD-<os>-<arch>.*):
+#   stubuika-*-linux-aarch64.tar.gz / stubuika-*-linux-x86_64.tar.gz
 #                            : Linux (同梱 lib/runtime/fonts 付き)。ホストが aarch64 なら
 #                              x86_64 を gcc クロス (crossbuild-essential-amd64) で作る
-#   lunaria-*-windows-x86_64.zip : Windows x86_64 UCRT (Linux から `make dist-cross-win`)
-#   lunaria-*-macos-arm64.dmg    : macOS (hdiutil/codesign が要るため macOS 上でのみ生成)
+#   stubuika-*-windows-x86_64.zip : Windows x86_64 UCRT (Linux から `make dist-cross-win`)
+#   stubuika-*-macos-arm64.dmg    : macOS (hdiutil/codesign が要るため macOS 上でのみ生成)
 #
-# 注意: ツリー直下の lunaria / runtime/ / libdl.so / libpthread.so はビルドのたびに
+# 注意: ツリー直下の stubuika / runtime/ / libdl.so / libpthread.so はビルドのたびに
 #       消して作り直す (アーキ違いのビルド成果物が混ざらないようにするため)。
 #       syslib-arm64/ は ARM64 ゲスト用でアーキ非依存のため両方で共用する。
 #
 # macOS について:
 #   Linux ホストでは .dmg を作れない。--macos 指定時、Linux ホストでは
 #   リポジトリ直下 (または MACOS_DMG=/path/to.dmg) に Mac で作成済みの
-#   lunaria-*-macos-*.dmg があればそれをリリースに含め、無ければ警告してスキップする。
+#   stubuika-*-macos-*.dmg があればそれをリリースに含め、無ければ警告してスキップする。
 #
 # 環境変数:
 #   GITHUB_TOKEN        — Release 作成用 (未設定時は ~/.config/gh/hosts.yml から取得)
 #   QBERRYOS_TOKEN      — --sync-os 用 (未設定時は GITHUB_TOKEN)
 #   SYNC_REPO           — --sync-os の同期先 (default: yui0/qBerryOS)
-#   SYNC_TAG_PREFIX     — 同期先でのタグ接頭辞 (default: lunaria-)  例: lunaria-2026.10.9
+#   SYNC_TAG_PREFIX     — 同期先でのタグ接頭辞 (default: stubuika-)  例: stubuika-2026.10.9
 #   WIN_DEPS 他         — scripts/dist-cross-win.sh が参照する変数をそのまま引き継ぐ
 #
 # `sh _make-release.sh` (dash 等) でも動くよう、bash でなければ付け替える。
@@ -161,7 +161,7 @@ setup_cross_sysroot() {
   local sysroot="$SCRIPT_DIR/.cross-sysroot-$arch"
   local tmpdir pkgs pkg
   info "対向アーキ ($arch) を sysroot に展開します (multiarch 同居不可時のフォールバック)..."
-  tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/lunaria-cross-debs.XXXXXX")"
+  tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/stubuika-cross-debs.XXXXXX")"
   # shellcheck disable=SC2064
   trap "rm -rf '$tmpdir'" RETURN
   rm -rf "$sysroot"
@@ -209,7 +209,7 @@ ensure_sysroot_glvnd() {
   CROSS_SYSROOT="$sysroot"
   cross_lib_path GLdispatch >/dev/null && return 0
   info "sysroot に libGLdispatch が無いため libglvnd0:$arch を追加します..."
-  tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/lunaria-glvnd.XXXXXX")"
+  tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/stubuika-glvnd.XXXXXX")"
   # shellcheck disable=SC2064
   trap "rm -rf '$tmpdir'" RETURN
   (
@@ -306,7 +306,7 @@ if [[ "$HOST_OS" == "Linux" ]] && command -v apt-get &>/dev/null; then
       # 既存の apt ソースを native アーキに限定し、対向アーキ用のミラーを別ファイルで追加する。
       # (ports.ubuntu.com は amd64 を、archive.ubuntu.com は arm64 を配信しない → 404 回避)
       # 既に amd64-cross.list 等で対向アーキミラーがある場合は二重登録しない。
-      _CROSS_LIST="/etc/apt/sources.list.d/lunaria-cross-$APT_CROSS_ARCH.list"
+      _CROSS_LIST="/etc/apt/sources.list.d/stubuika-cross-$APT_CROSS_ARCH.list"
       _HAS_CROSS_MIRROR=false
       for _f in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
         [[ -f "$_f" ]] || continue
@@ -336,7 +336,7 @@ deb [arch=$APT_CROSS_ARCH] $_MIRROR $_CODENAME-security main restricted universe
 APT_EOF
       elif [[ "$_HAS_CROSS_MIRROR" == "true" ]]; then
         info "対向アーキ ($APT_CROSS_ARCH) の apt ミラーは既にあるため追加しません"
-        # 手動の amd64-cross.list 等と lunaria-cross-*.list が二重だと apt が大量警告する
+        # 手動の amd64-cross.list 等と stubuika-cross-*.list が二重だと apt が大量警告する
         if [[ -f "$_CROSS_LIST" ]]; then
           for _f in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
             [[ -f "$_f" && "$_f" != "$_CROSS_LIST" ]] || continue
@@ -414,7 +414,7 @@ rm -rf "$ARTIFACTS_DIR"
 mkdir -p "$ARTIFACTS_DIR"
 
 # 古い成果物を消してから作り、完成品を ARTIFACTS_DIR へ移す
-make dist-clean >/dev/null 2>&1 || rm -f lunaria-*.tar.gz lunaria-*.zip lunaria-*.dmg
+make dist-clean >/dev/null 2>&1 || rm -f stubuika-*.tar.gz stubuika-*.zip stubuika-*.dmg
 collect() {  # collect <ファイル名>
   [[ -f "$1" ]] || die "成果物が見つかりません: $1"
   mv "$1" "$ARTIFACTS_DIR/"
@@ -425,14 +425,14 @@ collect() {  # collect <ファイル名>
 build_syslib() { make syslib guestlib || warn "syslib/guestlib をビルドできませんでした。無しで同梱します。"; }
 
 # ビルドツリー直下のアーキ依存成果物を消す (ネイティブ/クロスの混在防止)
-reset_tree() { rm -rf lunaria lunaria.exe runtime libdl.so libpthread.so; }
+reset_tree() { rm -rf stubuika stubuika.exe runtime libdl.so libpthread.so; }
 
 # ─────────────────────────────────────────────────────────
 # ① Linux / macOS ネイティブ (ホスト OS に対応する成果物)
 # ─────────────────────────────────────────────────────────
 case "$HOST_OS" in
   Linux)
-    NAME="lunaria-$DIST_DATE-linux-$HOST_ARCH"
+    NAME="stubuika-$DIST_DATE-linux-$HOST_ARCH"
     info "ビルド中: $NAME.tar.gz (ネイティブ) ..."
     build_syslib
     reset_tree
@@ -441,7 +441,7 @@ case "$HOST_OS" in
     ;;
   Darwin)
     if [[ "$BUILD_MACOS" == "true" ]]; then
-      NAME="lunaria-$DIST_DATE-macos-$HOST_ARCH"
+      NAME="stubuika-$DIST_DATE-macos-$HOST_ARCH"
       info "ビルド中: $NAME.dmg ..."
       make macos-deps
       build_syslib
@@ -461,7 +461,7 @@ esac
 # (libunwind 等) は gcc クロスが /usr/include/<triple> を自動で探す。
 # ─────────────────────────────────────────────────────────
 if [[ "$HOST_OS" == "Linux" && "$LINUX_CROSS" == "true" ]]; then
-  NAME="lunaria-$DIST_DATE-linux-$CROSS_ARCH"
+  NAME="stubuika-$DIST_DATE-linux-$CROSS_ARCH"
   info "ビルド中: $NAME.tar.gz (クロス: $CROSS_TRIPLE) ..."
   _GCC_CROSS_LIB="$(ls -d /usr/lib/gcc-cross/$CROSS_TRIPLE/* 2>/dev/null | sort -V | tail -1 || true)"
   _CROSS_LPATH="/usr/lib/$CROSS_TRIPLE:/lib/$CROSS_TRIPLE:/usr/$CROSS_TRIPLE/lib"
@@ -498,7 +498,7 @@ if [[ "$BUILD_WINDOWS" == "true" ]]; then
   if [[ "$HOST_OS" != "Linux" ]]; then
     warn "Windows クロスビルドは Linux ホストのみ対応です。スキップします。"
   else
-    NAME="lunaria-$DIST_DATE-windows-x86_64"
+    NAME="stubuika-$DIST_DATE-windows-x86_64"
     info "ビルド中: $NAME.zip (mingw クロス) ..."
     # Guest AArch64 syslib はホスト非依存。先に作って dist-cross-win で再利用する。
     build_syslib
@@ -513,14 +513,14 @@ fi
 if [[ "$BUILD_MACOS" == "true" && "$HOST_OS" != "Darwin" ]]; then
   DMG="${MACOS_DMG:-}"
   if [[ -z "$DMG" ]]; then
-    DMG="$(ls -t lunaria-*-macos-*.dmg lunaria-*-macos.dmg 2>/dev/null | head -1 || true)"
+    DMG="$(ls -t stubuika-*-macos-*.dmg stubuika-*-macos.dmg 2>/dev/null | head -1 || true)"
   fi
   if [[ -n "$DMG" && -f "$DMG" ]]; then
     cp "$DMG" "$ARTIFACTS_DIR/$(basename "$DMG")"
     success "作成済みの macOS dmg を取り込みました: $(basename "$DMG")"
   else
     warn "macOS の .dmg は Linux では作れません (hdiutil/codesign が必要)。"
-    warn "Mac で ./_make-release.sh --macos --no-upload を実行して lunaria-*-macos-*.dmg を作り、"
+    warn "Mac で ./_make-release.sh --macos --no-upload を実行して stubuika-*-macos-*.dmg を作り、"
     warn "このディレクトリに置くか MACOS_DMG=/path/to.dmg を指定してください。macOS はスキップします。"
   fi
 fi
@@ -563,7 +563,7 @@ else
 fi
 
 RELEASE_BODY=$(cat <<'EOF'
-## Lunaria
+## Stubuika
 
 An Android runtime that runs an APK on the desktop: AArch64 and ARM32 guest
 code on dynarmic, the platform's Java on its own bytecode interpreter, and GLES
@@ -572,23 +572,23 @@ straight through to the host.
 ### Install (Linux / macOS)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yui0/stubuika/master/install.sh | bash
 ```
 
 ### Linux (manual)
 ```bash
-tar -xzf lunaria-*-linux-x86_64.tar.gz && cd lunaria-*-linux-x86_64   # or -aarch64
-./lunaria /path/to/app.apk      # or .xapk / .apks
+tar -xzf stubuika-*-linux-x86_64.tar.gz && cd stubuika-*-linux-x86_64   # or -aarch64
+./stubuika /path/to/app.apk      # or .apkm / .xapk / .apks / .aab
 ```
 The archive carries its own shim libraries, host libraries and fonts; it uses
 the running system's C library.
 
 ### macOS (manual)
-Open the .dmg, drag `Lunaria.app` where you like, then run
-`/Applications/Lunaria.app/Contents/MacOS/Lunaria /path/to/app.apk`.
+Open the .dmg, drag `Stubuika.app` where you like, then run
+`/Applications/Stubuika.app/Contents/MacOS/Stubuika /path/to/app.apk`.
 
 ### Windows
-Unzip `lunaria-*-windows-x86_64.zip` and run `lunaria.exe /path/to/app.apk`.
+Unzip `stubuika-*-windows-x86_64.zip` and run `stubuika.exe /path/to/app.apk`.
 EOF
 )
 
@@ -630,7 +630,7 @@ upload_release() {
   success "$repo: ${#RELEASE_FILES[@]} ファイルをアップロード完了"
 }
 
-upload_release "$GH_REPO" "$GITHUB_TOKEN" "$TAG" "Lunaria $TAG"
+upload_release "$GH_REPO" "$GITHUB_TOKEN" "$TAG" "Stubuika $TAG"
 
 # ─────────────────────────────────────────────────────────
 # ⑤ qBerryOS 同期 (--sync-os 指定時のみ): 同じアセットを別リポジトリの Release にも載せる
@@ -639,7 +639,7 @@ if [[ "$SYNC_OS" == "true" ]]; then
   SYNC_REPO="${SYNC_REPO:-yui0/qBerryOS}"
   SYNC_TOKEN="${QBERRYOS_TOKEN:-$GITHUB_TOKEN}"
   info "$SYNC_REPO へリリースを同期します..."
-  upload_release "$SYNC_REPO" "$SYNC_TOKEN" "${SYNC_TAG_PREFIX:-lunaria-}$TAG" "Lunaria $TAG"
+  upload_release "$SYNC_REPO" "$SYNC_TOKEN" "${SYNC_TAG_PREFIX:-stubuika-}$TAG" "Stubuika $TAG"
 fi
 
 echo ""

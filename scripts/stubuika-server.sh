@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Headless lunaria instance for a shared qberry (qfkey) RDP host.
+# Headless stubuika instance for a shared qberry (qfkey) RDP host.
 #
 # Usage:
-#   lunaria-server.sh [instance-id] [-- lunaria-args...]
-#   LUNARIA_DATA_ROOT=/var/lib/lunaria/1 lunaria-server.sh 1
+#   stubuika-server.sh [instance-id] [-- stubuika-args...]
+#   LUNARIA_DATA_ROOT=/var/lib/stubuika/1 stubuika-server.sh 1
 #
-# Requires a running qberry with rdp_modes != 0 (lunaria bridge on the
-# qfkey-lunaria socket).  Pass --start-qberry to launch one in the background
+# Requires a running qberry with rdp_modes != 0 (stubuika bridge on the
+# qfkey-stubuika socket).  Pass --start-qberry to launch one in the background
 # when the socket is missing.
 set -euo pipefail
 
@@ -75,29 +75,29 @@ maybe_start_qberry() {
   done
   [[ -n "$bin" ]] || die "qberry-cli not found on PATH"
   log "starting $bin -b --rdp-modes 1"
-  "$bin" -b --rdp-modes 1 </dev/null >/tmp/qberry-lunaria-server.log 2>&1 &
+  "$bin" -b --rdp-modes 1 </dev/null >/tmp/qberry-stubuika-server.log 2>&1 &
   local i=0
   while (( i < 50 )); do
     qfkey_up && return 0
     sleep 0.1
     i=$((i + 1))
   done
-  die "qberry started but qfkey socket did not appear ($(sock_path)); see /tmp/qberry-lunaria-server.log"
+  die "qberry started but qfkey socket did not appear ($(sock_path)); see /tmp/qberry-stubuika-server.log"
 }
 
-resolve_lunaria() {
+resolve_stubuika() {
   if [[ -n "${LUNARIA_BIN:-}" && -x "$LUNARIA_BIN" ]]; then
     printf '%s\n' "$LUNARIA_BIN"; return
   fi
-  if command -v lunaria >/dev/null 2>&1; then
-    command -v lunaria; return
+  if command -v stubuika >/dev/null 2>&1; then
+    command -v stubuika; return
   fi
   local here
   here="$(cd "$(dirname "$0")/.." && pwd)"
-  if [[ -x "$here/lunaria" ]]; then
-    printf '%s\n' "$here/lunaria"; return
+  if [[ -x "$here/stubuika" ]]; then
+    printf '%s\n' "$here/stubuika"; return
   fi
-  die "lunaria binary not found (set LUNARIA_BIN or add lunaria to PATH)"
+  die "stubuika binary not found (set LUNARIA_BIN or add stubuika to PATH)"
 }
 
 maybe_start_qberry || true
@@ -106,14 +106,14 @@ export LUNARIA_PBUFFER="${LUNARIA_PBUFFER:-1}"
 export LUNARIA_INSTANCE="${LUNARIA_INSTANCE:-$INSTANCE}"
 if [[ -z "${LUNARIA_DATA_ROOT:-}" ]]; then
   if [[ "$(id -u)" -eq 0 ]]; then
-    export LUNARIA_DATA_ROOT="/var/lib/lunaria/${INSTANCE}"
+    export LUNARIA_DATA_ROOT="/var/lib/stubuika/${INSTANCE}"
   else
-    export LUNARIA_DATA_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/lunaria/${INSTANCE}"
+    export LUNARIA_DATA_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/stubuika/${INSTANCE}"
   fi
 fi
 mkdir -p "$LUNARIA_DATA_ROOT"
 
-BIN="$(resolve_lunaria)"
+BIN="$(resolve_stubuika)"
 log "instance=${LUNARIA_INSTANCE} data=${LUNARIA_DATA_ROOT} pbuffer=${LUNARIA_PBUFFER}"
 log "exec: $BIN ${LUNARIA_ARGS[*]:-}"
 # No APK argument → graphical (headless) launcher waits for a package.

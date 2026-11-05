@@ -1,9 +1,10 @@
-name: Rust Release & Deploy
+name: Stubuika Release
 
 on:
   push:
     tags:
-      - '*-*-*'  # git tag v1.2.3 && git push --tags でトリガー
+      - 'stubuika-v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -32,7 +33,7 @@ jobs:
         run: make dynarmic-build
 
       - name: Build
-        run: make -j"$(nproc)" lunaria
+        run: make -j"$(nproc)" stubuika
 
       # The guest-side AArch64 libm, which the launcher picks up by name.  A
       # build without it runs every pow()/sincosf() as an SVC thunk.
@@ -44,8 +45,8 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: lunaria-linux-x86_64
-          path: lunaria-*-linux-*.tar.gz
+          name: stubuika-linux-x86_64
+          path: stubuika-*-linux-*.tar.gz
 
   macos:
     name: macOS (arm64)
@@ -69,7 +70,7 @@ jobs:
         run: make dynarmic-build
 
       - name: Build
-        run: make -j"$(sysctl -n hw.ncpu)" lunaria
+        run: make -j"$(sysctl -n hw.ncpu)" stubuika
 
       - name: Build guest system libraries
         run: make syslib || echo "syslib unavailable on this runner; shipping without it"
@@ -79,8 +80,8 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: lunaria-macos-arm64
-          path: lunaria-*.dmg
+          name: stubuika-macos-arm64
+          path: stubuika-*.dmg
 
   windows:
     name: Windows (x86_64, cross)
@@ -137,7 +138,7 @@ jobs:
 
       - uses: actions/cache@v4
         with:
-          path: /tmp/lunaria-windows-deps
+          path: /tmp/stubuika-windows-deps
           key: windows-deps-${{ hashFiles('scripts/fetch-windows-deps.py') }}
 
       - name: Cross-build Windows ZIP
@@ -145,14 +146,14 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: lunaria-windows-x86_64
-          path: lunaria-*-windows.zip
+          name: stubuika-windows-x86_64
+          path: stubuika-*-windows.zip
 
   release:
     name: Publish
     needs: [linux, macos, windows]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/lunaria-v') || github.event_name == 'workflow_dispatch'
+    if: startsWith(github.ref, 'refs/tags/stubuika-v') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -164,10 +165,10 @@ jobs:
           mkdir -p out
           find artifacts -type f \( -name '*.tar.gz' -o -name '*.dmg' -o -name '*.zip' \) -exec cp {} out/ \;
           ls -la out
-          if [[ "${GITHUB_REF}" == refs/tags/lunaria-v* ]]; then
-            echo "name=Lunaria ${GITHUB_REF_NAME#lunaria-v}" >> "$GITHUB_OUTPUT"
+          if [[ "${GITHUB_REF}" == refs/tags/stubuika-v* ]]; then
+            echo "name=Stubuika ${GITHUB_REF_NAME#stubuika-v}" >> "$GITHUB_OUTPUT"
           else
-            echo "name=Lunaria (manual build)" >> "$GITHUB_OUTPUT"
+            echo "name=Stubuika (manual build)" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create release
@@ -178,7 +179,7 @@ jobs:
           draft: ${{ github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/tags/') }}
           files: out/*
           body: |
-            ## Lunaria
+            ## Stubuika
 
             An Android runtime that runs an APK on the desktop: AArch64 and
             ARM32 guest code on dynarmic, the platform's Java on its own
@@ -186,27 +187,27 @@ jobs:
 
             ### Linux (x86_64)
             ```bash
-            tar -xzf lunaria-*-linux-x86_64.tar.gz
-            cd lunaria-*-linux-x86_64
-            ./lunaria /path/to/app.apk      # or .xapk / .apks
+            tar -xzf stubuika-*-linux-x86_64.tar.gz
+            cd stubuika-*-linux-x86_64
+            ./stubuika /path/to/app.apk      # or .apkm / .xapk / .apks / .aab
             ```
             The archive carries its own shim libraries, the host libraries it
             was built against and its fonts; it uses the running system's C
             library, so it needs a distribution no older than Ubuntu 22.04.
 
             ### macOS (Apple silicon)
-            Open the .dmg and drag `Lunaria.app` where you like, then:
+            Open the .dmg and drag `Stubuika.app` where you like, then:
             ```bash
-            /Applications/Lunaria.app/Contents/MacOS/Lunaria /path/to/app.apk
+            /Applications/Stubuika.app/Contents/MacOS/Stubuika /path/to/app.apk
             ```
 
             ### Windows (x86_64)
             ```powershell
-            Expand-Archive lunaria-*-windows.zip -DestinationPath .
-            cd lunaria-*-windows
-            .\lunaria.exe C:\path\to\app.apk
+            Expand-Archive stubuika-*-windows.zip -DestinationPath .
+            cd stubuika-*-windows
+            .\stubuika.exe C:\path\to\app.apk
             ```
-            Or drag an APK onto `lunaria.exe`. No MSYS2, Python, or ICU install
+            Or drag an APK onto `stubuika.exe`. No MSYS2, Python, or ICU install
             is required at runtime.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

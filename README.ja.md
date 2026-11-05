@@ -1,21 +1,20 @@
-# Lunaria
+# Stubuika
 
 ### Androidゲームを、いつものPCで。
 
 [![License: MPL 2.0](https://img.shields.io/badge/license-MPL--2.0-5b5bd6.svg)](LICENSE)
 [![Guests](https://img.shields.io/badge/guest-ARM32%20%7C%20ARM64-20232a.svg)](#仕組み)
 [![Engines](https://img.shields.io/badge/engines-Unity%20%7C%20Unreal%20%7C%20native-20232a.svg)](#互換性)
-[![Sponsor](https://img.shields.io/badge/sponsor-%E2%99%A5-ea4aaa.svg)](https://github.com/sponsors/yui0)
 
 [English](README.md)
 
-**Lunariaは、Androidのシステムイメージを使わずに、AndroidアプリやゲームをPC上で動かすための互換レイヤーです。**
+**Stubuikaは、Androidのシステムイメージを使わずに、AndroidアプリやゲームをPC上で動かすための互換レイヤーです。**
 Android OS全体を仮想マシンで起動する代わりに、アプリ本体を直接読み込み、ARM32／ARM64のコードを
 [dynarmic](https://github.com/merryhime/dynarmic)で実行します。JNI、EGL、OpenGL ES、MediaCodecなどの
 Android向け機能はホスト側へ橋渡しし、APKに含まれるJavaバイトコードは内蔵のDalvikインタプリタで処理します。
 
-`.apk`、`.xapk`、`.apks`、`.aab` に対応。パッケージの展開やマニフェスト解析、split APKの統合、キャッシュ管理、
-アカウントごとのデータ分離まで、Lunariaがまとめて行います。WebViewはChrome／Chromium、または内蔵の
+`.apk`、`.apkm`、`.xapk`、`.apks`、`.aab` に対応。パッケージの展開やマニフェスト解析、split APKの統合、キャッシュ管理、
+アカウントごとのデータ分離まで、Stubuikaがまとめて行います。WebViewはChrome／Chromium、または内蔵の
 [luna-browser](luna-browser/)を使って表示します。
 
 **動作を確認したタイトル：** 原神、二ノ国：Cross Worlds、アルケミアストーリー、
@@ -27,9 +26,9 @@ ContentProviderを初期化し、ランチャー`Activity`を起動します。U
 アプリも、Androidのライフサイクルに沿って処理するため、ゲームごとの専用ローダーは必要ありません。
 
 > [!IMPORTANT]
-> **Lunariaは開発中の実験的なソフトウェアです。** 完全なAndroidエミュレーターではなく、
+> **Stubuikaは開発中の実験的なソフトウェアです。** 完全なAndroidエミュレーターではなく、
 > ゲームによって動作状況が異なります。実際にプレイできるものもあれば、タイトル画面までのものもあります。
-> 以下の画像は、別のエミュレーターではなく、Lunariaが描画したフレームを直接取得したものです。
+> 以下の画像は、別のエミュレーターではなく、Stubuikaが描画したフレームを直接取得したものです。
 
 <p align="center">
   <img src="shots/genshin-mondstadt-night.png" width="100%" alt="原神：夜のモンド城を滑空する蛍。風車と街灯、タッチ HUD">
@@ -55,24 +54,22 @@ Linux上で取得したゲストフレーム。ゲーム本体は改変してい
 
 <p align="center"><sub>Alchemia Story 1.0.154 · Cross Worlds のフィールド</sub></p>
 
-<p align="center">
-  <img src="shots/launcher.png" width="72%" alt="Lunaria ランチャー：APK / XAPK / APKS / AAB のドロップと設定">
-</p>
 
-<p align="center"><sub>パッケージをドラッグ＆ドロップするだけで起動できます。データ保存先や端末設定は<code>lunaria.conf</code>に保存できます。</sub></p>
 
-## Lunariaの特徴
+<p align="center"><sub>ランチャーの画面はStubuikaブランドに更新中です。ギャラリーのゲーム画面は元プロジェクトの互換性テストで取得したものです。</sub></p>
+
+## Stubuikaの特徴
 
 | 特徴 | できること |
 |---|---|
-| **Androidのシステムイメージが不要** | Android OSを仮想マシンで起動せず、`.apk`、`.xapk`、`.apks`、`.aab`を直接読み込みます。 |
+| **Androidのシステムイメージが不要** | Android OSを仮想マシンで起動せず、`.apk`、`.apkm`、`.xapk`、`.apks`、`.aab`を直接読み込みます。 |
 | **ARM32／ARM64に対応** | dynarmicのJITコンパイラでARMv7とAArch64のコードを実行します。 |
 | **ホストGPUを活用** | EGL／OpenGL ES 3をホスト側へ橋渡しします。Vulkanも利用可能な環境では公開します。 |
 | **ゲームに必要なAndroid機能を実装** | JNI、AssetManager、OBB、pthread、OpenSL ES、各種Android APIの互換処理を提供します。 |
 | **APK内のJavaコードを実行** | ホスト側に対応するスタブがない場合、内蔵Dalvikインタプリタで`classes*.dex`のメソッドを処理します。 |
 | **動画・音声にも対応** | 対応するH.264ストリームはOpenH264で、AACはlibavcodecが使える環境でデコードします。 |
 | **WebViewを表示** | Chrome／Chromiumや内蔵のluna-browserを使って、Webコンテンツをゲーム画面へ合成します。 |
-| **端末プロファイルを切り替え** | `lunaria.conf`で端末情報を設定できます。標準設定はPixel 6です。 |
+| **端末プロファイルを切り替え** | `stubuika.conf`で端末情報を設定できます。標準設定はPixel 6です。 |
 | **AArch64の並列実行** | `LUNARIA_A64_ENGINES`で複数のホストスレッドに処理を分散できます。 |
 | **キーボード・マウスで操作** | タッチ操作をキーへ割り当て、移動・スキル・視点操作を組み合わせられます。マクロや入力の録画・再生にも対応します。 |
 | **設定とアカウントを保持** | ゲームの設定を次回起動へ引き継ぎ、`--profile`でアカウント別のデータを分離できます。 |
@@ -80,7 +77,7 @@ Linux上で取得したゲストフレーム。ゲーム本体は改変してい
 
 ## ギャラリー
 
-掲載画像は、Lunariaが描画したフレームをGLFWウィンドウまたはヘッドレスEGLから直接保存したものです。スマートフォンや、ほかのAndroidエミュレーターの画面を撮影したものではありません。
+掲載画像は、Stubuikaが描画したフレームをGLFWウィンドウまたはヘッドレスEGLから直接保存したものです。スマートフォンや、ほかのAndroidエミュレーターの画面を撮影したものではありません。
 
 ### 原神 7.1.0
 
@@ -266,35 +263,27 @@ Unreal Engine 4を採用した商用タイトルです。ログイン、サー�
 
 <p align="center"><sub>Demo Project Light · Unreal サンプル · Mesa llvmpipe &nbsp;·&nbsp; TIME LOCKER · 720×1280</sub></p>
 
-### Lunariaの操作画面
+### Stubuikaの操作画面
 
-Lunariaを引数なしで起動すると、パッケージを選ぶランチャーが開きます。`.apk`、`.xapk`、`.apks`、`.aab`を
-ドラッグ＆ドロップするだけで読み込めます。保存先や端末プロファイルなどの設定は、`lunaria.conf`に記録できます。
+Stubuikaを引数なしで起動すると、パッケージを選ぶランチャーが開きます。`.apk`、`.apkm`、`.xapk`、`.apks`、`.aab`を
+ドラッグ＆ドロップするだけで読み込めます。保存先や端末プロファイルなどの設定は、`stubuika.conf`に記録できます。
 
 「Find an app on APKPure」にアプリ名を入力してEnterまたはSearchを押すと、APKPureを検索できます。
 候補のアプリ名とパッケージ名を確認して選ぶと、最新版のXAPKをダウンロードして開きます。
 保存先はPackage cache folder配下の`downloads`です。キャッシュ先が空ならData folder配下の
-`cache/packages/downloads`、両方とも空ならホームの`Downloads/Lunaria`を使います。
+`cache/packages/downloads`、両方とも空ならホームの`Downloads/Stubuika`を使います。
 Cancelで中止でき、通信失敗や中断時の一時ファイルは削除します。サイトがアクセスを拒否した場合はHTTPエラーを表示します。
 
 大規模なゲームでは、ライブラリの読み込みやARMコードの変換、dexのコンパイルに時間がかかることがあります。
 その間は専用の起動画面に進行状況が表示されます。
 
-ゲーム画面で**右クリックするとLunariaのメニュー**を開けます。スクリーンショット（**F12**）、
+ゲーム画面で**右クリックするとStubuikaのメニュー**を開けます。スクリーンショット（**F12**）、
 文字入力、戻る操作、音量調整、キーボード割り当て、WebViewの設定、入力の録画・再生、
 プロファイル切り替え、再起動、フルスクリーン表示、終了などをここから操作できます。
 
-<p align="center">
-  <img src="shots/launcher.png" width="56%" alt="Lunaria ランチャー。青空の上の Open an application">
-  &nbsp;
-  <img src="shots/boot.png" width="40%" alt="Lunaria 起動カード：月のワードマークと ARM／dex 進捗">
-</p>
 
-<p align="center">
-  <img src="shots/host-menu-kikyu.png" width="56%" alt="気球！エアロノート上のホストメニュー。Keyboard Controls とキーマップ一覧">
-  &nbsp;
-  <img src="shots/host-menu.png" width="40%" alt="WebView エンジン選択。luna-browser を選択中">
-</p>
+
+
 
 <p align="center"><sub>ランチャー · 起動カード · 2013 年 APK 上のホストメニュー · WebView エンジン</sub></p>
 
@@ -303,23 +292,23 @@ Cancelで中止でき、通信失敗や中断時の一時ファイルは削除�
 ### リリース版のインストール（Linux／macOS）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | bash
 ```
 
-[GitHub Releases](https://github.com/yui0/lunaria/releases)から環境に合うアセットを取得し、`~/.local`（root実行時は`/usr/local`）へ入れます。macOSではあわせて`Lunaria.app`を`~/Applications`（root時は`/Applications`）へコピーします。
+[GitHub Releases](https://github.com/flessan/stubuika/releases)から環境に合うアセットを取得し、`~/.local`（root実行時は`/usr/local`）へ入れます。macOSではあわせて`Stubuika.app`を`~/Applications`（root時は`/Applications`）へコピーします。
 
 ```bash
 # タグを指定
-curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | bash -s -- --version 2026.10.15
+curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | bash -s -- --version 2026.10.15
 
 # システム全体へ導入
-curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | sudo bash -s -- --prefix /usr/local
+curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | sudo bash -s -- --prefix /usr/local
 
 # アンインストール（設定ファイルは残す）
-curl -fsSL https://raw.githubusercontent.com/yui0/lunaria/master/install.sh | bash -s -- --uninstall
+curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh | bash -s -- --uninstall
 ```
 
-導入後は`lunaria /path/to/app.apk`で起動できます（引数なしでグラフィカルランチャー）。手動ダウンロードは[リリースページ](https://github.com/yui0/lunaria/releases)を参照してください。
+導入後は`stubuika /path/to/app.apk`で起動できます（引数なしでグラフィカルランチャー）。手動ダウンロードは[リリースページ](https://github.com/flessan/stubuika/releases)を参照してください。
 
 ### 1. 必要なパッケージをインストール（ソースからビルドする場合）
 
@@ -338,7 +327,7 @@ sudo apt install \
 
 **macOS（Apple Silicon）**
 
-このディレクトリで`make`を実行すると、バージョンを固定したANGLE、MoltenVK、OpenH264などを取得してビルドします。XAPKの起動には`./lunaria-apk.sh /path/to/game.xapk`を使用してください。画面表示には現在制限があるため、[開発状況](#開発状況)も参照してください。
+このディレクトリで`make`を実行すると、バージョンを固定したANGLE、MoltenVK、OpenH264などを取得してビルドします。XAPKの起動には`./stubuika-apk.sh /path/to/game.xapk`を使用してください。画面表示には現在制限があるため、[開発状況](#開発状況)も参照してください。
 
 **Windows（x86_64）**
 
@@ -355,11 +344,11 @@ pacman -S --needed git make zip unzip bzip2 \
 make -j4 dist CC=gcc CXX=g++ DYNARMIC_JOBS=4
 ```
 
-Windows版では、JVM、Dalvikインタプリタ、UI、Android向け互換APIを`lunaria.exe`にまとめます。完成したZIPを展開し、PowerShellから`.\lunaria.exe game.apk`を実行するか、APKを実行ファイルへドラッグ＆ドロップしてください。実行時にMSYS2、Python、別のシェル、ICUをインストールする必要はありません。
+Windows版では、JVM、Dalvikインタプリタ、UI、Android向け互換APIを`stubuika.exe`にまとめます。完成したZIPを展開し、PowerShellから`.\stubuika.exe game.apk`を実行するか、APKを実行ファイルへドラッグ＆ドロップしてください。実行時にMSYS2、Python、別のシェル、ICUをインストールする必要はありません。
 
-LinuxからWindows版ZIPをクロスビルドする場合は、`make -j4 dist-cross-win`を実行します。初回のみ、MSYS2 UCRT64の依存パッケージや実行用DLL、Boostのヘッダーを`/tmp/lunaria-windows-deps`へダウンロードし、次回以降は再利用します。
+LinuxからWindows版ZIPをクロスビルドする場合は、`make -j4 dist-cross-win`を実行します。初回のみ、MSYS2 UCRT64の依存パッケージや実行用DLL、Boostのヘッダーを`/tmp/stubuika-windows-deps`へダウンロードし、次回以降は再利用します。
 
-クロスビルドにはUCRT対応の`x86_64-w64-mingw32-gcc/g++`、CMake、Ninja、Python 3.11以降、curl、zstd対応のtar、zip、および前述のAndroid SDK／NDKが必要です。中間ファイルは`/tmp/lunaria-cross-win`と`/tmp/lunaria-dist-build/cross-windows-x86_64`へ保存され、完成したZIPは作業ディレクトリに出力されます。
+クロスビルドにはUCRT対応の`x86_64-w64-mingw32-gcc/g++`、CMake、Ninja、Python 3.11以降、curl、zstd対応のtar、zip、および前述のAndroid SDK／NDKが必要です。中間ファイルは`/tmp/stubuika-cross-win`と`/tmp/stubuika-dist-build/cross-windows-x86_64`へ保存され、完成したZIPは作業ディレクトリに出力されます。
 
 既存の依存ライブラリを使用するには`WIN_DEPS=/path/to/deps make dist-cross-win`と指定します。`WIN_CROSS_PREFIX`、`WIN_ANGLE`、`WIN_GLFW_LIB`、`WIN_BOOST_INCLUDE`、`WIN_BUILD_DIR`、`WIN_DIST_BUILD_DIR`も変更可能です。
 
@@ -385,22 +374,22 @@ Unicodeの文字分類・正規化・IDNには組み込みテーブルを使用�
 ### 3. パッケージを起動
 
 ```bash
-./lunaria                         # ランチャー UI
-./lunaria path/to/game.apk
-./lunaria path/to/game.xapk
-./lunaria path/to/game.apks
-./lunaria path/to/game.aab
-LUNARIA_ALSA_DEVICE="hw:7,0" ./lunaria Cross+Worlds_5.04.12_APKPure.xapk
+./stubuika                         # ランチャー UI
+./stubuika path/to/game.apk
+./stubuika path/to/game.xapk
+./stubuika path/to/game.apks
+./stubuika path/to/game.aab
+LUNARIA_ALSA_DEVICE="hw:7,0" ./stubuika Cross+Worlds_5.04.12_APKPure.xapk
 ```
 
 ビルド環境に依存しない配布用パッケージも作成できます。
 
 ```bash
-make dist        # lunaria-<version>-linux-x86_64.tar.gz
-make dist-mac    # Lunaria.app + .dmg（Darwin のみ）
+make dist        # stubuika-<version>-linux-x86_64.tar.gz
+make dist-mac    # Stubuika.app + .dmg（Darwin のみ）
 ```
 
-Lunariaはパッケージを直接解析し、ZIP／ZIP64、バイナリマニフェスト、署名ブロック、split APK、OBB、展開キャッシュを処理します。`arm64-v8a`または`armeabi-v7a`を判定した後、ネイティブライブラリを読み込んでランタイムを起動します。
+Stubuikaはパッケージを直接解析し、ZIP／ZIP64、バイナリマニフェスト、署名ブロック、split APK、OBB、展開キャッシュを処理します。`arm64-v8a`または`armeabi-v7a`を判定した後、ネイティブライブラリを読み込んでランタイムを起動します。
 
 XAPK／APKSでは、元のベースAPKを書き換えずに、必要なsplit APKを実行環境に重ね合わせます。AABはprotobuf形式の`BundleConfig`からベースモジュールとアセットパックを読み込みます。
 
@@ -408,22 +397,22 @@ XAPK／APKSでは、元のベースAPKを書き換えずに、必要なsplit APK
 
 展開処理では進捗率、処理済み容量（MiB）、ファイル数、処理中のファイル名が表示されます。大きなファイルのコピー中も進行状況を確認できます。OBBは可能な限りハードリンクやシンボリックリンクで共有し、起動のたびに数GBをコピーするのを防ぎます。
 
-端末プロファイルや保存先、WebViewの種類など、起動後も使う設定は`lunaria.conf`（記入例：`lunaria.conf.sample`）に保存します。環境変数にも同じ項目がある場合、その起動では環境変数が優先されます。
+端末プロファイルや保存先、WebViewの種類など、起動後も使う設定は`stubuika.conf`（記入例：`stubuika.conf.sample`）に保存します。環境変数にも同じ項目がある場合、その起動では環境変数が優先されます。
 
-設定ファイルとデータ保存先の標準位置は、Lunariaを起動した作業ディレクトリです。設定ファイルは`--config FILE`または`LUNARIA_CONF`、データ保存先は`--data-root DIR`または`LUNARIA_DATA_ROOT`で変更できます。相対パスは起動ディレクトリを基準とし、空白を含むパスも使用できます。
+設定ファイルとデータ保存先の標準位置は、Stubuikaを起動した作業ディレクトリです。設定ファイルは`--config FILE`または`LUNARIA_CONF`、データ保存先は`--data-root DIR`または`LUNARIA_DATA_ROOT`で変更できます。相対パスは起動ディレクトリを基準とし、空白を含むパスも使用できます。
 
 ```bash
-./lunaria --config ./lunaria.conf --data-root "/mnt/games/Lunaria data" game.xapk
-# macOS: --data-root /Volumes/Games/Lunaria
-# Windows のシェル: --data-root D:/Games/Lunaria
+./stubuika --config ./stubuika.conf --data-root "/mnt/games/Stubuika data" game.xapk
+# macOS: --data-root /Volumes/Games/Stubuika
+# Windows のシェル: --data-root D:/Games/Stubuika
 ```
 
 **アカウントを分けても、ゲーム本体は共有できます。** プロファイルごとに設定、データベース、ログイン情報などを分離しつつ、インストール済みのAPKや指定したゲームリソースは共通で利用します。`default`プロファイルは従来のデータ保存先をそのまま使用します。
 
 ```bash
-./lunaria --choose-profile game.xapk
-./lunaria --profile account2 game.xapk
-./lunaria --list-profiles game.xapk
+./stubuika --choose-profile game.xapk
+./stubuika --profile account2 game.xapk
+./stubuika --list-profiles game.xapk
 ```
 
 `LUNARIA_PROFILE_PROMPT=1`を指定すると、起動するたびにプロファイルを選べます。共有するリソースは`LUNARIA_SHARED_ASSETS`へコロン区切りで指定し、新しいプロファイルへ一度だけコピーするファイルの一覧は`LUNARIA_PROFILE_SEED_FILES`へ指定します。原神向けの設定例も付属しています。
@@ -431,8 +420,8 @@ XAPK／APKSでは、元のベースAPKを書き換えずに、必要なsplit APK
 ARM32とARM64の両方を含むパッケージでは、実行するアーキテクチャを明示的に選択できます。
 
 ```bash
-LUNARIA_ARCH=armeabi-v7a ./lunaria game.apk
-LUNARIA_ARCH=arm64-v8a  ./lunaria game.apk
+LUNARIA_ARCH=armeabi-v7a ./stubuika game.apk
+LUNARIA_ARCH=arm64-v8a  ./stubuika game.apk
 ```
 
 ## 互換性
@@ -470,7 +459,7 @@ curl -L -o test/FPSMobile-armv7.apk \
 curl -L -o test/main.1.com.YourCompany.FPSMobile.obb \
   "https://raw.githubusercontent.com/Abhishrut/UnrealEngineAndroidSamples/main/main.1.com.YourCompany.FPSMobile.obb"
 
-LUNARIA_ARCH=armeabi-v7a ./lunaria test/FPSMobile-armv7.apk
+LUNARIA_ARCH=armeabi-v7a ./stubuika test/FPSMobile-armv7.apk
 ```
 
 ### Between Two Worlds / Unity 2023 IL2CPP
@@ -480,8 +469,8 @@ LUNARIA_ARCH=armeabi-v7a ./lunaria test/FPSMobile-armv7.apk
 ```bash
 make fetch-btw
 
-LUNARIA_ARCH=armeabi-v7a ./lunaria test/btw-android.apk
-LUNARIA_ARCH=arm64-v8a  ./lunaria test/btw-android.apk
+LUNARIA_ARCH=armeabi-v7a ./stubuika test/btw-android.apk
+LUNARIA_ARCH=arm64-v8a  ./stubuika test/btw-android.apk
 ```
 
 この配布ファイルは拡張子が `.apk` ですが、中身は Android App Bundle です。
@@ -495,20 +484,20 @@ LUNARIA_ARCH=arm64-v8a  ./lunaria test/btw-android.apk
 
 ```bash
 make fetch-libunity
-./lunaria test/dfu-mono-32bit.apk
+./stubuika test/dfu-mono-32bit.apk
 ```
 
 </details>
 
 ## キーボード・マウスで操作する
 
-Lunariaでは、画面上の仮想ボタンやスティックにキーを割り当てることで、タッチ操作のゲームをキーボードとマウスから操作できます。
+Stubuikaでは、画面上の仮想ボタンやスティックにキーを割り当てることで、タッチ操作のゲームをキーボードとマウスから操作できます。
 
 ゲーム画面で右クリックし、**Keyboard Controls**からキーマップを選んでください。ゲームの実行中でも切り替えられます。独自の設定ファイルを読み込むことも可能です。**Off**で無効化、**Reload Current File**で編集内容を再読み込みできます。読み込みに失敗しても、それまでの設定は維持されます。
 
 ```sh
-LUNARIA_KEYMAP=genshin ./lunaria /path/to/Genshin.xapk
-LUNARIA_KEYMAP=crossworlds ./lunaria /path/to/CrossWorlds.apks
+LUNARIA_KEYMAP=genshin ./stubuika /path/to/Genshin.xapk
+LUNARIA_KEYMAP=crossworlds ./stubuika /path/to/CrossWorlds.apks
 ```
 
 付属の原神・Cross Worlds用レイアウトでは、**WASD**で移動、**F**で通常攻撃、**E／Q／1／2／3**でスキルやキャラクターを選択します。**Space**と**Shift**はゲームに応じてジャンプ・ダッシュ・回避などに割り当てられます。マウスの左ドラッグで視点を動かせ、キーによる移動やスキル操作と組み合わせることもできます。
@@ -519,7 +508,7 @@ LUNARIA_KEYMAP=crossworlds ./lunaria /path/to/CrossWorlds.apks
 
 ### キーマップをカスタマイズする
 
-`keymaps/*.conf`をコピーして座標を変更し、`LUNARIA_KEYMAP=/path/to/my.conf`で読み込んでください。`lunaria.conf`へ設定を保存することもできます。マッピングを無効にする場合は`LUNARIA_KEYMAP=off`です。
+`keymaps/*.conf`をコピーして座標を変更し、`LUNARIA_KEYMAP=/path/to/my.conf`で読み込んでください。`stubuika.conf`へ設定を保存することもできます。マッピングを無効にする場合は`LUNARIA_KEYMAP=off`です。
 
 ```text
 stick 0.15625 0.764 0.18
@@ -549,7 +538,7 @@ macro X 0.1,0.1 loop                       # キーを押している間、繰�
 
 ### 操作の録画・再生
 
-**F9**または右クリックメニューの**Record Input**で、マウス・キーマップ・マクロによるタッチ操作を録画できます。データは`~/Documents/Lunaria <date>.rec`に保存され、使用できない場合は`~/`へ保存されます。
+**F9**または右クリックメニューの**Record Input**で、マウス・キーマップ・マクロによるタッチ操作を録画できます。データは`~/Documents/Stubuika <date>.rec`に保存され、使用できない場合は`~/`へ保存されます。
 
 **F10**または**Play Recording**で直前の操作を再生できます。`LUNARIA_PLAY`で録画ファイルを指定し、`LUNARIA_PLAY_LOOP=1`で繰り返し再生することも可能です。座標は画面サイズに対する相対値で記録されるため、ウィンドウの大きさが変わっても再生できます。
 
@@ -560,28 +549,28 @@ macro X 0.1,0.1 loop                       # キーを押している間、繰�
 特定のフレーム（swap番号）を保存するには、次のように指定します。
 
 ```bash
-mkdir -p /tmp/lunaria-shots
-LUNARIA_DUMP_DIR=/tmp/lunaria-shots \
+mkdir -p /tmp/stubuika-shots
+LUNARIA_DUMP_DIR=/tmp/stubuika-shots \
 LUNARIA_DUMP_FRAME=0,60,120 \
-./lunaria game.apk
+./stubuika game.apk
 ```
 
 一定間隔で保存したい場合は、次のように指定します。
 
 ```bash
-LUNARIA_DUMP_DIR=/tmp/lunaria-shots \
+LUNARIA_DUMP_DIR=/tmp/stubuika-shots \
 LUNARIA_SCREENSHOT_EVERY=60 \
-./lunaria game.xapk
+./stubuika game.xapk
 ```
 
-保存形式はPNGで、`lunaria_0000.png`のような名前が付きます。`$LUNARIA_SHOT_TRIGGER`で指定したファイル（既定は`/tmp/lunaria-shot`）を作成すると、追加の1フレームを保存できます。
+保存形式はPNGで、`stubuika_0000.png`のような名前が付きます。`$LUNARIA_SHOT_TRIGGER`で指定したファイル（既定は`/tmp/stubuika-shot`）を作成すると、追加の1フレームを保存できます。
 
-通常のスクリーンショットは**F12**、またはホストメニューの**Take Screenshot**で撮影できます。保存先は`~/Pictures/Lunaria YYYY-MM-DD HH.MM.SS.png`です。
+通常のスクリーンショットは**F12**、またはホストメニューの**Take Screenshot**で撮影できます。保存先は`~/Pictures/Stubuika YYYY-MM-DD HH.MM.SS.png`です。
 
 ## 仕組み
 
 ```text
- APK / XAPK / APKS / AAB
+ APK / APKM / XAPK / APKS / AAB
      │  ベース・分割APK、ネイティブライブラリ、アセット、OBBを展開
      ▼
  Android ELF loader ─── relocation と依存関係解決
@@ -645,11 +634,11 @@ LUNARIA_SCREENSHOT_EVERY=60 \
 | `LUNARIA_SYSLIB_DIR` | `syslib-arm64/`（存在する場合） | ゲストコードとして実行する AArch64 プラットフォームライブラリ。`make syslib` で libm、libc、libz を取得し、`make guestlib` で `liblunaria_guest.so` を作成 |
 | `LUNARIA_VULKAN` | 利用可能なら on | `0` で Vulkan ブリッジと端末機能の公開を無効にする。タイトルは GLES も選択可能 |
 | `LUNARIA_TOUCH_TEST` | off | `x,y[;x,y…]` 形式でタップを注入（最大 8 個）。単純な数値はフレームバッファーに対する百分率、`640px` はゲストピクセル |
-| `LUNARIA_TOUCH_FIFO` | off | 実行中のタップやドラッグを入力。タップは`x,y[,hold]`、ドラッグは`down x,y`、`move x,y`、`up x,y`。座標は割合または`px`指定。Windowsでは`\\.\pipe\lunaria-touch`（名前付きパイプ）。 |
+| `LUNARIA_TOUCH_FIFO` | off | 実行中のタップやドラッグを入力。タップは`x,y[,hold]`、ドラッグは`down x,y`、`move x,y`、`up x,y`。座標は割合または`px`指定。Windowsでは`\\.\pipe\stubuika-touch`（名前付きパイプ）。 |
 | `LUNARIA_KEYMAP` | off | `genshin`、`crossworlds`、`off`、またはキーマップファイルのパス。ホストメニューから実行中に変更可能 |
-| `LUNARIA_DEVICE` | `pixel6` | 端末プロファイル：`pixel6`、`pixel7`、`galaxys21`、`lunaria`。通常は `lunaria.conf` を推奨 |
+| `LUNARIA_DEVICE` | `pixel6` | 端末プロファイル：`pixel6`、`pixel7`、`galaxys21`、`stubuika`。通常は `stubuika.conf` を推奨 |
 | `LUNARIA_DATA_ROOT` | 起動ディレクトリ | ゲストの `/data` と `/storage`。`--data-root DIR` でも指定可能 |
-| `LUNARIA_CONF` | 起動ディレクトリ直下の `lunaria.conf` | 読み書きする設定ファイル。`--config FILE` でも指定可能。別の場所を自動検索しない |
+| `LUNARIA_CONF` | 起動ディレクトリ直下の `stubuika.conf` | 読み書きする設定ファイル。`--config FILE` でも指定可能。別の場所を自動検索しない |
 | `LUNARIA_WEB_ENGINE` | `auto` | `auto`、`chrome`、`luna`、`off`。ホストメニューからセッション中に上書き可能 |
 | `LUNARIA_SCALE` | off | 選択した端末パネル自体を拡大縮小（`0.5` なら半分）。未設定時は `LUNARIA_WIDTH` × `LUNARIA_HEIGHT` |
 | `LUNARIA_TOUCH_FRAME` / `_HOLD` / `_GAP` | `60` / `10` / `60` | 最初の DOWN フレーム / 押下時間 / タップ間隔 |
@@ -675,7 +664,7 @@ LUNARIA_SCREENSHOT_EVERY=60 \
 | `LUNARIA_CACHE_DIR` | 起動時のデータ保存先の `cache/packages/` | ランチャーの永続展開キャッシュ。個別に移動可能 |
 | `LUNARIA_NO_CACHE` | off | APK / XAPK / APKS を毎回新しく展開 |
 
-特定のエンジン用エントリポイントがなくても、Lunariaはマニフェストで指定されたランチャー`Activity`から起動を試みます。`ANDROID_LAUNCH_ACTIVITY`と`ANDROID_APPLICATION_CLASS`にクラス情報を渡し、バイトコードVMでアプリのライフサイクルを実行します。ネイティブライブラリはアプリ自身の`System.loadLibrary`から読み込まれます。
+特定のエンジン用エントリポイントがなくても、Stubuikaはマニフェストで指定されたランチャー`Activity`から起動を試みます。`ANDROID_LAUNCH_ACTIVITY`と`ANDROID_APPLICATION_CLASS`にクラス情報を渡し、バイトコードVMでアプリのライフサイクルを実行します。ネイティブライブラリはアプリ自身の`System.loadLibrary`から読み込まれます。
 
 tick値には`K`、`M`、`G`の接尾辞が使えます（例：`LUNARIA_ONLOAD_TICKS=5G`）。
 
@@ -699,7 +688,7 @@ tick値には`K`、`M`、`G`の接尾辞が使えます（例：`LUNARIA_ONLOAD_
 | `src/webview_cdp.c` | Chrome と luna-browser が共有する DevTools パイプクライアント |
 | `luna-browser/` | 内蔵 WebView エンジン（luna-ui + QuickJS）。`make luna-browser` でビルド |
 | `keymaps/` | 同梱タッチマップ（`genshin.conf`、`crossworlds.conf`） |
-| `lunaria.conf.sample` | 端末プロファイル、data root、画面スケール、パッケージ台帳、WebView エンジン |
+| `stubuika.conf.sample` | 端末プロファイル、data root、画面スケール、パッケージ台帳、WebView エンジン |
 | `runtime/` | 生成された Android 互換ホスト共有ライブラリ |
 | `src/apk.c` | APK／XAPK／APKS／AABの読み込み、展開キャッシュ、マニフェスト解析、起動処理 |
 | `src/luna_unicode.c` | 組み込み Unicode 分類・正規化・IDNA2003 |
@@ -710,9 +699,9 @@ tick値には`K`、`M`、`G`の接尾辞が使えます（例：`LUNARIA_ONLOAD_
 <details>
 <summary><strong>起動時のムービーが再生されない</strong></summary>
 
-LunariaはH.264動画のデコードにOpenH264を使用します。ただし、現在対応しているConstrained Baselineプロファイルでは、すべてのゲーム内動画を再生できるわけではありません。例えば、Blade & Soul Revolutionのオープニングなどに使われているMain／Highプロファイル（CABACやBフレームを含む）は未対応です。
+StubuikaはH.264動画のデコードにOpenH264を使用します。ただし、現在対応しているConstrained Baselineプロファイルでは、すべてのゲーム内動画を再生できるわけではありません。例えば、Blade & Soul Revolutionのオープニングなどに使われているMain／Highプロファイル（CABACやBフレームを含む）は未対応です。
 
-デコードを16アクセスユニット試しても映像が得られない場合、Lunariaは`MEDIA_ERROR_UNSUPPORTED`をゲーム側へ通知します。これにより、対応したゲームエンジンは再生できない動画をスキップし、起動処理を続けられます。以前のように映像の終了を待ち続け、白画面から進めなくなる状況を避けるための処理です。
+デコードを16アクセスユニット試しても映像が得られない場合、Stubuikaは`MEDIA_ERROR_UNSUPPORTED`をゲーム側へ通知します。これにより、対応したゲームエンジンは再生できない動画をスキップし、起動処理を続けられます。以前のように映像の終了を待ち続け、白画面から進めなくなる状況を避けるための処理です。
 
 Blade & Soul Masiaのオープニングなど、対応するプロファイルの動画はOpenH264が利用可能であれば最後まで再生できます（`make fetch-openh264`）。AAC音声には、ホスト側で利用可能な場合にlibavcodecを使用します。デコードの状況は`LUNARIA_TRACE_MEDIA=1`で確認できます。
 
@@ -744,7 +733,7 @@ make runtime/libmediandk.so runtime/libGLESv3.so
 
 ```bash
 LUNARIA_TRACE_EXC=1 LUNARIA_DUMP_LAST_SVC=1 \
-./lunaria game.apk 2>&1 | tee lunaria.log
+./stubuika game.apk 2>&1 | tee stubuika.log
 ```
 
 Unreal Engine 5のゲームでは、可能な限りGPUによるOpenGL描画を使用してください。`LIBGL_ALWAYS_SOFTWARE=1`を指定するとllvmpipeによるソフトウェア描画になり、起動が極端に遅くなる場合があります。フリーズに見えても、実際には描画処理が進んでいる可能性があります。
@@ -765,13 +754,13 @@ AArch64では、まず単一のJITエンジンで安定動作を確認し、そ�
 
 GLFWは`xdotool`や`XSendEvent`からの疑似クリックを受け付けません。ゲーム画面を直接クリックするか、`LUNARIA_TOUCH_TEST='50,84;…'`でタップ位置を指定してください。位置は画面に対する割合で、`px`を付ければピクセル単位でも指定できます。ゲーム起動後は`LUNARIA_TOUCH_FIFO`からも入力できます。
 
-なお、右クリックはLunariaのホストメニュー専用で、ゲーム側には送られません。
+なお、右クリックはStubuikaのホストメニュー専用で、ゲーム側には送られません。
 
 </details>
 
 ## 開発状況
 
-Lunariaは**現在も開発を進めている研究段階のソフトウェア**です。以下は検証環境で確認した状況であり、すべてのPCやタイトルで同じ結果になるとは限りません。
+Stubuikaは**現在も開発を進めている研究段階のソフトウェア**です。以下は検証環境で確認した状況であり、すべてのPCやタイトルで同じ結果になるとは限りません。
 
 **Linux：** 検証環境では、描画されたフレームバッファーとウィンドウの表示が一致しています。
 
@@ -787,7 +776,7 @@ Lunariaは**現在も開発を進めている研究段階のソフトウェア**
 
 ライセンスは[Mozilla Public License 2.0](LICENSE)です。
 
-Project Lunaria © 2026 Yuichiro Nakada.
+Project Stubuika © 2026 Yuichiro Nakada.
 
 Android標準テーマの継承には、SDK Platform 31の実リソースを使用します。
 Googleの公式アーカイブを取得して、次の手順で配置できます。
@@ -801,3 +790,14 @@ python3 scripts/install-framework.py /tmp/platform-31_r01.zip
 変更せずに`runtime/framework-res/`へ取り出します。アプリのAPKは変更しません。
 別の配置先を使う場合は、`resources.arsc`と`res/`を含むディレクトリを
 `LUNARIA_FRAMEWORK_RES`で指定してください。既定の配置先は実行ファイルを基準に探します。
+
+
+## プロジェクトの由来
+
+Stubuikaは、Yuichiro Nakada氏が開発した[Lunaria](https://github.com/yui0/lunaria)をベースに再ブランド化した継続プロジェクトです。元のMPL-2.0ライセンスと著作権表示は維持しています。Androidアプリ向けの実行環境であり、iOSの`.ipa`には対応しません。macOS対応はホストOS向けビルドであり、iOS対応を意味しません。
+
+
+## APKMirror APKM
+
+APKMirrorの`.apkm`は、base APKとsplit APKを含むZIP形式のAndroidパッケージです。Stubuikaは内部のAPKマニフェストを調べてbase APKを特定し、splitのパッケージIDを検証してランタイム用に統合します。現在は`info.json`を起動判断の必須データとして扱わず、外側のAPKMirror JAR署名も検証しません。
+

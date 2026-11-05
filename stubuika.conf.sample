@@ -1,9 +1,9 @@
-# lunaria.conf — settings that belong to this installation rather than to one
-# run. Copy to `lunaria.conf` in the directory you start the launcher from.
-# Select another file with --config FILE or LUNARIA_CONF=/path/lunaria.conf.
+# stubuika.conf — settings that belong to this installation rather than to one
+# run. Copy to `stubuika.conf` in the directory you start the launcher from.
+# Select another file with --config FILE or LUNARIA_CONF=/path/stubuika.conf.
 # Relative paths refer to the startup directory. `NAME=value`, `#` comments; only
 # LUNARIA_* names are read.  A variable already set in the environment wins, so
-#     LUNARIA_DEVICE=pixel7 ./lunaria-apk.sh game.apk
+#     LUNARIA_DEVICE=pixel7 ./stubuika-apk.sh game.apk
 # still overrides the file for that one run.
 
 # ---------------------------------------------------------------------------
@@ -18,7 +18,7 @@
 #   pixel6     Google Pixel 6      (gs101,      Android 12)   <- default
 #   pixel7     Google Pixel 7      (gs201,      Android 13)
 #   galaxys21  Samsung SM-G991B    (exynos2100, Android 12)
-#   lunaria    the emulator's own identity — names no device that exists
+#   stubuika    the emulator's own identity — names no device that exists
 #
 #LUNARIA_DEVICE=pixel6
 
@@ -59,16 +59,16 @@
 # also wants a path whose components are ASCII, because a guest that mishandles
 # one then fails for a reason that has nothing to do with the guest.
 # --data-root DIR overrides this setting for one launch. Examples:
-#LUNARIA_DATA_ROOT=/mnt/games/lunaria
-#LUNARIA_DATA_ROOT=/Volumes/Games/lunaria
-#LUNARIA_DATA_ROOT=D:/Games/Lunaria
+#LUNARIA_DATA_ROOT=/mnt/games/stubuika
+#LUNARIA_DATA_ROOT=/Volumes/Games/stubuika
+#LUNARIA_DATA_ROOT=D:/Games/Stubuika
 #LUNARIA_DATA_ROOT="../Game data"
 
 # Unpacked APKs are reusable package data. The default is cache/packages under
 # the common data root selected at startup (or the startup directory itself).
 # Move the package cache independently, including when each package has its
 # own data root in a [package.name] block:
-#LUNARIA_CACHE_DIR=D:/Games/Lunaria/cache/packages
+#LUNARIA_CACHE_DIR=D:/Games/Stubuika/cache/packages
 
 # ---------------------------------------------------------------------------
 # The screen.
@@ -133,7 +133,7 @@
 #                            default            the built-in image
 #                            -com.android.chrome  drop a package
 #                            <package> [uid] [flags] [sourceDir] [version/code]
-# Google Play services is in the built-in image, as on a Pixel, but Lunaria
+# Google Play services is in the built-in image, as on a Pixel, but Stubuika
 # ships no Google-signed APK: the package is an empty archive until you put a
 # genuine one at <device-root>/product/priv-app/PrebuiltGmsCore/PrebuiltGmsCore.apk
 # (apps verify its Google signature).  For a device without it:

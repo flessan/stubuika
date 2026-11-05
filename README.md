@@ -1,4 +1,5 @@
-# Stubuika
+<img alt="gambar" src="https://github.com/user-attachments/assets/208cea35-04cc-4b78-92d2-03d002cd0eb4" />
+
 
 ### Android apps and games, on your desktop.
 

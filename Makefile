@@ -7,7 +7,7 @@
 PREFIX ?= /usr/local
 BINDIR ?= /bin
 LIBDIR ?= /lib
-RUNTIMEDIR ?= /lunaria
+RUNTIMEDIR ?= /stubuika
 
 .SUFFIXES:
 
@@ -23,7 +23,7 @@ LDFLAGS += $(OPT_LDFLAGS)
 CPPFLAGS ?= -D_FORTIFY_SOURCE=2
 CPPFLAGS += -Isrc -DANDROID_X86_LINKER # -DVERBOSE_FUNCTIONS
 # Optional host instrumentation for reproducing intermittent emulator memory
-# faults: `make -B SANITIZE=-fsanitize=address lunaria`.
+# faults: `make -B SANITIZE=-fsanitize=address stubuika`.
 SANITIZE ?=
 # Default: x86 (32-bit). Use targets below for other ABIs.
 
@@ -48,7 +48,7 @@ else
 WEBVIEW_CDP_HOST_SRC = src/webview_cdp_host_posix.c
 endif
 # Intermediate objects and scratch space live outside the source tree.
-BUILD_DIR ?= /tmp/lunaria-build
+BUILD_DIR ?= /tmp/stubuika-build
 LUNA_OS_OBJ = $(BUILD_DIR)/lunaria_os.o $(BUILD_DIR)/lunaria_file.o
 LUNA_FNM_OBJ = $(BUILD_DIR)/luna_fnmatch.o
 
@@ -176,7 +176,7 @@ HOST_BIONIC_LIBC =
 HOST_SYSTEM_DL_LIBS =
 HOST_RPATH =
 HOST_TEST_RPATH =
-HOST_EXPORT = $(BUILD_DIR)/lunaria.def
+HOST_EXPORT = $(BUILD_DIR)/stubuika.def
 # Prefer nm next to $(CC) so llvm-mingw is not mixed with a system gcc-nm.
 HOST_NM = $(shell \
 	cc=$$(command -v $(firstword $(CC))); \
@@ -215,9 +215,9 @@ DYNARMIC_CMAKE_FLAGS += -G "$(WINDOWS_CMAKE_GENERATOR)" \
 OPENH264_SO = runtime/openh264.dll
 OPENH264_ARCH = win64
 OPENH264_URL = https://ciscobinary.openh264.org/openh264-$(OPENH264_VERSION)-$(OPENH264_ARCH).dll.bz2
-LUNARIA_BIN = lunaria.exe
+LUNARIA_BIN = stubuika.exe
 else
-LUNARIA_BIN = lunaria
+LUNARIA_BIN = stubuika
 endif
 
 CPPFLAGS += $(HOST_CPPFLAGS)
@@ -250,9 +250,9 @@ endif
 host-all: $(bins) $(OPENH264_SO) syslib-core
 
 # Preserve the documented target when the Windows linker writes an .exe.
-ifeq ($(LUNARIA_BIN),lunaria.exe)
-.PHONY: lunaria
-lunaria: $(LUNARIA_BIN)
+ifeq ($(LUNARIA_BIN),stubuika.exe)
+.PHONY: stubuika
+stubuika: $(LUNARIA_BIN)
 endif
 
 macos-deps:
@@ -480,10 +480,10 @@ $(BUILD_DIR)/liblogassert32.so: test/guest_log_assert.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 
 .PHONY: guest-log-assert-test
-guest-log-assert-test: lunaria $(BUILD_DIR)/liblogassert64.so $(BUILD_DIR)/liblogassert32.so
+guest-log-assert-test: stubuika $(BUILD_DIR)/liblogassert64.so $(BUILD_DIR)/liblogassert32.so
 	@set -e; for abi in 64 32; do \
 	    output="$(BUILD_DIR)/log-assert$$abi.log"; result=0; \
-	    timeout -k 2s 15s env LUNARIA_MAX_FRAMES=1 ./lunaria "$(BUILD_DIR)/liblogassert$$abi.so" > "$$output" 2>&1 || result=$$?; \
+	    timeout -k 2s 15s env LUNARIA_MAX_FRAMES=1 ./stubuika "$(BUILD_DIR)/liblogassert$$abi.so" > "$$output" 2>&1 || result=$$?; \
 	    test "$$result" = 1; \
 	    rg -q -F '[android_log p=7 t=assert-test] int=42 str=hello wide=123456789abcdef0 tail=73' "$$output"; \
 	    rg -q -F 'abort() called' "$$output"; \
@@ -570,7 +570,7 @@ libpthread.so: runtime/libpthread.so
 $(BUILD_DIR)/luna_fnmatch.o: src/lib/musl/fnmatch.c src/lunaria_os.h src/luna_unicode.h | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -D_GNU_SOURCE -c $< -o $@
 
-# arm_exec.o: compiled with C++20 and dynarmic headers; linked into lunaria
+# arm_exec.o: compiled with C++20 and dynarmic headers; linked into stubuika
 $(BUILD_DIR)/arm_exec.o: | $(BUILD_DIR)
 $(BUILD_DIR)/arm_exec.o: src/arm_exec.cpp src/arm_exec.h src/lunaria_os.h src/luna_boot.h      src/luna_input.h src/arm.h src/svc_ids.h src/lib/guest.c src/jvm/jvm.h src/binary128.h src/linker64.h src/trace.h $(DYNARMIC_LIB)
 	$(CXX) -std=c++20 $(OPTFLAGS) -fPIC \
@@ -605,14 +605,14 @@ test/libslqueuetest32.so: test/opensles_queue_test.c
 	"$(SL_TEST_CC32)" -std=c11 -shared -fPIC -nostdlib -O1 -Wl,--unresolved-symbols=ignore-all $< -o $@
 
 .PHONY: opensles-queue-test32
-opensles-queue-test32: lunaria test/libslqueuetest32.so
-	LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" LUNARIA_ALSA_DEVICE=null LUNARIA_MAX_FRAMES=120 timeout 20s ./lunaria test/libslqueuetest32.so > .slqueuetest32.out 2>&1
+opensles-queue-test32: stubuika test/libslqueuetest32.so
+	LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" LUNARIA_ALSA_DEVICE=null LUNARIA_MAX_FRAMES=120 timeout 20s ./stubuika test/libslqueuetest32.so > .slqueuetest32.out 2>&1
 	@rg 'slqueuetest' .slqueuetest32.out
 	@rg -q 'RESULT PASS' .slqueuetest32.out && ! rg -q 'slqueuetest.*FAIL|NoExecuteFault' .slqueuetest32.out
 
 .PHONY: opensles-queue-test
-opensles-queue-test: lunaria test/libslqueuetest.so
-	LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" LUNARIA_ALSA_DEVICE=null LUNARIA_MAX_FRAMES=120 ./lunaria test/libslqueuetest.so > .slqueuetest.out 2>&1
+opensles-queue-test: stubuika test/libslqueuetest.so
+	LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" LUNARIA_ALSA_DEVICE=null LUNARIA_MAX_FRAMES=120 ./stubuika test/libslqueuetest.so > .slqueuetest.out 2>&1
 	@rg 'slqueuetest' .slqueuetest.out
 	@rg -q 'RESULT PASS' .slqueuetest.out && ! rg -q 'slqueuetest.*FAIL|NoExecuteFault' .slqueuetest.out
 
@@ -648,7 +648,7 @@ $(BUILD_DIR)/stb_vorbis.o: src/lib/stb_vorbis.c
 # time, so nothing links against it.  The command table is generated from
 # vk.xml by scripts/gen_vk_commands.py.
 # Bridge to a local qfkey remote-desktop host (luna_qfkey.h): lives in the
-# lunaria executable beside arm_exec.o, which feeds it frames and takes input.
+# stubuika executable beside arm_exec.o, which feeds it frames and takes input.
 $(BUILD_DIR)/luna_qfkey.o: | $(BUILD_DIR)
 $(BUILD_DIR)/luna_qfkey.o: src/luna_qfkey.c src/luna_qfkey.h src/arm_exec.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -D_GNU_SOURCE -c src/luna_qfkey.c -o $@
@@ -695,7 +695,7 @@ $(BUILD_DIR)/luna_boot.o: src/luna_boot.c src/luna_boot.h src/luna_overlay.h src
 	    -Wno-unused-function -Wno-unused-variable -Wno-sign-compare \
 	    -c src/luna_boot.c -o $@
 
-# lunaria: link with g++ so arm_exec.o (C++) and dynarmic (C++) are handled correctly
+# stubuika: link with g++ so arm_exec.o (C++) and dynarmic (C++) are handled correctly
 $(BUILD_DIR)/lunaria_os.o: | $(BUILD_DIR)
 $(BUILD_DIR)/lunaria_os.o: $(LUNA_OS_SRC) src/lunaria_os.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) \
@@ -717,7 +717,7 @@ path-geometry-test: test/path_geometry_test.c src/dvm/dvm_path.c src/dvm/dvm_lib
 $(BUILD_DIR)/aeabi-memory32.so: test/aeabi_memory_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabihf $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: aeabi-memory-test
-aeabi-memory-test: lunaria $(BUILD_DIR)/aeabi-memory32.so
+aeabi-memory-test: stubuika $(BUILD_DIR)/aeabi-memory32.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/aeabi-memory32.so
 
 $(BUILD_DIR)/execute-fault32.so: test/guest_execute_fault_test.c | $(BUILD_DIR)
@@ -725,16 +725,16 @@ $(BUILD_DIR)/execute-fault32.so: test/guest_execute_fault_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/execute-fatal32.so: test/guest_execute_fault_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabihf $(ABI_TEST_CFLAGS) -std=c11 -DGUEST_EXECUTE_FATAL -Wno-unused-function -o $@ $<
 .PHONY: execute-fault-test
-execute-fault-test: lunaria $(BUILD_DIR)/execute-fault32.so $(BUILD_DIR)/execute-fatal32.so
+execute-fault-test: stubuika $(BUILD_DIR)/execute-fault32.so $(BUILD_DIR)/execute-fatal32.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/execute-fault32.so
-	@python3 -c 'import pathlib,subprocess,sys; p=subprocess.run(["./lunaria",sys.argv[1]],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=30); out=p.stdout.decode(errors="replace"); pathlib.Path(sys.argv[1]+".out").write_text(out); ok=p.returncode==139 and "Fatal signal 11 (SIGSEGV), code 1, fault addr 0x00000000" in out and "RESULT FAIL" not in out and "retired: NULL" not in out and "host-abort" not in out; print("Unhandled worker execute fault: "+("PASS" if ok else "FAIL")); sys.exit(0 if ok else 1)' $(BUILD_DIR)/execute-fatal32.so
+	@python3 -c 'import pathlib,subprocess,sys; p=subprocess.run(["./stubuika",sys.argv[1]],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=30); out=p.stdout.decode(errors="replace"); pathlib.Path(sys.argv[1]+".out").write_text(out); ok=p.returncode==139 and "Fatal signal 11 (SIGSEGV), code 1, fault addr 0x00000000" in out and "RESULT FAIL" not in out and "retired: NULL" not in out and "host-abort" not in out; print("Unhandled worker execute fault: "+("PASS" if ok else "FAIL")); sys.exit(0 if ok else 1)' $(BUILD_DIR)/execute-fatal32.so
 
 $(BUILD_DIR)/guest-dac64.so: test/guest_dac_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 $(BUILD_DIR)/guest-dac32.so: test/guest_dac_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabihf $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: guest-dac-test
-guest-dac-test: lunaria $(BUILD_DIR)/guest-dac64.so $(BUILD_DIR)/guest-dac32.so test/dvm_test.dex
+guest-dac-test: stubuika $(BUILD_DIR)/guest-dac64.so $(BUILD_DIR)/guest-dac32.so test/dvm_test.dex
 	@mkdir -p $(BUILD_DIR)/guest-dac-pkg $(BUILD_DIR)/guest-dac-self/device-root/data/data/com.example.other/files $(BUILD_DIR)/guest-dac-self/device-root/data/data/com.example.other/private $(BUILD_DIR)/guest-dac-self/files
 	@cp test/dvm_test.dex $(BUILD_DIR)/guest-dac-pkg/classes.dex
 	@chmod 755 $(BUILD_DIR)/guest-dac-self/device-root/data/data/com.example.other $(BUILD_DIR)/guest-dac-self/device-root/data/data/com.example.other/files
@@ -814,7 +814,7 @@ luna-browser:
 	$(MAKE) -C luna-browser LUNA_UI=$(abspath $(LUNA_UI_DIR))
 
 luna-browser-test: luna-browser test/test_webview_cdp_host
-	./test/test_webview_cdp_host luna-browser/luna-browser $${TMPDIR:-/tmp}/lunaria-luna-browser-test
+	./test/test_webview_cdp_host luna-browser/luna-browser $${TMPDIR:-/tmp}/stubuika-luna-browser-test
 
 clean:
 	$(RM) $(bins) $(BUILD_DIR)/apk.o $(BUILD_DIR)/arm_exec.o $(BUILD_DIR)/luna_qfkey.o $(BUILD_DIR)/binary128.o $(BUILD_DIR)/luna_fnmatch.o $(BUILD_DIR)/arm.o $(BUILD_DIR)/loader.o $(BUILD_DIR)/lunaria_os.o $(BUILD_DIR)/luna_overlay.o $(BUILD_DIR)/luna_boot.o \
@@ -958,8 +958,8 @@ test/test_boot_card: test/boot_card_test.c src/apkpure.c src/dvm/dvm_net.c src/l
 	    $(HOST_GL_LIBS) $(HOST_WINDOW_LIBS) $(HOST_AUDIO_LIBS) $(HOST_CRYPTO_LIBS) $(HOST_SYSTEM_DL_LIBS) -lm -o $@
 
 boot-card-test: test/test_boot_card
-	mkdir -p /tmp/lunaria-boot
-	./test/test_boot_card 18 /tmp/lunaria-boot
+	mkdir -p /tmp/stubuika-boot
+	./test/test_boot_card 18 /tmp/stubuika-boot
 
 .PHONY: profile-menu-test
 profile-menu-test: test/test_boot_card
@@ -1035,11 +1035,11 @@ $(BUILD_DIR)/charset-buffer-pkg/classes.dex: test/dvm_test.dex
 	mkdir -p $(BUILD_DIR)/charset-buffer-pkg
 	cp $< $@
 .PHONY: jni-charset-buffer-test
-jni-charset-buffer-test: lunaria test/libjnicharset.so test/libjnicharset-arm32.so $(BUILD_DIR)/charset-buffer-pkg/classes.dex
+jni-charset-buffer-test: stubuika test/libjnicharset.so test/libjnicharset-arm32.so $(BUILD_DIR)/charset-buffer-pkg/classes.dex
 	@rc=0; for abi in arm64 arm32; do \
 	    lib=test/libjnicharset.so; test "$$abi" != arm32 || lib=test/libjnicharset-arm32.so; \
 	    timeout -k 2s 120s env ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/charset-buffer-pkg" \
-	        ./lunaria $$lib > $(BUILD_DIR)/jnicharset-$$abi.log 2>&1; \
+	        ./stubuika $$lib > $(BUILD_DIR)/jnicharset-$$abi.log 2>&1; \
 	    grep jnicharset $(BUILD_DIR)/jnicharset-$$abi.log; \
 	    grep -q 'RESULT PASS' $(BUILD_DIR)/jnicharset-$$abi.log && \
 	        ! grep -q 'RESULT FAIL' $(BUILD_DIR)/jnicharset-$$abi.log || rc=1; \
@@ -1110,9 +1110,9 @@ test/libdivtest32.so: test/div_test.c
 	    -Wl,--unresolved-symbols=ignore-all -o $@ $<
 
 .PHONY: div-test
-div-test: lunaria test/libdivtest.so test/libdivtest32.so
+div-test: stubuika test/libdivtest.so test/libdivtest32.so
 	@rc=0; for so in test/libdivtest.so test/libdivtest32.so; do \
-	    LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./lunaria $$so > .divtest.out 2>&1; \
+	    LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./stubuika $$so > .divtest.out 2>&1; \
 	    grep 'divtest' .divtest.out; \
 	    grep -q 'RESULT PASS' .divtest.out && ! grep -q 'RESULT FAIL' .divtest.out || rc=1; \
 	 done; exit $$rc
@@ -1135,13 +1135,13 @@ ifeq ($(LUNA_OS_NAME),Darwin)
 else
 	$(BUILD_DIR)/gl_fragment_output_test
 endif
-gl-version-test: lunaria test/libglversiontest.so test/test_gl_host_identity
-	@LUNARIA_GL_IDENTITY=host LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./test/test_gl_host_identity ./lunaria test/libglversiontest.so \
+gl-version-test: stubuika test/libglversiontest.so test/test_gl_host_identity
+	@LUNARIA_GL_IDENTITY=host LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./test/test_gl_host_identity ./stubuika test/libglversiontest.so \
 	    > .glversiontest.out 2>&1; \
 	grep 'glversiontest' .glversiontest.out; \
 	grep -q 'RESULT PASS' .glversiontest.out && ! grep -q 'RESULT FAIL' .glversiontest.out && \
 	python3 test/gl_identity_check.py .glversiontest.out
-	@LUNARIA_GL_IDENTITY=device LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./lunaria test/libglversiontest.so \
+	@LUNARIA_GL_IDENTITY=device LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./stubuika test/libglversiontest.so \
 	    > .gldeviceidentity.out 2>&1; \
 	grep -q 'RESULT PASS' .gldeviceidentity.out && ! grep -q 'RESULT FAIL' .gldeviceidentity.out && \
 	python3 test/gl_identity_check.py .gldeviceidentity.out device
@@ -1152,8 +1152,8 @@ test/libglsrgbtest.so: test/gl_srgb_test.c
 	    -o $@ $<
 
 .PHONY: gl-srgb-test
-gl-srgb-test: lunaria test/libglsrgbtest.so
-	@LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./lunaria test/libglsrgbtest.so \
+gl-srgb-test: stubuika test/libglsrgbtest.so
+	@LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./stubuika test/libglsrgbtest.so \
 	    > .glsrgbtest.out 2>&1; \
 	grep 'glsrgbtest' .glsrgbtest.out; \
 	grep -q 'RESULT PASS' .glsrgbtest.out && ! grep -q 'RESULT FAIL' .glsrgbtest.out
@@ -1172,9 +1172,9 @@ test/libgluniform32.so: test/gl_uniform_integer_test.c
 	clang -target armv7a-linux-gnueabihf -mfloat-abi=softfp -fPIC -shared -nostdlib -O1 -fuse-ld=lld \
 	    -Wl,--unresolved-symbols=ignore-all -o $@ $<
 
-gl-uniform-test: lunaria test/libgluniform64.so test/libgluniform32.so
+gl-uniform-test: stubuika test/libgluniform64.so test/libgluniform32.so
 	@set -e; for abi in 64 32; do \
-	    LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./lunaria test/libgluniform$$abi.so \
+	    LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./stubuika test/libgluniform$$abi.so \
 	        > .gluniform$$abi.out 2>&1 || test "$$?" -eq 1; \
 	    grep 'gluniformtest' .gluniform$$abi.out; \
 	    grep -q 'RESULT PASS' .gluniform$$abi.out; \
@@ -1190,17 +1190,17 @@ test/libglmatrix32.so: test/gl_uniform_matrix_test.c
 	clang -target armv7a-linux-gnueabihf -mfloat-abi=softfp -fPIC -shared -nostdlib -O1 -fuse-ld=lld \
 	    -Wl,--unresolved-symbols=ignore-all -o $@ $<
 
-gl-matrix-test: lunaria test/libglmatrix64.so test/libglmatrix32.so
+gl-matrix-test: stubuika test/libglmatrix64.so test/libglmatrix32.so
 	@set -e; for abi in 64 32; do \
-	    LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./lunaria test/libglmatrix$$abi.so \
+	    LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./stubuika test/libglmatrix$$abi.so \
 	        > .glmatrix$$abi.out 2>&1 || test "$$?" -eq 1; \
 	    grep 'glmatrixtest' .glmatrix$$abi.out; \
 	    grep -q 'RESULT PASS' .glmatrix$$abi.out; \
 	    ! grep -q 'RESULT FAIL' .glmatrix$$abi.out; \
 	done
 
-gl-map-test: lunaria test/libglmaptest.so
-	@LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./lunaria test/libglmaptest.so \
+gl-map-test: stubuika test/libglmaptest.so
+	@LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" ./stubuika test/libglmaptest.so \
 	    > .glmaptest.out 2>&1; \
 	grep 'glmaptest' .glmaptest.out; \
 	grep -q 'RESULT PASS' .glmaptest.out && ! grep -q 'RESULT FAIL' .glmaptest.out
@@ -1236,14 +1236,14 @@ test/libnettest-arm32.so: test/net_test.c
 	clang -target armv7a-linux-gnueabihf $(ABI_TEST_CFLAGS) -std=c11 \
 	    -Wl,-soname,libnettest-arm32.so -o $@ $<
 
-net-test: lunaria test/libnettest.so test/libnettest-arm32.so | $(BUILD_DIR)
+net-test: stubuika test/libnettest.so test/libnettest-arm32.so | $(BUILD_DIR)
 	@python3 test/net_test_server.py & net_test_server_pid=$$!; \
 	trap 'kill "$$net_test_server_pid" 2>/dev/null || true' EXIT INT TERM; \
 	sleep 1; rc=0; \
 	for abi in arm64 arm32; do \
 	    lib=test/libnettest.so; test "$$abi" != arm32 || lib=test/libnettest-arm32.so; \
 	    output="$(BUILD_DIR)/net-$$abi.log"; \
-	    timeout -k 2s 30s env LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./lunaria $$lib > "$$output" 2>&1; \
+	    timeout -k 2s 30s env LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./stubuika $$lib > "$$output" 2>&1; \
 	    grep -E 'nettest|^\[net\]' "$$output"; \
 	    grep -q 'RESULT PASS' "$$output" && ! grep -q 'RESULT FAIL' "$$output" || rc=1; \
 	done; exit $$rc
@@ -1257,8 +1257,8 @@ test/libposixtest.so: test/posix_test.c
 	    -Wl,--unresolved-symbols=ignore-all -Wl,-soname,libposixtest.so \
 	    -o $@ $<
 
-posix-test: lunaria test/libposixtest.so
-	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./lunaria test/libposixtest.so 2>&1 \
+posix-test: stubuika test/libposixtest.so
+	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./stubuika test/libposixtest.so 2>&1 \
 	    | tee .posixtest.out | grep -E 'posixtest|unresolved'; \
 	grep -q 'RESULT PASS' .posixtest.out; rc=$$?; rm -f .posixtest.out; exit $$rc
 
@@ -1269,8 +1269,8 @@ test/libjitspeed.so: test/jit_speed_test.c
 	clang -target aarch64-linux-gnu -fPIC -shared -nostdlib -O1 -fuse-ld=lld \
 	    -Wl,--unresolved-symbols=ignore-all -Wl,-soname,libjitspeed.so -o $@ $<
 
-jit-speed: lunaria test/libjitspeed.so
-	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./lunaria test/libjitspeed.so 2>&1 \
+jit-speed: stubuika test/libjitspeed.so
+	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./stubuika test/libjitspeed.so 2>&1 \
 	    | tee .jitspeed.out | grep -E 'jitspeed'; \
 	grep -q 'RESULT PASS' .jitspeed.out; rc=$$?; rm -f .jitspeed.out; exit $$rc
 
@@ -1298,11 +1298,11 @@ test/libdltest.so: test/dlopen_test.c
 	    '-DDL_FIXTURE_DIR="$(PWD)/test"' \
 	    -Wl,--unresolved-symbols=ignore-all -Wl,-soname,libdltest.so -o $@ $<
 
-dl-test: lunaria test/dvm_test.dex test/libdltest.so test/libdlunrelated.so test/libdldependent.so test/libdlfixture.so test/libdlmissing.so \
+dl-test: stubuika test/dvm_test.dex test/libdltest.so test/libdlunrelated.so test/libdldependent.so test/libdlfixture.so test/libdlmissing.so \
          test/libdlweak.so
 	@mkdir -p $(BUILD_DIR)/dltest-vm
 	@cp test/dvm_test.dex $(BUILD_DIR)/dltest-vm/classes.dex
-	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/dltest-vm" LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./lunaria test/libdltest.so 2>&1 \
+	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/dltest-vm" LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./stubuika test/libdltest.so 2>&1 \
 	    | tee .dltest.out | grep -E 'dltest|cannot locate'; \
 	grep -q 'RESULT PASS' .dltest.out; rc=$$?; rm -f .dltest.out; exit $$rc
 
@@ -1334,8 +1334,8 @@ $(BUILD_DIR)/dvm_signal_wait_pkg/classes.dex: test/make_dvm_tls_exit_dex.py test
 	python3 test/make_dvm_tls_exit_dex.py $@ 6
 
 .PHONY: dvm-signal-wait-test
-dvm-signal-wait-test: lunaria $(BUILD_DIR)/dvm_signal_wait_pkg/classes.dex $(BUILD_DIR)/dvm_signal_wait64.so
-	@ANDROID_PACKAGE_CODE_PATH=$(BUILD_DIR)/dvm_signal_wait_pkg LUNARIA_AUDIO=0 ./lunaria $(BUILD_DIR)/dvm_signal_wait64.so > $(BUILD_DIR)/dvm_signal_wait64.so.log 2>&1 || true
+dvm-signal-wait-test: stubuika $(BUILD_DIR)/dvm_signal_wait_pkg/classes.dex $(BUILD_DIR)/dvm_signal_wait64.so
+	@ANDROID_PACKAGE_CODE_PATH=$(BUILD_DIR)/dvm_signal_wait_pkg LUNARIA_AUDIO=0 ./stubuika $(BUILD_DIR)/dvm_signal_wait64.so > $(BUILD_DIR)/dvm_signal_wait64.so.log 2>&1 || true
 	@grep 'dvm-signal-wait' $(BUILD_DIR)/dvm_signal_wait64.so.log
 	@grep -q 'RESULT PASS' $(BUILD_DIR)/dvm_signal_wait64.so.log
 
@@ -1350,9 +1350,9 @@ $(BUILD_DIR)/dvm_tid_exhaustion32.so: test/dvm_tls_exit.c | $(BUILD_DIR)
 $(BUILD_DIR)/dvm_tid_exhaustion64.so: test/dvm_tls_exit.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -DTID_EXHAUSTION -o $@ $<
 .PHONY: dvm-tid-exhaustion-test
-dvm-tid-exhaustion-test: lunaria $(BUILD_DIR)/dvm_tid_exhaustion_pkg/classes.dex $(BUILD_DIR)/dvm_tid_exhaustion32.so $(BUILD_DIR)/dvm_tid_exhaustion64.so
+dvm-tid-exhaustion-test: stubuika $(BUILD_DIR)/dvm_tid_exhaustion_pkg/classes.dex $(BUILD_DIR)/dvm_tid_exhaustion32.so $(BUILD_DIR)/dvm_tid_exhaustion64.so
 	@for abi in 32 64; do \
-	  ANDROID_PACKAGE_CODE_PATH=$(BUILD_DIR)/dvm_tid_exhaustion_pkg LUNARIA_AUDIO=0 timeout 90s ./lunaria $(BUILD_DIR)/dvm_tid_exhaustion$$abi.so > $(BUILD_DIR)/dvm_tid_exhaustion$$abi.log 2>&1; \
+	  ANDROID_PACKAGE_CODE_PATH=$(BUILD_DIR)/dvm_tid_exhaustion_pkg LUNARIA_AUDIO=0 timeout 90s ./stubuika $(BUILD_DIR)/dvm_tid_exhaustion$$abi.so > $(BUILD_DIR)/dvm_tid_exhaustion$$abi.log 2>&1; \
 	  grep 'dvm-tid-exhaustion' $(BUILD_DIR)/dvm_tid_exhaustion$$abi.log; \
 	  grep -q 'RESULT PASS' $(BUILD_DIR)/dvm_tid_exhaustion$$abi.log || exit 1; \
 	done
@@ -1366,7 +1366,7 @@ $(BUILD_DIR)/svc_cost64.so: test/svc_cost_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 # Prints ns per libc call and per plain loop iteration: the cost of leaving the JIT.
 .PHONY: svc-cost-test
-svc-cost-test: lunaria $(BUILD_DIR)/svc_cost32.so $(BUILD_DIR)/svc_cost64.so
+svc-cost-test: stubuika $(BUILD_DIR)/svc_cost32.so $(BUILD_DIR)/svc_cost64.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/svc_cost32.so $(BUILD_DIR)/svc_cost64.so; \
 	grep -h "ns/call" $(BUILD_DIR)/svc_cost32.out $(BUILD_DIR)/svc_cost64.out
 $(BUILD_DIR)/pselect32.so: test/pselect_test.c | $(BUILD_DIR)
@@ -1374,14 +1374,14 @@ $(BUILD_DIR)/pselect32.so: test/pselect_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/pselect64.so: test/pselect_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: pselect-test
-pselect-test: lunaria $(BUILD_DIR)/pselect32.so $(BUILD_DIR)/pselect64.so
+pselect-test: stubuika $(BUILD_DIR)/pselect32.so $(BUILD_DIR)/pselect64.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/pselect32.so $(BUILD_DIR)/pselect64.so
 $(BUILD_DIR)/raw_errno32.so: test/raw_errno_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -o $@ $<
 $(BUILD_DIR)/raw_errno64.so: test/raw_errno_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: raw-errno-test
-raw-errno-test: lunaria $(BUILD_DIR)/raw_errno32.so $(BUILD_DIR)/raw_errno64.so
+raw-errno-test: stubuika $(BUILD_DIR)/raw_errno32.so $(BUILD_DIR)/raw_errno64.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/raw_errno32.so $(BUILD_DIR)/raw_errno64.so
 $(BUILD_DIR)/jump_table32.so: test/jump_table_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -O2 -o $@ $<
@@ -1390,21 +1390,21 @@ $(BUILD_DIR)/jump_table32t.so: test/jump_table_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/jump_table64.so: test/jump_table_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -O2 -o $@ $<
 .PHONY: jump-table-test
-jump-table-test: lunaria $(BUILD_DIR)/jump_table32.so $(BUILD_DIR)/jump_table32t.so $(BUILD_DIR)/jump_table64.so
+jump-table-test: stubuika $(BUILD_DIR)/jump_table32.so $(BUILD_DIR)/jump_table32t.so $(BUILD_DIR)/jump_table64.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/jump_table32.so $(BUILD_DIR)/jump_table32t.so $(BUILD_DIR)/jump_table64.so
 .PHONY: tls-key-test
-tls-key-test: lunaria $(BUILD_DIR)/tls_key32.so $(BUILD_DIR)/tls_key64.so
+tls-key-test: stubuika $(BUILD_DIR)/tls_key32.so $(BUILD_DIR)/tls_key64.so
 	@for so in $(BUILD_DIR)/tls_key32.so $(BUILD_DIR)/tls_key64.so; do \
 	    for engines in 1 4; do \
-	        timeout -k 2s 30s env LUNARIA_A64_ENGINES=$$engines ./lunaria "$$so" > "$$so.log" 2>&1; \
+	        timeout -k 2s 30s env LUNARIA_A64_ENGINES=$$engines ./stubuika "$$so" > "$$so.log" 2>&1; \
 	        grep 'tlskey' "$$so.log"; \
 	        grep -q 'RESULT PASS' "$$so.log" || exit 1; \
 	    done; \
 	done
 
-dvm-tls-exit-test: lunaria $(BUILD_DIR)/dvm_tls_exit_pkg/classes.dex $(BUILD_DIR)/dvm_tls_exit32.so $(BUILD_DIR)/dvm_tls_exit64.so
+dvm-tls-exit-test: stubuika $(BUILD_DIR)/dvm_tls_exit_pkg/classes.dex $(BUILD_DIR)/dvm_tls_exit32.so $(BUILD_DIR)/dvm_tls_exit64.so
 	@for so in $(BUILD_DIR)/dvm_tls_exit32.so $(BUILD_DIR)/dvm_tls_exit64.so; do \
-	    ANDROID_PACKAGE_CODE_PATH=$(BUILD_DIR)/dvm_tls_exit_pkg LUNARIA_AUDIO=0 ./lunaria "$$so" > "$$so.log" 2>&1 || true; \
+	    ANDROID_PACKAGE_CODE_PATH=$(BUILD_DIR)/dvm_tls_exit_pkg LUNARIA_AUDIO=0 ./stubuika "$$so" > "$$so.log" 2>&1 || true; \
 	    grep 'dvm-tls-exit' "$$so.log"; \
 	    grep -q 'RESULT PASS' "$$so.log" || exit 1; \
 	done
@@ -1418,10 +1418,10 @@ $(BUILD_DIR)/library_reuse64.so: test/library_reuse_test.c | $(BUILD_DIR)
 	    $(ABI_TEST_CFLAGS) '-DREUSE_LIBRARY_PATH="$(abspath $@)"' -o $@ $<
 
 .PHONY: library-reuse-test
-library-reuse-test: lunaria $(BUILD_DIR)/library_reuse32.so $(BUILD_DIR)/library_reuse64.so
+library-reuse-test: stubuika $(BUILD_DIR)/library_reuse32.so $(BUILD_DIR)/library_reuse64.so
 	@for abi in 32 64; do \
 	    env -u LUNARIA_REUSE_INITIALIZED -u LUNARIA_REUSE_FAILED LUNARIA_PBUFFER=1 \
-	        ./lunaria $(BUILD_DIR)/library_reuse$$abi.so > $(BUILD_DIR)/library-reuse$$abi.log 2>&1; \
+	        ./stubuika $(BUILD_DIR)/library_reuse$$abi.so > $(BUILD_DIR)/library-reuse$$abi.log 2>&1; \
 	    grep libreuse $(BUILD_DIR)/library-reuse$$abi.log; \
 	    ! grep -q 'FAIL' $(BUILD_DIR)/library-reuse$$abi.log || exit 1; \
 	    grep -q 'RESULT PASS' $(BUILD_DIR)/library-reuse$$abi.log || exit 1; \
@@ -1440,15 +1440,15 @@ $(BUILD_DIR)/fortify_strncat_overflow64.so: test/fortify_strncat_test.c | $(BUIL
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -DTEST_OVERFLOW -o $@ $<
 
 .PHONY: fortify-strncat-test
-fortify-strncat-test: lunaria $(BUILD_DIR)/fortify_strncat32.so $(BUILD_DIR)/fortify_strncat64.so $(BUILD_DIR)/fortify_strncat_overflow32.so $(BUILD_DIR)/fortify_strncat_overflow64.so
+fortify-strncat-test: stubuika $(BUILD_DIR)/fortify_strncat32.so $(BUILD_DIR)/fortify_strncat64.so $(BUILD_DIR)/fortify_strncat_overflow32.so $(BUILD_DIR)/fortify_strncat_overflow64.so
 	@for abi in 32 64; do \
-	    LUNARIA_PBUFFER=1 ./lunaria $(BUILD_DIR)/fortify_strncat$$abi.so > $(BUILD_DIR)/fortify-strncat$$abi.log 2>&1; \
+	    LUNARIA_PBUFFER=1 ./stubuika $(BUILD_DIR)/fortify_strncat$$abi.so > $(BUILD_DIR)/fortify-strncat$$abi.log 2>&1; \
 	    grep fortifycat $(BUILD_DIR)/fortify-strncat$$abi.log; \
 	    grep -q 'RESULT PASS' $(BUILD_DIR)/fortify-strncat$$abi.log || exit 1; \
 	    ! grep -q 'FAIL\|prevented' $(BUILD_DIR)/fortify-strncat$$abi.log || exit 1; \
 	done
 	@for abi in 32 64; do \
-	    LUNARIA_PBUFFER=1 ./lunaria $(BUILD_DIR)/fortify_strncat_overflow$$abi.so > $(BUILD_DIR)/fortify-strncat-overflow$$abi.log 2>&1; \
+	    LUNARIA_PBUFFER=1 ./stubuika $(BUILD_DIR)/fortify_strncat_overflow$$abi.so > $(BUILD_DIR)/fortify-strncat-overflow$$abi.log 2>&1; \
 	    grep FORTIFY $(BUILD_DIR)/fortify-strncat-overflow$$abi.log; \
 	    grep -q 'FORTIFY.*strncat: prevented' $(BUILD_DIR)/fortify-strncat-overflow$$abi.log || exit 1; \
 	    ! grep -q 'FAIL: overflow returned' $(BUILD_DIR)/fortify-strncat-overflow$$abi.log || exit 1; \
@@ -1461,9 +1461,9 @@ $(BUILD_DIR)/image_string64.so: test/image_string_boundary.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -Wl,--section-start=.rodata=0x05000000 -o $@ $<
 
 .PHONY: image-string-test
-image-string-test: lunaria $(BUILD_DIR)/image_string32.so $(BUILD_DIR)/image_string64.so
+image-string-test: stubuika $(BUILD_DIR)/image_string32.so $(BUILD_DIR)/image_string64.so
 	@for abi in 32 64; do \
-	    LUNARIA_PBUFFER=1 ./lunaria $(BUILD_DIR)/image_string$$abi.so > $(BUILD_DIR)/image-string$$abi.log 2>&1; \
+	    LUNARIA_PBUFFER=1 ./stubuika $(BUILD_DIR)/image_string$$abi.so > $(BUILD_DIR)/image-string$$abi.log 2>&1; \
 	    grep image-string $(BUILD_DIR)/image-string$$abi.log; \
 	    grep -q 'RESULT PASS' $(BUILD_DIR)/image-string$$abi.log || exit 1; \
 	done
@@ -1484,9 +1484,9 @@ $(BUILD_DIR)/guest_string_boundary64.so: test/guest_string_boundary.c | $(BUILD_
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 
 .PHONY: guest-string-test
-guest-string-test: lunaria $(BUILD_DIR)/guest_string_boundary32.so $(BUILD_DIR)/guest_string_boundary64.so
+guest-string-test: stubuika $(BUILD_DIR)/guest_string_boundary32.so $(BUILD_DIR)/guest_string_boundary64.so
 	@for so in $(BUILD_DIR)/guest_string_boundary32.so $(BUILD_DIR)/guest_string_boundary64.so; do \
-	    LUNARIA_AUDIO=0 ./lunaria "$$so" > "$$so.log" 2>&1 || true; \
+	    LUNARIA_AUDIO=0 ./stubuika "$$so" > "$$so.log" 2>&1 || true; \
 	    grep 'string-boundary' "$$so.log"; \
 	    grep -q 'RESULT PASS' "$$so.log" || exit 1; \
 	done
@@ -1506,7 +1506,7 @@ $(BUILD_DIR)/raw_signal_action64.so: test/raw_signal_action.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 
 .PHONY: raw-signal-test
-raw-signal-test: lunaria $(BUILD_DIR)/raw_signal_action32.so $(BUILD_DIR)/raw_signal_action64.so
+raw-signal-test: stubuika $(BUILD_DIR)/raw_signal_action32.so $(BUILD_DIR)/raw_signal_action64.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/raw_signal_action32.so $(BUILD_DIR)/raw_signal_action64.so
 
 $(BUILD_DIR)/jni_rsa_spec32.so: test/jni_rsa_public_key_test.c | $(BUILD_DIR)
@@ -1517,7 +1517,7 @@ $(BUILD_DIR)/jni_rsa_spec64.so: test/jni_rsa_public_key_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 
 .PHONY: jni-rsa-spec-test
-jni-rsa-spec-test: lunaria $(BUILD_DIR)/jni-array-owner/code/classes.dex $(BUILD_DIR)/jni_rsa_spec32.so $(BUILD_DIR)/jni_rsa_spec64.so
+jni-rsa-spec-test: stubuika $(BUILD_DIR)/jni-array-owner/code/classes.dex $(BUILD_DIR)/jni_rsa_spec32.so $(BUILD_DIR)/jni_rsa_spec64.so
 	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-array-owner/code" python3 test/run_guest_results.py $(BUILD_DIR)/jni_rsa_spec32.so $(BUILD_DIR)/jni_rsa_spec64.so
 
 .PHONY: guest-signal-test
@@ -1528,16 +1528,16 @@ $(BUILD_DIR)/mutex_wake64.so: test/mutex_wake_progress.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -fno-builtin -o $@ $<
 
 .PHONY: mutex-wake-test
-mutex-wake-test: lunaria $(BUILD_DIR)/mutex_wake32.so $(BUILD_DIR)/mutex_wake64.so
+mutex-wake-test: stubuika $(BUILD_DIR)/mutex_wake32.so $(BUILD_DIR)/mutex_wake64.so
 	@for so in $(BUILD_DIR)/mutex_wake32.so $(BUILD_DIR)/mutex_wake64.so; do \
-	    timeout 30s env LUNARIA_A64_ENGINES=1 LUNARIA_AUDIO=0 ./lunaria "$$so" > "$$so.log" 2>&1; \
+	    timeout 30s env LUNARIA_A64_ENGINES=1 LUNARIA_AUDIO=0 ./stubuika "$$so" > "$$so.log" 2>&1; \
 	    grep 'mutex-wake.*RESULT' "$$so.log"; \
 	    grep -q 'RESULT PASS' "$$so.log" || exit 1; \
 	done
 
-guest-signal-test: lunaria $(BUILD_DIR)/guest_signal_suspend32.so $(BUILD_DIR)/guest_signal_suspend64.so
+guest-signal-test: stubuika $(BUILD_DIR)/guest_signal_suspend32.so $(BUILD_DIR)/guest_signal_suspend64.so
 	@for so in $(BUILD_DIR)/guest_signal_suspend32.so $(BUILD_DIR)/guest_signal_suspend64.so; do \
-	    LUNARIA_AUDIO=0 ./lunaria "$$so" > "$$so.log" 2>&1 || true; \
+	    LUNARIA_AUDIO=0 ./stubuika "$$so" > "$$so.log" 2>&1 || true; \
 	    grep 'signal-suspend' "$$so.log"; \
 	    grep -q 'RESULT PASS' "$$so.log" || exit 1; \
 	done
@@ -1563,9 +1563,9 @@ test/libmprotectsyscall.so: test/mprotect_syscall_test.c
 	    -Wl,-soname,libmprotectsyscall.so -o $@ $<
 
 .PHONY: mprotect-syscall-test
-mprotect-syscall-test: lunaria test/libmprotectsyscall.so
+mprotect-syscall-test: stubuika test/libmprotectsyscall.so
 	@timeout -k 2s 15s env LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" \
-	    ./lunaria test/libmprotectsyscall.so > .mprotectsyscall.out 2>&1; \
+	    ./stubuika test/libmprotectsyscall.so > .mprotectsyscall.out 2>&1; \
 	    grep 'mprotectsyscall.*RESULT' .mprotectsyscall.out; \
 	    grep -q 'RESULT PASS' .mprotectsyscall.out && ! grep -q 'RESULT FAIL' .mprotectsyscall.out
 
@@ -1583,7 +1583,7 @@ test/libpackagepath32.so: test/package_data_path_test.c
 	clang -target armv7a-linux-gnueabihf $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 
 .PHONY: package-data-path-test
-package-data-path-test: lunaria test/libpackagepath64.so test/libpackagepath32.so
+package-data-path-test: stubuika test/libpackagepath64.so test/libpackagepath32.so
 	@mkdir -p "$(BUILD_DIR)/package-data/app/files" "$(BUILD_DIR)/package-data/root"
 	@printf 'private' > "$(BUILD_DIR)/package-data/app/files/marker"
 	@env ANDROID_PACKAGE_NAME=test.paths \
@@ -1592,7 +1592,7 @@ package-data-path-test: lunaria test/libpackagepath64.so test/libpackagepath32.s
 	    python3 test/run_guest_results.py test/libpackagepath64.so test/libpackagepath32.so
 
 .PHONY: jni-context-path-test
-jni-context-path-test: lunaria test/libjnicontextpath.so test/libjnicontextpath-arm32.so test/dvm_test.dex
+jni-context-path-test: stubuika test/libjnicontextpath.so test/libjnicontextpath-arm32.so test/dvm_test.dex
 	@mkdir -p $(BUILD_DIR)/jni-context-path
 	@cp test/dvm_test.dex $(BUILD_DIR)/jni-context-path/classes.dex
 	@rc=0; for abi in arm64 arm32; do \
@@ -1600,7 +1600,7 @@ jni-context-path-test: lunaria test/libjnicontextpath.so test/libjnicontextpath-
 	    timeout -k 2s 20s env ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-context-path" \
 	        ANDROID_PACKAGE_NAME=test.contextpath \
 	        LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" \
-	        ./lunaria $$lib > .jnicontextpath-$$abi.out 2>&1; \
+	        ./stubuika $$lib > .jnicontextpath-$$abi.out 2>&1; \
 	    grep 'contextpath.*RESULT' .jnicontextpath-$$abi.out; \
 	    grep -q 'RESULT PASS' .jnicontextpath-$$abi.out && ! grep -q 'RESULT FAIL' .jnicontextpath-$$abi.out || rc=1; \
 	done; exit $$rc
@@ -1615,7 +1615,7 @@ $(BUILD_DIR)/guest-namespace64.so: test/guest_namespace_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/guest-namespace32.so: test/guest_namespace_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: guest-namespace-test
-guest-namespace-test: lunaria $(BUILD_DIR)/guest-namespace64.so $(BUILD_DIR)/guest-namespace32.so test/dvm_test.dex
+guest-namespace-test: stubuika $(BUILD_DIR)/guest-namespace64.so $(BUILD_DIR)/guest-namespace32.so test/dvm_test.dex
 	@mkdir -p $(BUILD_DIR)/guest-namespace-pkg
 	@cp test/dvm_test.dex $(BUILD_DIR)/guest-namespace-pkg/classes.dex
 	@ANDROID_PACKAGE_CODE_PATH="$(abspath $(BUILD_DIR))/guest-namespace-pkg" \
@@ -1626,7 +1626,7 @@ $(BUILD_DIR)/cpu-topology64.so: test/cpu_topology_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/cpu-topology32.so: test/cpu_topology_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: cpu-topology-test
-cpu-topology-test: lunaria $(BUILD_DIR)/cpu-topology64.so $(BUILD_DIR)/cpu-topology32.so test/dvm_test.dex
+cpu-topology-test: stubuika $(BUILD_DIR)/cpu-topology64.so $(BUILD_DIR)/cpu-topology32.so test/dvm_test.dex
 	@mkdir -p $(BUILD_DIR)/cpu-topology-pkg
 	@cp test/dvm_test.dex $(BUILD_DIR)/cpu-topology-pkg/classes.dex
 	@rc=0; for count in default 1 4 8 16 32 0 33 -1 invalid; do \
@@ -1639,7 +1639,7 @@ cpu-topology-test: lunaria $(BUILD_DIR)/cpu-topology64.so $(BUILD_DIR)/cpu-topol
 	    case "$$count" in default|0|33|-1|invalid) expected=8;; *) expected=$$count;; esac; \
 	    awk -v expected="$$expected" 'index($$0,"RESULT PASS: java="expected" cpus="expected" proc="expected" mask="){n++} END{exit n!=2}' "$$output" || rc=1; \
 	done; exit $$rc
-jni-weak-test: lunaria runtime/libjvm.so $(BUILD_DIR)/jniweak64.so $(BUILD_DIR)/jniweak32.so test/dvm_test.dex
+jni-weak-test: stubuika runtime/libjvm.so $(BUILD_DIR)/jniweak64.so $(BUILD_DIR)/jniweak32.so test/dvm_test.dex
 	@mkdir -p $(BUILD_DIR)/jniweak-pkg
 	@cp test/dvm_test.dex $(BUILD_DIR)/jniweak-pkg/classes.dex
 	@ANDROID_PACKAGE_CODE_PATH="$(abspath $(BUILD_DIR))/jniweak-pkg" python3 test/run_guest_results.py $(BUILD_DIR)/jniweak64.so $(BUILD_DIR)/jniweak32.so
@@ -1653,14 +1653,14 @@ test/libjnistring-arm32.so: test/jni_string_test.c
 	    -Wl,-soname,libjnistring-arm32.so -o $@ $<
 
 .PHONY: jni-string-test
-jni-string-test: lunaria test/libjnistring.so test/libjnistring-arm32.so test/dvm_test.dex
+jni-string-test: stubuika test/libjnistring.so test/libjnistring-arm32.so test/dvm_test.dex
 	@mkdir -p $(BUILD_DIR)/jni-string
 	@cp test/dvm_test.dex $(BUILD_DIR)/jni-string/classes.dex
 	@rc=0; for abi in arm64 arm32; do \
 	    lib=test/libjnistring.so; test "$$abi" != arm32 || lib=test/libjnistring-arm32.so; \
 	    timeout -k 2s 30s env ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-string" \
 	        LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" \
-	        ./lunaria $$lib > .jnistring-$$abi.out 2>&1; \
+	        ./stubuika $$lib > .jnistring-$$abi.out 2>&1; \
 	    grep 'jnistring.*RESULT' .jnistring-$$abi.out; \
 	    grep -q 'RESULT PASS' .jnistring-$$abi.out && ! grep -q 'RESULT FAIL' .jnistring-$$abi.out || rc=1; \
 	done; exit $$rc
@@ -1670,14 +1670,14 @@ test/libjnisleep.so: test/jni_sleep_test.c
 	    -Wl,-soname,libjnisleep.so -o $@ $<
 
 .PHONY: jni-sleep-test
-jni-sleep-test: lunaria test/libjnisleep.so test/dvm_test.dex
+jni-sleep-test: stubuika test/libjnisleep.so test/dvm_test.dex
 	@mkdir -p $(BUILD_DIR)/jni-sleep
 	@cp test/dvm_test.dex $(BUILD_DIR)/jni-sleep/classes.dex
 	@timeout -k 2s 30s env \
 	    ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-sleep" \
 	    LUNARIA_A64_SELF_SCHED=1 \
 	    LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" \
-	    ./lunaria test/libjnisleep.so > .jnisleep.out 2>&1; \
+	    ./stubuika test/libjnisleep.so > .jnisleep.out 2>&1; \
 	grep 'jnisleep.*\(elapsed\|RESULT\)' .jnisleep.out; \
 	grep -q 'RESULT PASS' .jnisleep.out && ! grep -q 'RESULT FAIL' .jnisleep.out
 
@@ -1722,20 +1722,20 @@ test/libjniprefs-onload-halt32.so: test/jni_prefs_test.c
 	clang -target armv7a-linux-androideabi -mfloat-abi=softfp $(ABI_TEST_CFLAGS) -std=c11 -DPREFS_WRITE=8 -o $@ $<
 
 .PHONY: java-onload-exit-test
-java-onload-exit-test: lunaria test/libjniprefs-onload-exit64.so test/libjniprefs-onload-halt64.so test/libjniprefs-onload-exit32.so test/libjniprefs-onload-halt32.so $(BUILD_DIR)/jni-prefs/code/classes.dex
+java-onload-exit-test: stubuika test/libjniprefs-onload-exit64.so test/libjniprefs-onload-halt64.so test/libjniprefs-onload-exit32.so test/libjniprefs-onload-halt32.so $(BUILD_DIR)/jni-prefs/code/classes.dex
 	@rc=0; for abi in 64 32; do for mode in exit halt; do \
 	    expected=29; if [ "$$mode" = halt ]; then expected=31; fi; \
 	    status=0; timeout -k 2s 15s env \
 	        ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-prefs/code" \
 	        LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" \
-	        ./lunaria test/libjniprefs-onload-$$mode$$abi.so > .jniprefs-onload-$$mode$$abi.out 2>&1 || status=$$?; \
+	        ./stubuika test/libjniprefs-onload-$$mode$$abi.so > .jniprefs-onload-$$mode$$abi.out 2>&1 || status=$$?; \
 	    if [ "$$status" != "$$expected" ] || grep -q 'FAIL:' .jniprefs-onload-$$mode$$abi.out; then \
 	        printf 'FAIL: %s/%s returned %s, expected %s\n' "$$abi" "$$mode" "$$status" "$$expected"; rc=1; \
 	    else printf '%s/%s status=%s PASS\n' "$$abi" "$$mode" "$$status"; fi; \
 	done; done; exit $$rc
 
 .PHONY: java-process-exit-test
-java-process-exit-test: lunaria test/libjniprefs-java-exit.so test/libjniprefs-java-halt.so test/libjniprefs-dex-exit.so $(BUILD_DIR)/jni-prefs/code/classes.dex $(BUILD_DIR)/jni-prefs-exit/code/classes.dex
+java-process-exit-test: stubuika test/libjniprefs-java-exit.so test/libjniprefs-java-halt.so test/libjniprefs-dex-exit.so $(BUILD_DIR)/jni-prefs/code/classes.dex $(BUILD_DIR)/jni-prefs-exit/code/classes.dex
 	@rc=0; for mode in java-exit java-halt dex-exit; do \
 	    expected=13; code="$(BUILD_DIR)/jni-prefs/code"; \
 	    if [ "$$mode" = java-halt ]; then expected=19; fi; \
@@ -1743,7 +1743,7 @@ java-process-exit-test: lunaria test/libjniprefs-java-exit.so test/libjniprefs-j
 	    status=0; timeout -k 2s 15s env \
 	        ANDROID_PACKAGE_CODE_PATH="$$code" ANDROID_LAUNCH_ACTIVITY=test.PreferencesActivity \
 	        LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" \
-	        ./lunaria test/libjniprefs-$$mode.so > .jniprefs-$$mode.out 2>&1 || status=$$?; \
+	        ./stubuika test/libjniprefs-$$mode.so > .jniprefs-$$mode.out 2>&1 || status=$$?; \
 	    if [ "$$status" != "$$expected" ] || grep -q 'FAIL:' .jniprefs-$$mode.out; then \
 	        printf 'FAIL: %s returned %s, expected %s\n' "$$mode" "$$status" "$$expected"; rc=1; \
 	    else printf '%s status=%s PASS\n' "$$mode" "$$status"; fi; \
@@ -1753,7 +1753,7 @@ $(BUILD_DIR)/jni-prefs/code/classes.dex: test/make_jni_prefs_dex.py test/make_de
 	python3 test/make_jni_prefs_dex.py $@
 
 .PHONY: jni-prefs-test
-jni-prefs-test: lunaria test/libjniprefs-write.so test/libjniprefs-read.so test/libjniprefs-failure.so test/libjniprefs-exit.so $(BUILD_DIR)/jni-prefs/code/classes.dex
+jni-prefs-test: stubuika test/libjniprefs-write.so test/libjniprefs-read.so test/libjniprefs-failure.so test/libjniprefs-exit.so $(BUILD_DIR)/jni-prefs/code/classes.dex
 	@mkdir -p $(BUILD_DIR)/jni-prefs/code $(BUILD_DIR)/jni-prefs/store
 	@rm -f $(BUILD_DIR)/jni-prefs/store/native-regression.xml
 	@touch $(BUILD_DIR)/jni-prefs/blocked
@@ -1765,7 +1765,7 @@ jni-prefs-test: lunaria test/libjniprefs-write.so test/libjniprefs-read.so test/
 	        ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-prefs/code" \
 	        ANDROID_LAUNCH_ACTIVITY="test.PreferencesActivity" \
 	        LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" \
-	        ./lunaria test/libjniprefs-$$phase.so > .jniprefs-$$phase.out 2>&1 || rc=1; \
+	        ./stubuika test/libjniprefs-$$phase.so > .jniprefs-$$phase.out 2>&1 || rc=1; \
 	    grep 'jniprefs.*RESULT' .jniprefs-$$phase.out; \
 	    grep -q 'RESULT PASS' .jniprefs-$$phase.out || rc=1; \
 	done; \
@@ -1773,20 +1773,20 @@ jni-prefs-test: lunaria test/libjniprefs-write.so test/libjniprefs-read.so test/
 	        ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-prefs/code" \
 	        ANDROID_LAUNCH_ACTIVITY="test.PreferencesActivity" \
 	        LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" \
-	        ./lunaria test/libjniprefs-exit.so > .jniprefs-exit.out 2>&1 || status=$$?; \
+	        ./stubuika test/libjniprefs-exit.so > .jniprefs-exit.out 2>&1 || status=$$?; \
 	    if [ "$$status" != 7 ]; then printf 'FAIL: guest exit returned %s, expected 7\n' "$$status"; rc=1; fi; \
 	    grep 'jniprefs.*RESULT' .jniprefs-exit.out; \
 	    if grep -q 'FAIL: guest exit returned' .jniprefs-exit.out; then rc=1; fi; \
 	    exit $$rc
 
 .PHONY: jni-collections-test
-jni-collections-test: lunaria test/libjnicollections.so test/dvm_test.dex
+jni-collections-test: stubuika test/libjnicollections.so test/dvm_test.dex
 	@mkdir -p $(BUILD_DIR)/jni-collections
 	@cp test/dvm_test.dex $(BUILD_DIR)/jni-collections/classes.dex
 	@timeout -k 2s 30s env \
 	    ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-collections" \
 	    LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" \
-	    ./lunaria test/libjnicollections.so > .jnicollections.out 2>&1; \
+	    ./stubuika test/libjnicollections.so > .jnicollections.out 2>&1; \
 	grep 'jnicollections.*RESULT' .jnicollections.out; \
 	grep -q 'RESULT PASS' .jnicollections.out && ! grep -q 'RESULT FAIL' .jnicollections.out
 
@@ -1798,14 +1798,14 @@ $(BUILD_DIR)/primarymutex/libmain.so: test/primary_mutex_test.c
 $(BUILD_DIR)/native-activity/classes.dex: test/make_native_activity_dex.py test/make_dex.py
 	python3 test/make_native_activity_dex.py $@
 
-primary-mutex-test: lunaria $(BUILD_DIR)/primarymutex/libmain.so $(BUILD_DIR)/native-activity/classes.dex
+primary-mutex-test: stubuika $(BUILD_DIR)/primarymutex/libmain.so $(BUILD_DIR)/native-activity/classes.dex
 	@rc=0; for mode in 0 1; do \
 	    timeout 20s env LUNARIA_A64_SELF_SCHED=$$mode \
 	        LUNARIA_MAX_FRAMES=1 \
 	        ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/native-activity" \
 	        ANDROID_LAUNCH_ACTIVITY=test.NativeActivityFixture \
 	        LD_LIBRARY_PATH="$(CURDIR):$(CURDIR)/runtime" \
-	        ./lunaria $(BUILD_DIR)/primarymutex/libmain.so > .primarymutex.out 2>&1; \
+	        ./stubuika $(BUILD_DIR)/primarymutex/libmain.so > .primarymutex.out 2>&1; \
 	    grep 'primarymutex.*RESULT' .primarymutex.out; \
 	    grep -q 'RESULT PASS' .primarymutex.out || rc=1; \
 	    grep -q 'RESULT FAIL' .primarymutex.out && rc=1; \
@@ -1867,10 +1867,10 @@ test/libatforktest.so: test/atfork_test.c
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -std=c11 \
 	    -Wl,-soname,libatforktest.so -o $@ $<
 
-atfork-test: lunaria test/libatforktest.so
+atfork-test: stubuika test/libatforktest.so
 	@timeout -k 2s 12s env LUNARIA_A64_ENGINES=4 \
 	    LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	    ./lunaria test/libatforktest.so > .atfork.out 2>&1; \
+	    ./stubuika test/libatforktest.so > .atfork.out 2>&1; \
 	grep 'atfork' .atfork.out; \
 	grep -q 'parent .*RESULT PASS' .atfork.out && \
 	grep -q 'child .*RESULT PASS' .atfork.out && ! grep -q 'RESULT FAIL' .atfork.out
@@ -1878,10 +1878,10 @@ atfork-test: lunaria test/libatforktest.so
 # pthread_create must make the new thread runnable now, not at the next frame:
 # a guest that starts a worker and times its answer (an anti-tamper module
 # does exactly that) reads a late start as a failed check.
-thread-start-test: lunaria test/libthreadstart.so
+thread-start-test: stubuika test/libthreadstart.so
 	@timeout -k 2s 30s env LUNARIA_A64_ENGINES=4 \
 	    LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	    ./lunaria test/libthreadstart.so > .threadstart.out 2>&1; \
+	    ./stubuika test/libthreadstart.so > .threadstart.out 2>&1; \
 	grep 'threadstart' .threadstart.out; \
 	grep -q 'RESULT PASS' .threadstart.out && ! grep -q 'RESULT FAIL' .threadstart.out
 
@@ -1909,24 +1909,24 @@ thread-start-test: lunaria test/libthreadstart.so
 # -- and it has been the visible cause of a stall (Cross Worlds' background
 # download: "interpreter lock: held 30%, 7653.0 ms summed wait, worst single
 # wait 570.9 ms" while the execution lock sat at 1%).  See test/gil_test.c.
-gil-test: lunaria test/libgiltest.so
+gil-test: stubuika test/libgiltest.so
 	@rc=0; for n in 1 4; do \
 	    printf '=== %s engine(s)\n' "$$n"; \
 	    timeout -k 2s 180s env LUNARIA_A64_ENGINES=$$n \
 	        LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	        ./lunaria test/libgiltest.so > .giltest.out 2>&1; \
+	        ./stubuika test/libgiltest.so > .giltest.out 2>&1; \
 	    grep -E 'giltest|\[gil\]' .giltest.out || \
 	        printf 'no verdict: the guest never reached the report\n'; \
 	    grep -q 'RESULT PASS' .giltest.out || rc=1; \
 	    rm -f .giltest.out; \
 	done; exit $$rc
 
-lock-test: lunaria test/liblocktest.so
+lock-test: stubuika test/liblocktest.so
 	@rc=0; for n in 1 4; do \
 	    printf '=== %s engine(s)\n' "$$n"; \
 	    timeout -k 2s 180s env LUNARIA_A64_ENGINES=$$n \
 	        LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	        ./lunaria test/liblocktest.so > .locktest.out 2>&1; \
+	        ./stubuika test/liblocktest.so > .locktest.out 2>&1; \
 	    grep 'locktest' .locktest.out || \
 	        printf 'no verdict: the guest never reached the report\n'; \
 	    grep -q 'RESULT PASS' .locktest.out || rc=1; \
@@ -1935,12 +1935,12 @@ lock-test: lunaria test/liblocktest.so
 
 # futex(2) itself: bionic builds every mutex, condvar, join and semaphore on
 # it, so a wrong answer here is a deadlock or a busy loop somewhere else.
-futex-test: lunaria test/libfutextest.so
+futex-test: stubuika test/libfutextest.so
 	@rc=0; for n in 1 4; do \
 	    printf '=== %s engine(s)\n' "$$n"; \
 	    timeout -k 2s 180s env LUNARIA_A64_ENGINES=$$n \
 	        LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	        ./lunaria test/libfutextest.so > .futextest.out 2>&1; \
+	        ./stubuika test/libfutextest.so > .futextest.out 2>&1; \
 	    grep 'futextest' .futextest.out || \
 	        printf 'no verdict: the guest never reached the report\n'; \
 	    grep -q 'RESULT PASS' .futextest.out || rc=1; \
@@ -1950,24 +1950,24 @@ futex-test: lunaria test/libfutextest.so
 # Sleeping: the one wait whose right answer is known in advance.  Run with a
 # short callback watchdog on purpose — round 5 sleeps for longer than it, and a
 # watchdog meant for locks that can never be granted must not touch a sleep.
-sleep-test: lunaria test/libsleeptest.so
+sleep-test: stubuika test/libsleeptest.so
 	@rc=0; for n in 1 4; do \
 	    printf '=== %s engine(s)\n' "$$n"; \
 	    timeout -k 2s 120s env LUNARIA_A64_ENGINES=$$n LUNARIA_CB_SECONDS=2 \
 	        LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	        ./lunaria test/libsleeptest.so > .sleeptest.out 2>&1; \
+	        ./stubuika test/libsleeptest.so > .sleeptest.out 2>&1; \
 	    grep -E 'sleeptest|cb64' .sleeptest.out || \
 	        printf 'no verdict: the guest never reached the report\n'; \
 	    grep -q 'RESULT PASS' .sleeptest.out || rc=1; \
 	    rm -f .sleeptest.out; \
 	done; exit $$rc
 
-guestmem-test: lunaria test/libguestmem.so test/libguestmem-arm32.so
+guestmem-test: stubuika test/libguestmem.so test/libguestmem-arm32.so
 	@rc=0; for abi in arm64 arm32; do \
 	    lib=test/libguestmem.so; test "$$abi" != arm32 || lib=test/libguestmem-arm32.so; \
 	    timeout -k 2s 120s env LUNARIA_A64_ENGINES=4 \
 	    LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	    ./lunaria $$lib > .guestmem-$$abi.out 2>&1; \
+	    ./stubuika $$lib > .guestmem-$$abi.out 2>&1; \
 	grep 'guestmem' .guestmem-$$abi.out || \
 	    printf 'no verdict: the guest never reached the report\n'; \
 	grep -q 'RESULT PASS' .guestmem-$$abi.out && ! grep -q 'RESULT FAIL' .guestmem-$$abi.out || rc=1; \
@@ -1986,34 +1986,34 @@ test/libframeworkbitmap32.so: test/jni_framework_bitmap_test.c
 	clang -target armv7a-linux-gnueabihf $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 
 .PHONY: framework-bitmap-test
-framework-bitmap-test: lunaria test/libframeworkbitmap64.so test/libframeworkbitmap32.so $(BUILD_DIR)/jni-array-owner/code/classes.dex
+framework-bitmap-test: stubuika test/libframeworkbitmap64.so test/libframeworkbitmap32.so $(BUILD_DIR)/jni-array-owner/code/classes.dex
 	@rc=0; for abi in 64 32; do \
 	    output="$(BUILD_DIR)/framework-bitmap-$$abi.log"; \
 	    timeout -k 2s 30s env ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-array-owner/code" \
-	        ./lunaria test/libframeworkbitmap$$abi.so > "$$output" 2>&1; \
+	        ./stubuika test/libframeworkbitmap$$abi.so > "$$output" 2>&1; \
 	    grep 'frameworkbitmap.*RESULT' "$$output"; \
 	    grep -q 'frameworkbitmap.*RESULT PASS' "$$output" || rc=1; \
 	done; exit $$rc
 
 .PHONY: profile-maps-test
-profile-maps-test: lunaria test/libprofilemaps64.so test/libprofilemaps32.so
+profile-maps-test: stubuika test/libprofilemaps64.so test/libprofilemaps32.so
 	@rc=0; for layout in data/test.maps profiles/test.maps/profile-2; do \
 	    files="$(abspath $(BUILD_DIR))/profile-maps/$$layout/files"; mkdir -p "$$files"; \
 	    for abi in 64 32; do \
 	        cp test/libprofilemaps$$abi.so "$$files/opaque-module"; \
 	        output="$(BUILD_DIR)/profile-maps-$$abi-$$(echo $$layout | tr / _).log"; \
 	        timeout -k 2s 20s env ANDROID_PACKAGE_NAME=test.maps ANDROID_FILES_DIR="$$files" \
-	            ./lunaria "$$files/opaque-module" > "$$output" 2>&1; \
+	            ./stubuika "$$files/opaque-module" > "$$output" 2>&1; \
 	        grep 'profilemaps.*RESULT' "$$output"; \
 	        grep -q 'profilemaps.*RESULT PASS' "$$output" || rc=1; \
 	    done; \
 	done; exit $$rc
 
-maps-test: lunaria test/libmapstest.so test/libmapstest-arm32.so
+maps-test: stubuika test/libmapstest.so test/libmapstest-arm32.so
 	@rc=0; for abi in arm64 arm32; do \
 	    lib=test/libmapstest.so; test "$$abi" != arm32 || lib=test/libmapstest-arm32.so; \
 	    timeout -k 2s 120s env LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	        ./lunaria $$lib > .mapstest-$$abi.out 2>&1; \
+	        ./stubuika $$lib > .mapstest-$$abi.out 2>&1; \
 	    grep 'mapstest' .mapstest-$$abi.out || \
 	        printf 'no verdict: the guest never reached the report\n'; \
 	    grep -q 'RESULT PASS' .mapstest-$$abi.out && ! grep -q 'RESULT FAIL' .mapstest-$$abi.out || rc=1; \
@@ -2030,23 +2030,23 @@ $(BUILD_DIR)/ndkreader-pkg/classes.dex: test/dvm_test.dex
 	mkdir -p $(BUILD_DIR)/ndkreader-pkg
 	cp $< $@
 
-ndk-image-reader-test: lunaria test/libndkreader.so test/libndkreader-arm32.so $(BUILD_DIR)/ndkreader-pkg/classes.dex
+ndk-image-reader-test: stubuika test/libndkreader.so test/libndkreader-arm32.so $(BUILD_DIR)/ndkreader-pkg/classes.dex
 	@rc=0; for abi in arm64 arm32; do \
 	    lib=test/libndkreader.so; test "$$abi" != arm32 || lib=test/libndkreader-arm32.so; \
 	    timeout -k 2s 120s env ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/ndkreader-pkg" \
 	        LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	        ./lunaria $$lib > $(BUILD_DIR)/ndkreader-$$abi.log 2>&1; \
+	        ./stubuika $$lib > $(BUILD_DIR)/ndkreader-$$abi.log 2>&1; \
 	    grep 'ndkreader' $(BUILD_DIR)/ndkreader-$$abi.log; \
 	    grep -q 'RESULT PASS' $(BUILD_DIR)/ndkreader-$$abi.log && \
 	        ! grep -q 'RESULT FAIL' $(BUILD_DIR)/ndkreader-$$abi.log || rc=1; \
 	done; exit $$rc
 
-mmap-test: lunaria test/libmmaptest.so
+mmap-test: stubuika test/libmmaptest.so
 	@rc=0; for n in 1 4; do \
 	    printf '=== %s engine(s)\n' "$$n"; \
 	    timeout -k 2s 120s env LUNARIA_A64_ENGINES=$$n \
 	        LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	        ./lunaria test/libmmaptest.so > .mmaptest.out 2>&1; \
+	        ./stubuika test/libmmaptest.so > .mmaptest.out 2>&1; \
 	    grep 'mmaptest' .mmaptest.out || \
 	        printf 'no verdict: the guest never reached the report\n'; \
 	    grep -q 'RESULT PASS' .mmaptest.out || rc=1; \
@@ -2054,12 +2054,12 @@ mmap-test: lunaria test/libmmaptest.so
 	    rm -f .mmaptest.out; \
 	done; exit $$rc
 
-heap-test: lunaria test/libheaptest.so
+heap-test: stubuika test/libheaptest.so
 	@rc=0; for n in 1 4; do \
 	    printf '=== %s engine(s)\n' "$$n"; \
 	    timeout -k 2s 120s env LUNARIA_A64_ENGINES=$$n \
 	        LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	        ./lunaria test/libheaptest.so > .heaptest.out 2>&1; \
+	        ./stubuika test/libheaptest.so > .heaptest.out 2>&1; \
 	    grep 'heaptest' .heaptest.out || \
 	        printf 'no verdict: the guest never reached the report\n'; \
 	    grep -q 'RESULT PASS' .heaptest.out || rc=1; \
@@ -2067,8 +2067,8 @@ heap-test: lunaria test/libheaptest.so
 	done; exit $$rc
 
 .PHONY: heap-arm32-test
-heap-arm32-test: lunaria test/libheaptest-arm32.so
-	@timeout -k 2s 120s ./lunaria test/libheaptest-arm32.so > .heaptest-arm32.out 2>&1; \
+heap-arm32-test: stubuika test/libheaptest-arm32.so
+	@timeout -k 2s 120s ./stubuika test/libheaptest-arm32.so > .heaptest-arm32.out 2>&1; \
 	status=$$?; \
 	grep 'heaptest' .heaptest-arm32.out; \
 	test $$status -le 1 && grep -q 'RESULT PASS' .heaptest-arm32.out && \
@@ -2085,10 +2085,10 @@ heap-core-test: | $(BUILD_DIR)
 # Run only with four engines: this specifically checks that an engine already
 # inside Run() is halted before it can execute a translation another engine
 # has invalidated.
-icache-sync-test: lunaria test/libicachesync.so
+icache-sync-test: stubuika test/libicachesync.so
 	@timeout -k 2s 30s env LUNARIA_A64_ENGINES=4 \
 	    LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	    ./lunaria test/libicachesync.so > .icachesync.out 2>&1; \
+	    ./stubuika test/libicachesync.so > .icachesync.out 2>&1; \
 	grep 'icachesync' .icachesync.out || \
 	    printf 'no verdict: the guest never reached the report\n'; \
 	rc=0; grep -q 'RESULT PASS' .icachesync.out || rc=1; \
@@ -2097,39 +2097,39 @@ icache-sync-test: lunaria test/libicachesync.so
 $(BUILD_DIR)/cacheflush-range32.so: test/cacheflush_range_test.c | $(BUILD_DIR)
 	clang -target armv7-linux-gnueabi $(ABI_TEST_CFLAGS) -std=c11 $< -o $@
 .PHONY: cacheflush-range-test
-cacheflush-range-test: lunaria $(BUILD_DIR)/cacheflush-range32.so
+cacheflush-range-test: stubuika $(BUILD_DIR)/cacheflush-range32.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/cacheflush-range32.so
 
-mutex-test: lunaria test/libmutexstress.so
+mutex-test: stubuika test/libmutexstress.so
 	@for n in 1 4; do \
 	    env LUNARIA_A64_ENGINES=$$n \
 	        LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
 	        python3 test/run_guest_results.py test/libmutexstress.so || exit 1; \
 	done
 
-fd-callback-test: lunaria test/libfdcallback.so
+fd-callback-test: stubuika test/libfdcallback.so
 	@timeout -k 2s 12s env LUNARIA_A64_ENGINES=1 \
 	    LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" \
-	    ./lunaria test/libfdcallback.so > .fdcallback.out 2>&1; \
+	    ./stubuika test/libfdcallback.so > .fdcallback.out 2>&1; \
 	grep 'fdcallback' .fdcallback.out; \
 	grep -q 'RESULT PASS' .fdcallback.out && ! grep -q 'RESULT FAIL' .fdcallback.out
 
 # Scheduler hand-off: a thread parked on a mutex must be woken by the release,
 # not by whether a scheduler pass happens to sample the lock while it is free.
 # armeabi-v7a is not covered — see the comment in test/sched_test.c.
-sched-test: lunaria test/libschedtest64.so
-	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./lunaria test/libschedtest64.so 2>&1 \
+sched-test: stubuika test/libschedtest64.so
+	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./stubuika test/libschedtest64.so 2>&1 \
 	    | tee .schedtest.out | grep -E 'schedtest' || true; \
 	rc=0; grep -q 'RESULT PASS' .schedtest.out || rc=1; \
 	rm -f .schedtest.out; exit $$rc
 
 # As with net-test, the loader exits non-zero because a bare .so has no game
 # entry point; the verdict is the test's own RESULT line.
-abi-test: lunaria test/libabitest64.so test/libabitest32.so test/abi_pkg/classes.dex
+abi-test: stubuika test/libabitest64.so test/libabitest32.so test/abi_pkg/classes.dex
 	@rc=0; for so in test/libabitest64.so test/libabitest32.so; do \
 	    printf '=== %s\n' "$$so"; \
 	    ANDROID_PACKAGE_CODE_PATH="$(PWD)/test/abi_pkg" \
-	    LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./lunaria $$so 2>&1 \
+	    LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./stubuika $$so 2>&1 \
 	        | tee .abitest.out | grep -E 'abitest|^\[dvm\]' || true; \
 	    grep -q 'RESULT PASS' .abitest.out || rc=1; \
 	    grep -q 'VARARGS 11 22 33 44 55 66 ok 1122334455667788' .abitest.out \
@@ -2216,7 +2216,7 @@ $(DYNARMIC_LIB): $(DYNARMIC_SOURCES) $(DYNARMIC_DIR)/CMakeLists.txt
 
 # These archives are emitted by the same CMake build.  Listing the relation
 # keeps a clean tree buildable: otherwise make sees them as prerequisites of
-# lunaria but has no rule with which to create them.
+# stubuika but has no rule with which to create them.
 $(DYNARMIC_FMT_LIB) $(DYNARMIC_MCL_LIB): $(DYNARMIC_LIB)
 ifneq (,$(DYNARMIC_X86))
 $(DYNARMIC_ZYD_LIB) $(DYNARMIC_ZYC_LIB): $(DYNARMIC_LIB)
@@ -2247,7 +2247,7 @@ webview-cdp-test: test/test_webview_cdp
 	./test/test_webview_cdp
 
 .PHONY: webview-navigation-test
-webview-navigation-test: lunaria
+webview-navigation-test: stubuika
 	python3 test/webview_navigation_test.py $(BUILD_DIR)
 
 test/test_webview_cdp_host: test/test_webview_cdp_host.c $(WEBVIEW_CDP_HOST_SRC) src/webview_cdp.c src/webview_cdp.h
@@ -2358,10 +2358,10 @@ else
 DIST_OS      ?= linux
 endif
 # The archive is named for the day it was made, the system and the CPU:
-# lunaria-YYYY-MM-DD-linux-x86_64.tar.gz (macos .dmg, windows .zip).
+# stubuika-YYYY-MM-DD-linux-x86_64.tar.gz (macos .dmg, windows .zip).
 # What it was built from is in the app's Info.plist and in git.
 DIST_DATE    ?= $(shell date +%Y-%m-%d)
-DIST_NAME     = lunaria-$(DIST_DATE)-$(DIST_OS)-$(DIST_ARCH)
+DIST_NAME     = stubuika-$(DIST_DATE)-$(DIST_OS)-$(DIST_ARCH)
 DIST_STAGE    = $(BUILD_DIR)/dist/$(DIST_NAME)
 
 # Distribution builds favour execution speed and deliberately carry no debug
@@ -2378,7 +2378,7 @@ DIST_LDFLAGS  ?= -flto -Wl,-O2
 else
 DIST_LDFLAGS  ?= -flto -Wl,-O2 -Wl,--as-needed
 endif
-DIST_BUILD_DIR ?= /tmp/lunaria-dist-build/$(DIST_OS)-$(DIST_ARCH)
+DIST_BUILD_DIR ?= /tmp/stubuika-dist-build/$(DIST_OS)-$(DIST_ARCH)
 DIST_DYNARMIC_BUILD ?= $(DIST_BUILD_DIR)/dynarmic
 
 ifeq ($(LUNA_OS_NAME),Darwin)
@@ -2464,13 +2464,13 @@ dist-mac: dist-stage
 	rm -rf "$(MAC_APP)"
 	mkdir -p "$(MAC_APP)/Contents/MacOS" "$(MAC_APP)/Contents/Resources"
 	cp -R "$(DIST_STAGE)/." "$(MAC_APP)/Contents/Resources/"
-	mv "$(MAC_APP)/Contents/Resources/lunaria" "$(MAC_APP)/Contents/MacOS/Lunaria"
+	mv "$(MAC_APP)/Contents/Resources/stubuika" "$(MAC_APP)/Contents/MacOS/Lunaria"
 	python3 scripts/make-icon.py "$(MAC_APP)/Contents/Resources/Lunaria.icns"
 	printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>' \
 	    '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
 	    '<plist version="1.0"><dict>' \
 	    '<key>CFBundleName</key><string>Lunaria</string>' \
-	    '<key>CFBundleIdentifier</key><string>net.berry-lab.lunaria</string>' \
+	    '<key>CFBundleIdentifier</key><string>net.berry-lab.stubuika</string>' \
 	    '<key>CFBundleExecutable</key><string>Lunaria</string>' \
 	    '<key>CFBundleDisplayName</key><string>Lunaria</string>' \
 	    '<key>CFBundleIconFile</key><string>Lunaria</string>' \
@@ -2499,7 +2499,7 @@ dist-mac: dist-stage
 
 dist-clean:
 	$(RM) -r "$(BUILD_DIR)/dist"
-	$(RM) lunaria-*.tar.gz lunaria-*.dmg lunaria-*.zip
+	$(RM) stubuika-*.tar.gz stubuika-*.dmg stubuika-*.zip
 
 .PHONY: primary-mutex-test gl-map-test luna-browser luna-browser-test vulkan-test dist dist-stage dist-stage-build dist-mac dist-clean all pixels-test dl-test jit-speed syslib syslib-core artlib syslib-for-dist guestlib syslib-clean host-all macos-deps x86 x86_64 armeabi armeabi-v7a armeabi-v7a-neon arm64-v8a \
 	        clean install install-bin install-lib test net-test dvm-test http-chunked-test regex-test charset-test abi-test \
@@ -2525,26 +2525,26 @@ $(BUILD_DIR)/loader.o $(BUILD_DIR)/luna_overlay.o runtime/libjvm.so: src/luna_in
 .PHONY: sched-quantum64-test
 $(BUILD_DIR)/sched_quantum32_test.so: test/sched_quantum32_test.c | $(BUILD_DIR)
 	clang -target armv7-linux-gnueabi -fPIC -shared -nostdlib -O2 -fuse-ld=lld -o $@ $<
-sched-quantum32-test: lunaria $(BUILD_DIR)/sched_quantum32_test.so
-	@timeout 30s ./lunaria $(BUILD_DIR)/sched_quantum32_test.so > $(BUILD_DIR)/sched_quantum32_test.log 2>&1; rg 'RESULT PASS' $(BUILD_DIR)/sched_quantum32_test.log
+sched-quantum32-test: stubuika $(BUILD_DIR)/sched_quantum32_test.so
+	@timeout 30s ./stubuika $(BUILD_DIR)/sched_quantum32_test.so > $(BUILD_DIR)/sched_quantum32_test.log 2>&1; rg 'RESULT PASS' $(BUILD_DIR)/sched_quantum32_test.log
 $(BUILD_DIR)/sched_quantum64_test.so: test/sched_quantum32_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu -fPIC -shared -nostdlib -O2 -fuse-ld=lld -o $@ $<
-sched-quantum64-test: lunaria $(BUILD_DIR)/sched_quantum64_test.so
-	@timeout 30s ./lunaria $(BUILD_DIR)/sched_quantum64_test.so > $(BUILD_DIR)/sched_quantum64_test.log 2>&1; rg 'RESULT PASS' $(BUILD_DIR)/sched_quantum64_test.log
+sched-quantum64-test: stubuika $(BUILD_DIR)/sched_quantum64_test.so
+	@timeout 30s ./stubuika $(BUILD_DIR)/sched_quantum64_test.so > $(BUILD_DIR)/sched_quantum64_test.log 2>&1; rg 'RESULT PASS' $(BUILD_DIR)/sched_quantum64_test.log
 .PHONY: libc-pages-test
 $(BUILD_DIR)/libc-pages-test.so: test/libc_pages_test.c | $(BUILD_DIR)
 	clang -target armv7-linux-gnueabi -fPIC -shared -nostdlib -O1 -fno-builtin -fuse-ld=lld -o $@ $<
-libc-pages-test: lunaria $(BUILD_DIR)/libc-pages-test.so
-	@rc=0; timeout 30s env ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)" ANDROID_APK_FILE="$(BUILD_DIR)/libc-pages-test.so" ./lunaria $(BUILD_DIR)/libc-pages-test.so > $(BUILD_DIR)/libc-pages-test.log 2>&1 || rc=$$?; test $$rc -le 1
+libc-pages-test: stubuika $(BUILD_DIR)/libc-pages-test.so
+	@rc=0; timeout 30s env ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)" ANDROID_APK_FILE="$(BUILD_DIR)/libc-pages-test.so" ./stubuika $(BUILD_DIR)/libc-pages-test.so > $(BUILD_DIR)/libc-pages-test.log 2>&1 || rc=$$?; test $$rc -le 1
 	grep 'RESULT PASS' $(BUILD_DIR)/libc-pages-test.log
 test/libtimegm64.so: test/timegm_test.c src/jvm/jni.h
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) $< -o $@
 test/libtimegm32.so: test/timegm_test.c src/jvm/jni.h
 	clang -target armv7-linux-gnueabi $(ABI_TEST_CFLAGS) $< -o $@
-timegm-test: lunaria test/libtimegm64.so test/libtimegm32.so
+timegm-test: stubuika test/libtimegm64.so test/libtimegm32.so
 	@set -e; for so in test/libtimegm64.so test/libtimegm32.so; do \
 	    log="$(BUILD_DIR)/timegm-$${so##*/}.log"; rc=0; \
-	    env LUNARIA_TIMEZONE=America/New_York ./lunaria $$so > "$$log" 2>&1 || rc=$$?; test $$rc -le 1; \
+	    env LUNARIA_TIMEZONE=America/New_York ./stubuika $$so > "$$log" 2>&1 || rc=$$?; test $$rc -le 1; \
 	    grep 'RESULT PASS' "$$log"; \
 	    ! grep 'FAIL:' "$$log"; done
 .PHONY: timegm-test
@@ -2577,11 +2577,11 @@ $(BUILD_DIR)/account-future64.so: test/account_future_test.c src/jvm/jni.h | $(B
 $(BUILD_DIR)/account-future32.so: test/account_future_test.c src/jvm/jni.h | $(BUILD_DIR)
 	clang -target armv7-linux-gnueabi $(ABI_TEST_CFLAGS) $< -o $@
 .PHONY: account-future-test
-account-future-test: lunaria $(BUILD_DIR)/account-future64.so $(BUILD_DIR)/account-future32.so
+account-future-test: stubuika $(BUILD_DIR)/account-future64.so $(BUILD_DIR)/account-future32.so
 	@test -n "$(GMS_TEST_CODE_PATH)" || { echo 'Set GMS_TEST_CODE_PATH to the extracted GMS APK directory'; exit 2; }
 	@ANDROID_PACKAGE_CODE_PATH="$(GMS_TEST_CODE_PATH)" DISPLAY= python3 test/run_guest_results.py $(BUILD_DIR)/account-future64.so $(BUILD_DIR)/account-future32.so
 .PHONY: account-parcel-test
-account-parcel-test: lunaria $(BUILD_DIR)/account-parcel64.so $(BUILD_DIR)/account-parcel32.so
+account-parcel-test: stubuika $(BUILD_DIR)/account-parcel64.so $(BUILD_DIR)/account-parcel32.so
 	@test -n "$(GMS_TEST_CODE_PATH)" || { echo 'Set GMS_TEST_CODE_PATH to the extracted GMS APK directory'; exit 2; }
 	@ANDROID_PACKAGE_CODE_PATH="$(GMS_TEST_CODE_PATH)" DISPLAY= python3 test/run_guest_results.py $(BUILD_DIR)/account-parcel64.so $(BUILD_DIR)/account-parcel32.so
 $(BUILD_DIR)/provider-registry64.so: test/security_provider_registry_test.c src/jvm/jni.h | $(BUILD_DIR)
@@ -2589,16 +2589,16 @@ $(BUILD_DIR)/provider-registry64.so: test/security_provider_registry_test.c src/
 $(BUILD_DIR)/provider-registry32.so: test/security_provider_registry_test.c src/jvm/jni.h | $(BUILD_DIR)
 	clang -target armv7-linux-gnueabi $(ABI_TEST_CFLAGS) $< -o $@
 .PHONY: security-provider-registry-test
-security-provider-registry-test: lunaria $(BUILD_DIR)/receiver-fixture/code/classes.dex $(BUILD_DIR)/provider-registry64.so $(BUILD_DIR)/provider-registry32.so
+security-provider-registry-test: stubuika $(BUILD_DIR)/receiver-fixture/code/classes.dex $(BUILD_DIR)/provider-registry64.so $(BUILD_DIR)/provider-registry32.so
 	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/receiver-fixture/code" DISPLAY= python3 test/run_guest_results.py $(BUILD_DIR)/provider-registry64.so $(BUILD_DIR)/provider-registry32.so
-result-receiver-test: lunaria $(BUILD_DIR)/receiver-fixture/code/classes.dex $(BUILD_DIR)/receiver-fixture64.so $(BUILD_DIR)/receiver-fixture32.so
+result-receiver-test: stubuika $(BUILD_DIR)/receiver-fixture/code/classes.dex $(BUILD_DIR)/receiver-fixture64.so $(BUILD_DIR)/receiver-fixture32.so
 	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/receiver-fixture/code" DISPLAY= python3 test/run_guest_results.py $(BUILD_DIR)/receiver-fixture64.so $(BUILD_DIR)/receiver-fixture32.so
-strictmode-policy-test: lunaria $(BUILD_DIR)/policy-fixture/code/classes.dex $(BUILD_DIR)/policy-fixture64.so $(BUILD_DIR)/policy-fixture32.so
+strictmode-policy-test: stubuika $(BUILD_DIR)/policy-fixture/code/classes.dex $(BUILD_DIR)/policy-fixture64.so $(BUILD_DIR)/policy-fixture32.so
 	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/policy-fixture/code" DISPLAY= python3 test/run_guest_results.py $(BUILD_DIR)/policy-fixture64.so $(BUILD_DIR)/policy-fixture32.so
 $(BUILD_DIR)/random-family/code/classes.dex: test/dvm_test.dex
 	mkdir -p $(@D)
 	cp $< $@
-random-family-test: lunaria $(BUILD_DIR)/random-family/code/classes.dex $(BUILD_DIR)/random-family64.so $(BUILD_DIR)/random-family32.so
+random-family-test: stubuika $(BUILD_DIR)/random-family/code/classes.dex $(BUILD_DIR)/random-family64.so $(BUILD_DIR)/random-family32.so
 	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/random-family/code" python3 test/run_guest_results.py $(BUILD_DIR)/random-family64.so $(BUILD_DIR)/random-family32.so
 .PHONY: prng31-test
 prng31-test: test/prng31_test.c src/arm_exec.h src/jvm/jvm.h | $(BUILD_DIR)
@@ -2608,10 +2608,10 @@ test/libsession64.so: test/session_test.c src/jvm/jni.h
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) $< -o $@
 test/libsession32.so: test/session_test.c src/jvm/jni.h
 	clang -target armv7-linux-gnueabi $(ABI_TEST_CFLAGS) -fomit-frame-pointer $< -o $@
-session-test: lunaria test/libsession64.so test/libsession32.so
+session-test: stubuika test/libsession64.so test/libsession32.so
 	@set -e; for so in test/libsession64.so test/libsession32.so; do \
 	    log="$(BUILD_DIR)/session-$${so##*/}.log"; rc=0; \
-	    ./lunaria $$so > "$$log" 2>&1 || rc=$$?; test $$rc -le 1; \
+	    ./stubuika $$so > "$$log" 2>&1 || rc=$$?; test $$rc -le 1; \
 	    grep 'RESULT PASS' "$$log"; ! grep 'FAIL:' "$$log"; done
 .PHONY: session-test
 test/test_motion_event: test/motion_event_test.c test/dvm_host_fixture.c runtime/libjvm.so $(LUNA_OS_OBJ)
@@ -2631,7 +2631,7 @@ test/libkeymapndk.so: test/keymap_guest_test.c src/jvm/jni.h
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -DNDK_INPUT_TEST $< -o $@
 
 .PHONY: keymap-smoke-test
-keymap-smoke-test: lunaria test/libkeymapguest.so test/libkeymapndk.so
+keymap-smoke-test: stubuika test/libkeymapguest.so test/libkeymapndk.so
 	python3 test/keymap_smoke.py
 
 $(BUILD_DIR)/luna_overlay.o: src/luna_input.h
@@ -2708,9 +2708,9 @@ test/liblibgentest64.so: test/libgen_test.c
 	clang -target aarch64-linux-gnu -fPIC -shared -nostdlib -fno-builtin -O1 -fuse-ld=lld -o $@ $<
 test/liblibgentest32.so: test/libgen_test.c
 	clang -target armv7a-linux-gnueabi -fPIC -shared -nostdlib -fno-builtin -O1 -fuse-ld=lld -o $@ $<
-libgen-test: lunaria test/liblibgentest64.so test/liblibgentest32.so
+libgen-test: stubuika test/liblibgentest64.so test/liblibgentest32.so
 	@rc=0; for so in test/liblibgentest64.so test/liblibgentest32.so; do \
-	    LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./lunaria $$so > .libgentest.out 2>&1; \
+	    LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./stubuika $$so > .libgentest.out 2>&1; \
 	    grep 'libgentest' .libgentest.out; \
 	    grep -q 'RESULT PASS' .libgentest.out || rc=1; \
 	done; exit $$rc
@@ -2781,9 +2781,9 @@ test/libwformattest64.so: test/wformat_test.c
 	clang -target aarch64-linux-gnu -fPIC -shared -nostdlib -fno-builtin -O1 -fuse-ld=lld -o $@ $<
 test/libwformattest32.so: test/wformat_test.c
 	clang -target armv7a-linux-gnueabi -fPIC -shared -nostdlib -fno-builtin -O1 -fuse-ld=lld -o $@ $<
-wformat-test: lunaria test/libwformattest64.so test/libwformattest32.so
+wformat-test: stubuika test/libwformattest64.so test/libwformattest32.so
 	@rc=0; for so in test/libwformattest64.so test/libwformattest32.so; do \
-	    LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./lunaria $$so > .wformattest.out 2>&1; \
+	    LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./stubuika $$so > .wformattest.out 2>&1; \
 	    grep 'wformattest' .wformattest.out; \
 	    grep -q 'RESULT PASS' .wformattest.out || rc=1; \
 	done; exit $$rc
@@ -2802,36 +2802,36 @@ $(BUILD_DIR)/disk-wait64.so: test/disk_wait_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/disk-wait-host.so: test/disk_wait_host.c | $(BUILD_DIR)
 	$(CC) -shared -fPIC -O2 -o $@ $< -ldl
 .PHONY: disk-wait-test
-disk-wait-test: lunaria $(BUILD_DIR)/disk-wait64.so $(BUILD_DIR)/disk-wait-host.so
+disk-wait-test: stubuika $(BUILD_DIR)/disk-wait64.so $(BUILD_DIR)/disk-wait-host.so
 	@timeout -k 2s 15s env LD_PRELOAD=$(abspath $(BUILD_DIR)/disk-wait-host.so) \
 	    LUNARIA_A64_ENGINES=4 LUNARIA_A64_SELF_SCHED=1 \
-	    ./lunaria $(BUILD_DIR)/disk-wait64.so > $(BUILD_DIR)/disk-wait.out 2>&1; \
+	    ./stubuika $(BUILD_DIR)/disk-wait64.so > $(BUILD_DIR)/disk-wait.out 2>&1; \
 	grep 'disk-wait.*RESULT' $(BUILD_DIR)/disk-wait.out; \
 	grep -q 'RESULT PASS' $(BUILD_DIR)/disk-wait.out && ! grep -q 'RESULT FAIL' $(BUILD_DIR)/disk-wait.out
 $(BUILD_DIR)/gtod64.so: test/gtod_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: gtod-test
-gtod-test: lunaria $(BUILD_DIR)/gtod64.so
-	@timeout -k 2s 15s env LUNARIA_SYSLIB_DIR=$(abspath syslib-arm64) ./lunaria $(BUILD_DIR)/gtod64.so > $(BUILD_DIR)/gtod.out 2>&1; \
+gtod-test: stubuika $(BUILD_DIR)/gtod64.so
+	@timeout -k 2s 15s env LUNARIA_SYSLIB_DIR=$(abspath syslib-arm64) ./stubuika $(BUILD_DIR)/gtod64.so > $(BUILD_DIR)/gtod.out 2>&1; \
 	grep 'gtod.*RESULT' $(BUILD_DIR)/gtod.out; \
 	grep -q 'RESULT PASS' $(BUILD_DIR)/gtod.out
 $(BUILD_DIR)/host-wait64.so: test/host_wait_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: host-wait-test
-host-wait-test: lunaria $(BUILD_DIR)/host-wait64.so
+host-wait-test: stubuika $(BUILD_DIR)/host-wait64.so
 	@timeout -k 2s 15s env LUNARIA_A64_ENGINES=4 LUNARIA_A64_SELF_SCHED=1 \
-	    ./lunaria $(BUILD_DIR)/host-wait64.so > $(BUILD_DIR)/host-wait.out 2>&1; \
+	    ./stubuika $(BUILD_DIR)/host-wait64.so > $(BUILD_DIR)/host-wait.out 2>&1; \
 	grep 'host-wait.*RESULT' $(BUILD_DIR)/host-wait.out; \
 	grep -q 'RESULT PASS' $(BUILD_DIR)/host-wait.out && ! grep -q 'FAIL:' $(BUILD_DIR)/host-wait.out
-timerfd-test: lunaria $(BUILD_DIR)/timerfd64.so $(BUILD_DIR)/timerfd32.so
+timerfd-test: stubuika $(BUILD_DIR)/timerfd64.so $(BUILD_DIR)/timerfd32.so
 	@rc=0; for abi in 64 32; do \
-	    timeout -k 2s 15s ./lunaria $(BUILD_DIR)/timerfd$$abi.so > $(BUILD_DIR)/timerfd$$abi.out 2>&1; \
+	    timeout -k 2s 15s ./stubuika $(BUILD_DIR)/timerfd$$abi.so > $(BUILD_DIR)/timerfd$$abi.out 2>&1; \
 	    grep 'timerfd.*RESULT' $(BUILD_DIR)/timerfd$$abi.out; \
 	    grep -q 'RESULT PASS' $(BUILD_DIR)/timerfd$$abi.out && ! grep -q 'RESULT FAIL' $(BUILD_DIR)/timerfd$$abi.out || rc=1; \
 	done; exit $$rc
-cond-timeout-test: lunaria $(BUILD_DIR)/cond-timeout64.so $(BUILD_DIR)/cond-timeout32.so
+cond-timeout-test: stubuika $(BUILD_DIR)/cond-timeout64.so $(BUILD_DIR)/cond-timeout32.so
 	@rc=0; for abi in 64 32; do \
-	    timeout -k 2s 15s ./lunaria $(BUILD_DIR)/cond-timeout$$abi.so > $(BUILD_DIR)/cond-timeout$$abi.out 2>&1; \
+	    timeout -k 2s 15s ./stubuika $(BUILD_DIR)/cond-timeout$$abi.so > $(BUILD_DIR)/cond-timeout$$abi.out 2>&1; \
 	    grep 'cond-timeout.*RESULT' $(BUILD_DIR)/cond-timeout$$abi.out; \
 	    grep -q 'RESULT PASS' $(BUILD_DIR)/cond-timeout$$abi.out && ! grep -q 'RESULT FAIL' $(BUILD_DIR)/cond-timeout$$abi.out || rc=1; \
 	done; exit $$rc
@@ -2839,10 +2839,10 @@ cond-timeout-test: lunaria $(BUILD_DIR)/cond-timeout64.so $(BUILD_DIR)/cond-time
 $(BUILD_DIR)/sched-fair64.so: test/sched_fair_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: sched-fair-test
-sched-fair-test: lunaria $(BUILD_DIR)/sched-fair64.so
+sched-fair-test: stubuika $(BUILD_DIR)/sched-fair64.so
 	@rc=0; for engines in 4 8; do \
 	    timeout -k 2s 15s env LUNARIA_A64_ENGINES=$$engines LUNARIA_A64_SELF_SCHED=1 \
-	        ./lunaria $(BUILD_DIR)/sched-fair64.so > $(BUILD_DIR)/sched-fair-$$engines.out 2>&1; \
+	        ./stubuika $(BUILD_DIR)/sched-fair64.so > $(BUILD_DIR)/sched-fair-$$engines.out 2>&1; \
 	    grep 'sched-fair.*RESULT' $(BUILD_DIR)/sched-fair-$$engines.out; \
 	    grep -q 'RESULT PASS' $(BUILD_DIR)/sched-fair-$$engines.out && \
 	        ! grep -q 'RESULT FAIL' $(BUILD_DIR)/sched-fair-$$engines.out || rc=1; \
@@ -2855,28 +2855,28 @@ $(BUILD_DIR)/mutex-timed64.so: test/mutex_timed_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/mutex-timed32.so: test/mutex_timed_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: mutex-timed-test
-mutex-timed-test: lunaria $(BUILD_DIR)/mutex-timed64.so $(BUILD_DIR)/mutex-timed32.so
+mutex-timed-test: stubuika $(BUILD_DIR)/mutex-timed64.so $(BUILD_DIR)/mutex-timed32.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/mutex-timed64.so $(BUILD_DIR)/mutex-timed32.so
 $(BUILD_DIR)/cmsg32.so: test/cmsg_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: cmsg-test
-cmsg-test: lunaria $(BUILD_DIR)/cmsg64.so $(BUILD_DIR)/cmsg32.so
-	@python3 -c 'import pathlib, subprocess; root=pathlib.Path("$(BUILD_DIR)"); results=[(abi,subprocess.run(["./lunaria",str(root / ("cmsg%d.so" % abi))],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=15).stdout.decode(errors="replace")) for abi in (64,32)]; [(root / ("cmsg%d.out" % abi)).write_text(out) for abi,out in results]; [print("\n".join(x for x in out.splitlines() if "cmsg" in x and "RESULT" in x)) for abi,out in results]; assert all("RESULT PASS" in out and "RESULT FAIL" not in out for abi,out in results)'
+cmsg-test: stubuika $(BUILD_DIR)/cmsg64.so $(BUILD_DIR)/cmsg32.so
+	@python3 -c 'import pathlib, subprocess; root=pathlib.Path("$(BUILD_DIR)"); results=[(abi,subprocess.run(["./stubuika",str(root / ("cmsg%d.so" % abi))],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=15).stdout.decode(errors="replace")) for abi in (64,32)]; [(root / ("cmsg%d.out" % abi)).write_text(out) for abi,out in results]; [print("\n".join(x for x in out.splitlines() if "cmsg" in x and "RESULT" in x)) for abi,out in results]; assert all("RESULT PASS" in out and "RESULT FAIL" not in out for abi,out in results)'
 
 $(BUILD_DIR)/file-stream64.so: test/file_stream_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 $(BUILD_DIR)/file-stream32.so: test/file_stream_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: file-stream-test
-file-stream-test: lunaria $(BUILD_DIR)/file-stream64.so $(BUILD_DIR)/file-stream32.so
+file-stream-test: stubuika $(BUILD_DIR)/file-stream64.so $(BUILD_DIR)/file-stream32.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/file-stream64.so $(BUILD_DIR)/file-stream32.so
 
 $(BUILD_DIR)/mmap-image64.so: test/mmap_image_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: mmap-image-test
-mmap-image-test: lunaria $(BUILD_DIR)/mmap-image64.so
+mmap-image-test: stubuika $(BUILD_DIR)/mmap-image64.so
 	@rc=0; for n in 1 4; do \
-	    timeout -k 2s 15s env LUNARIA_A64_ENGINES=$$n ./lunaria $(BUILD_DIR)/mmap-image64.so > $(BUILD_DIR)/mmap-image64.out 2>&1; \
+	    timeout -k 2s 15s env LUNARIA_A64_ENGINES=$$n ./stubuika $(BUILD_DIR)/mmap-image64.so > $(BUILD_DIR)/mmap-image64.out 2>&1; \
 	    grep 'mmap-image.*RESULT' $(BUILD_DIR)/mmap-image64.out; \
 	    grep -q 'RESULT PASS' $(BUILD_DIR)/mmap-image64.out && ! grep -q 'RESULT FAIL' $(BUILD_DIR)/mmap-image64.out || rc=1; \
 	done; exit $$rc
@@ -2898,8 +2898,8 @@ test/test_arsc_bag: test/arsc_bag_test.c src/arm_exec.h
 # The same scope tests cover both ELF classes and both dynamic hash formats.
 .PHONY: linker-scope-test
 linker-scope-test:
-	$(CC) -std=c11 -Wall -Wextra -Werror test/linker_scope_test.c src/linker64.c -o /tmp/lunaria-linker-scope-test
-	/tmp/lunaria-linker-scope-test
+	$(CC) -std=c11 -Wall -Wextra -Werror test/linker_scope_test.c src/linker64.c -o /tmp/stubuika-linker-scope-test
+	/tmp/stubuika-linker-scope-test
 
 # ARM32 runs the same dlopen suite and constructor-order fixture as ARM64.
 test/dl32/libdlfixture.so: test/dlopen_fixture.c
@@ -2914,11 +2914,11 @@ test/dl32/libdlweak.so: test/dlopen_fixture.c
 test/libdltest32.so: test/dlopen_test.c
 	clang -target armv7a-linux-gnueabi $(ABI_TEST_CFLAGS) -std=c11 '-DDL_FIXTURE_DIR="$(PWD)/test/dl32"' -Wl,--unresolved-symbols=ignore-all -Wl,-soname,libdltest32.so -o $@ $<
 .PHONY: dl-test32
-dl-test32: lunaria test/dvm_test.dex test/libdltest32.so test/dl32/libdlunrelated.so test/dl32/libdldependent.so test/dl32/libdlfixture.so test/dl32/libdlmissing.so test/dl32/libdlweak.so
+dl-test32: stubuika test/dvm_test.dex test/libdltest32.so test/dl32/libdlunrelated.so test/dl32/libdldependent.so test/dl32/libdlfixture.so test/dl32/libdlmissing.so test/dl32/libdlweak.so
 	@mkdir -p $(BUILD_DIR)/dltest-vm
 	@cp test/dvm_test.dex $(BUILD_DIR)/dltest-vm/classes.dex
-	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/dltest-vm" LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./lunaria test/libdltest32.so 2>&1 | tee /tmp/lunaria-dltest32.log | rg 'dltest|cannot locate'
-	@rg -q 'RESULT PASS' /tmp/lunaria-dltest32.log
+	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/dltest-vm" LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./stubuika test/libdltest32.so 2>&1 | tee /tmp/stubuika-dltest32.log | rg 'dltest|cannot locate'
+	@rg -q 'RESULT PASS' /tmp/stubuika-dltest32.log
 
 # Run the same JNI reflection metadata regression on both guest ABIs.
 test/libjnireflection64.so: test/jni_reflection_test.c
@@ -2926,15 +2926,15 @@ test/libjnireflection64.so: test/jni_reflection_test.c
 test/libjnireflection32.so: test/jni_reflection_test.c
 	clang -target armv7a-linux-gnueabi $(ABI_TEST_CFLAGS) -std=c11 -Wl,-soname,libjnireflection32.so -o $@ $<
 .PHONY: jni-reflection-test
-jni-reflection-test: lunaria test/libjnireflection64.so test/libjnireflection32.so test/dvm_test.dex
+jni-reflection-test: stubuika test/libjnireflection64.so test/libjnireflection32.so test/dvm_test.dex
 	@mkdir -p $(BUILD_DIR)/jni-reflection
 	@cp test/dvm_test.dex $(BUILD_DIR)/jni-reflection/classes.dex
-	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-reflection" ./lunaria test/libjnireflection64.so > /tmp/lunaria-jnireflection64.log 2>&1 || test $$? -eq 1
-	@rg 'jnireflection.*RESULT|jnireflection.*FAIL' /tmp/lunaria-jnireflection64.log
-	@rg -q 'RESULT PASS' /tmp/lunaria-jnireflection64.log && ! rg -q 'RESULT FAIL' /tmp/lunaria-jnireflection64.log
-	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-reflection" ./lunaria test/libjnireflection32.so > /tmp/lunaria-jnireflection32.log 2>&1 || test $$? -eq 1
-	@rg 'jnireflection.*RESULT|jnireflection.*FAIL' /tmp/lunaria-jnireflection32.log
-	@rg -q 'RESULT PASS' /tmp/lunaria-jnireflection32.log && ! rg -q 'RESULT FAIL' /tmp/lunaria-jnireflection32.log
+	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-reflection" ./stubuika test/libjnireflection64.so > /tmp/stubuika-jnireflection64.log 2>&1 || test $$? -eq 1
+	@rg 'jnireflection.*RESULT|jnireflection.*FAIL' /tmp/stubuika-jnireflection64.log
+	@rg -q 'RESULT PASS' /tmp/stubuika-jnireflection64.log && ! rg -q 'RESULT FAIL' /tmp/stubuika-jnireflection64.log
+	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-reflection" ./stubuika test/libjnireflection32.so > /tmp/stubuika-jnireflection32.log 2>&1 || test $$? -eq 1
+	@rg 'jnireflection.*RESULT|jnireflection.*FAIL' /tmp/stubuika-jnireflection32.log
+	@rg -q 'RESULT PASS' /tmp/stubuika-jnireflection32.log && ! rg -q 'RESULT FAIL' /tmp/stubuika-jnireflection32.log
 
 # Build the same dependency/addend fixture for both ELF classes.
 test/libdldependent.so: test/dlopen_dependency.c test/libdlfixture.so
@@ -2949,18 +2949,18 @@ test/libglesformat64.so: test/gles_format_test.c
 test/libeglquery32.so: test/egl_query_context_test.c
 	clang -target armv7a-linux-gnueabi $(ABI_TEST_CFLAGS) -std=c11 -Wl,-soname,libeglquery32.so -o $@ $<
 .PHONY: egl-query-test
-egl-query-test: lunaria test/libeglquery64.so test/libeglquery32.so
-	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./lunaria test/libeglquery64.so 2>&1 | tee /tmp/lunaria-eglquery64.log | rg 'eglquery|cannot locate'
-	@rg -q 'RESULT PASS' /tmp/lunaria-eglquery64.log && ! rg -q 'RESULT FAIL' /tmp/lunaria-eglquery64.log
-	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./lunaria test/libeglquery32.so 2>&1 | tee /tmp/lunaria-eglquery32.log | rg 'eglquery|cannot locate'
-	@rg -q 'RESULT PASS' /tmp/lunaria-eglquery32.log && ! rg -q 'RESULT FAIL' /tmp/lunaria-eglquery32.log
+egl-query-test: stubuika test/libeglquery64.so test/libeglquery32.so
+	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./stubuika test/libeglquery64.so 2>&1 | tee /tmp/stubuika-eglquery64.log | rg 'eglquery|cannot locate'
+	@rg -q 'RESULT PASS' /tmp/stubuika-eglquery64.log && ! rg -q 'RESULT FAIL' /tmp/stubuika-eglquery64.log
+	@LD_LIBRARY_PATH="$(PWD):$(PWD)/runtime" ./stubuika test/libeglquery32.so 2>&1 | tee /tmp/stubuika-eglquery32.log | rg 'eglquery|cannot locate'
+	@rg -q 'RESULT PASS' /tmp/stubuika-eglquery32.log && ! rg -q 'RESULT FAIL' /tmp/stubuika-eglquery32.log
 
 $(BUILD_DIR)/egl-thread/code/classes.dex: test/make_egl_thread_dex.py test/make_dex.py
 	python3 test/make_egl_thread_dex.py $@
 $(BUILD_DIR)/egl-thread32.so: test/egl_thread_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: egl-thread-test
-egl-thread-test: lunaria $(BUILD_DIR)/egl-thread/code/classes.dex $(BUILD_DIR)/egl-thread32.so
+egl-thread-test: stubuika $(BUILD_DIR)/egl-thread/code/classes.dex $(BUILD_DIR)/egl-thread32.so
 	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/egl-thread/code" python3 test/run_guest_results.py $(BUILD_DIR)/egl-thread32.so
 
 test/libdlunrelated.so: test/dlopen_unrelated.c
@@ -2975,9 +2975,9 @@ $(BUILD_DIR)/zlib-stream32.so: test/zlib_stream_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/zlib-stream64.so: test/zlib_stream_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: zlib-stream-test
-zlib-stream-test: lunaria $(BUILD_DIR)/zlib-stream32.so $(BUILD_DIR)/zlib-stream64.so
+zlib-stream-test: stubuika $(BUILD_DIR)/zlib-stream32.so $(BUILD_DIR)/zlib-stream64.so
 	@set -e; for abi in 32 64; do \
-	  LUNARIA_AUDIO=0 LUNARIA_MAX_FRAMES=1 ./lunaria $(BUILD_DIR)/zlib-stream$$abi.so > $(BUILD_DIR)/zlib-stream$$abi.log 2>&1 || true; \
+	  LUNARIA_AUDIO=0 LUNARIA_MAX_FRAMES=1 ./stubuika $(BUILD_DIR)/zlib-stream$$abi.so > $(BUILD_DIR)/zlib-stream$$abi.log 2>&1 || true; \
 	  grep 'zstream.*\(FAIL\|RESULT\)' $(BUILD_DIR)/zlib-stream$$abi.log; \
 	  grep -q 'RESULT PASS' $(BUILD_DIR)/zlib-stream$$abi.log; \
 	done
@@ -2987,9 +2987,9 @@ $(BUILD_DIR)/cond-callback-reuse32.so: test/cond_callback_reuse_test.c | $(BUILD
 $(BUILD_DIR)/cond-callback-reuse64.so: test/cond_callback_reuse_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: cond-callback-reuse-test
-cond-callback-reuse-test: lunaria $(BUILD_DIR)/cond-callback-reuse32.so $(BUILD_DIR)/cond-callback-reuse64.so
+cond-callback-reuse-test: stubuika $(BUILD_DIR)/cond-callback-reuse32.so $(BUILD_DIR)/cond-callback-reuse64.so
 	@set -e; for abi in 32 64; do \
-	  timeout -k 2s 20s env LUNARIA_AUDIO=0 LUNARIA_MAX_FRAMES=1 ./lunaria $(BUILD_DIR)/cond-callback-reuse$$abi.so > $(BUILD_DIR)/cond-callback-reuse$$abi.log 2>&1 || true; \
+	  timeout -k 2s 20s env LUNARIA_AUDIO=0 LUNARIA_MAX_FRAMES=1 ./stubuika $(BUILD_DIR)/cond-callback-reuse$$abi.so > $(BUILD_DIR)/cond-callback-reuse$$abi.log 2>&1 || true; \
 	  grep 'cond-callback-reuse.*\(FAIL\|RESULT\)' $(BUILD_DIR)/cond-callback-reuse$$abi.log; \
 	  grep -q 'RESULT PASS' $(BUILD_DIR)/cond-callback-reuse$$abi.log; \
 	done
@@ -3024,9 +3024,9 @@ $(BUILD_DIR)/guard_svc_publication64.so: test/cxa_guard_publication_test.c $(BUI
 $(BUILD_DIR)/guard_svc_publication32.so: test/cxa_guard_publication_test.c $(BUILD_DIR)/guard_svc_addresses.h
 	clang -target armv7a-linux-gnueabihf -mfloat-abi=softfp $(ABI_TEST_CFLAGS) -I$(BUILD_DIR) -DLUNA_GUARD_SVC -std=c11 -o $@ $<
 
-cxa-guard-publication-test: lunaria $(BUILD_DIR)/guard_publication64.so $(BUILD_DIR)/guard_publication32.so $(BUILD_DIR)/guard_svc_publication64.so $(BUILD_DIR)/guard_svc_publication32.so
+cxa-guard-publication-test: stubuika $(BUILD_DIR)/guard_publication64.so $(BUILD_DIR)/guard_publication32.so $(BUILD_DIR)/guard_svc_publication64.so $(BUILD_DIR)/guard_svc_publication32.so
 	@set -e; for mode in guard_publication guard_svc_publication; do for abi in 64 32; do \
-	    timeout -k 2s 15s env LUNARIA_AUDIO=0 ./lunaria $(BUILD_DIR)/$$mode$$abi.so \
+	    timeout -k 2s 15s env LUNARIA_AUDIO=0 ./stubuika $(BUILD_DIR)/$$mode$$abi.so \
 	        > $(BUILD_DIR)/$$mode$$abi.log 2>&1 || test "$$?" -eq 1; \
 	    grep 'guardpublication.*RESULT' $(BUILD_DIR)/$$mode$$abi.log; \
 	    grep -q 'guardpublication.*RESULT PASS' $(BUILD_DIR)/$$mode$$abi.log; \
@@ -3045,17 +3045,17 @@ $(BUILD_DIR)/kuser_helpers32.so: test/kuser_helpers_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/kuser_helpers_thumb32.so: test/kuser_helpers_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabihf -mfloat-abi=softfp -mthumb $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 
-kuser-helpers-test: lunaria $(BUILD_DIR)/kuser_helpers32.so $(BUILD_DIR)/kuser_helpers_thumb32.so
+kuser-helpers-test: stubuika $(BUILD_DIR)/kuser_helpers32.so $(BUILD_DIR)/kuser_helpers_thumb32.so
 	@set -e; for mode in 32 _thumb32; do \
-	    timeout -k 2s 30s env LUNARIA_AUDIO=0 ./lunaria $(BUILD_DIR)/kuser_helpers$$mode.so \
+	    timeout -k 2s 30s env LUNARIA_AUDIO=0 ./stubuika $(BUILD_DIR)/kuser_helpers$$mode.so \
 	        > $(BUILD_DIR)/kuser_helpers$$mode.log 2>&1 || test "$$?" -eq 1; \
 	    grep 'kuser.*RESULT' $(BUILD_DIR)/kuser_helpers$$mode.log; \
 	    grep -q 'kuser.*RESULT PASS' $(BUILD_DIR)/kuser_helpers$$mode.log; \
 	done
 
-pthread-once-publication-test: lunaria $(BUILD_DIR)/once_publication64.so $(BUILD_DIR)/once_publication32.so
+pthread-once-publication-test: stubuika $(BUILD_DIR)/once_publication64.so $(BUILD_DIR)/once_publication32.so
 	@set -e; for abi in 64 32; do \
-	    timeout -k 2s 15s env LUNARIA_AUDIO=0 ./lunaria $(BUILD_DIR)/once_publication$$abi.so \
+	    timeout -k 2s 15s env LUNARIA_AUDIO=0 ./stubuika $(BUILD_DIR)/once_publication$$abi.so \
 	        > $(BUILD_DIR)/once_publication$$abi.log 2>&1 || test "$$?" -eq 1; \
 	    grep 'oncepublication.*RESULT' $(BUILD_DIR)/once_publication$$abi.log; \
 	    grep -q 'oncepublication.*RESULT PASS' $(BUILD_DIR)/once_publication$$abi.log; \
@@ -3068,9 +3068,9 @@ $(BUILD_DIR)/join_publication64.so: test/thread_join_publication_test.c | $(BUIL
 $(BUILD_DIR)/join_publication32.so: test/thread_join_publication_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabihf -mfloat-abi=softfp $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 
-thread-join-publication-test: lunaria $(BUILD_DIR)/join_publication64.so $(BUILD_DIR)/join_publication32.so
+thread-join-publication-test: stubuika $(BUILD_DIR)/join_publication64.so $(BUILD_DIR)/join_publication32.so
 	@set -e; for abi in 64 32; do \
-	    timeout -k 2s 15s env LUNARIA_AUDIO=0 ./lunaria $(BUILD_DIR)/join_publication$$abi.so \
+	    timeout -k 2s 15s env LUNARIA_AUDIO=0 ./stubuika $(BUILD_DIR)/join_publication$$abi.so \
 	        > $(BUILD_DIR)/join_publication$$abi.log 2>&1 || test "$$?" -eq 1; \
 	    grep 'joinpublication.*RESULT' $(BUILD_DIR)/join_publication$$abi.log; \
 	    grep -q 'joinpublication.*RESULT PASS' $(BUILD_DIR)/join_publication$$abi.log; \
@@ -3083,14 +3083,14 @@ $(BUILD_DIR)/thread_tls_test.so: test/thread_tls_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/thread_tls_test32.so: test/thread_tls_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabihf -mfloat-abi=softfp $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 
-thread-tls-test: lunaria $(BUILD_DIR)/thread_tls_test.so $(BUILD_DIR)/thread_tls_test32.so
+thread-tls-test: stubuika $(BUILD_DIR)/thread_tls_test.so $(BUILD_DIR)/thread_tls_test32.so
 	@timeout -k 2s 30s env LUNARIA_A64_ENGINES=4 LUNARIA_AUDIO=0 \
-	    ./lunaria $(BUILD_DIR)/thread_tls_test.so > $(BUILD_DIR)/thread_tls_test.log 2>&1 || true
+	    ./stubuika $(BUILD_DIR)/thread_tls_test.so > $(BUILD_DIR)/thread_tls_test.log 2>&1 || true
 	@grep 'threadtls.*RESULT' $(BUILD_DIR)/thread_tls_test.log
 	@grep -q 'threadtls.*RESULT PASS' $(BUILD_DIR)/thread_tls_test.log && \
 	    ! grep -q 'no caller stack.*skipped' $(BUILD_DIR)/thread_tls_test.log
 	@timeout -k 2s 30s env LUNARIA_AUDIO=0 \
-	    ./lunaria $(BUILD_DIR)/thread_tls_test32.so > $(BUILD_DIR)/thread_tls_test32.log 2>&1 || true
+	    ./stubuika $(BUILD_DIR)/thread_tls_test32.so > $(BUILD_DIR)/thread_tls_test32.log 2>&1 || true
 	@grep 'threadtls.*RESULT' $(BUILD_DIR)/thread_tls_test32.log
 	@grep -q 'threadtls.*RESULT PASS' $(BUILD_DIR)/thread_tls_test32.log && \
 	    ! grep -q 'no caller stack.*skipped' $(BUILD_DIR)/thread_tls_test32.log
@@ -3105,9 +3105,9 @@ yield-hint-test: $(BUILD_DIR)/test_yield_hint
 .PHONY: yield-hint-guest-test
 $(BUILD_DIR)/yield_hint_guest.so: test/yield_hint_guest.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -O2 -std=c11 -o $@ $<
-yield-hint-guest-test: lunaria $(BUILD_DIR)/yield_hint_guest.so
+yield-hint-guest-test: stubuika $(BUILD_DIR)/yield_hint_guest.so
 	@timeout -k 2s 30s env LUNARIA_AUDIO=0 \
-	    ./lunaria $(BUILD_DIR)/yield_hint_guest.so > $(BUILD_DIR)/yield_hint_guest.log 2>&1 || true
+	    ./stubuika $(BUILD_DIR)/yield_hint_guest.so > $(BUILD_DIR)/yield_hint_guest.log 2>&1 || true
 	@grep 'yield-bench' $(BUILD_DIR)/yield_hint_guest.log
 	@grep -q 'yield-bench.*RESULT PASS' $(BUILD_DIR)/yield_hint_guest.log
 
@@ -3135,7 +3135,7 @@ $(BUILD_DIR)/posix_timer64.so: test/posix_timer_guest_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/posix_timer32.so: test/posix_timer_guest_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: posix-timer-test
-posix-timer-test: lunaria $(BUILD_DIR)/posix_timer64.so $(BUILD_DIR)/posix_timer32.so
+posix-timer-test: stubuika $(BUILD_DIR)/posix_timer64.so $(BUILD_DIR)/posix_timer32.so
 	LUNARIA_AUDIO=0 python3 test/run_guest_results.py $(BUILD_DIR)/posix_timer64.so $(BUILD_DIR)/posix_timer32.so
 
 $(BUILD_DIR)/syscall-file64.so: test/syscall_file_test.c | $(BUILD_DIR)
@@ -3143,7 +3143,7 @@ $(BUILD_DIR)/syscall-file64.so: test/syscall_file_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/syscall-file32.so: test/syscall_file_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: syscall-file-test
-syscall-file-test: lunaria $(BUILD_DIR)/syscall-file64.so $(BUILD_DIR)/syscall-file32.so
+syscall-file-test: stubuika $(BUILD_DIR)/syscall-file64.so $(BUILD_DIR)/syscall-file32.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/syscall-file64.so $(BUILD_DIR)/syscall-file32.so
 
 $(BUILD_DIR)/capget64.so: test/capget_test.c | $(BUILD_DIR)
@@ -3151,7 +3151,7 @@ $(BUILD_DIR)/capget64.so: test/capget_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/capget32.so: test/capget_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: capget-test
-capget-test: lunaria $(BUILD_DIR)/capget64.so $(BUILD_DIR)/capget32.so
+capget-test: stubuika $(BUILD_DIR)/capget64.so $(BUILD_DIR)/capget32.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/capget64.so $(BUILD_DIR)/capget32.so
 
 $(BUILD_DIR)/aaudio-thread64.so: test/aaudio_thread_test.c | $(BUILD_DIR)
@@ -3159,7 +3159,7 @@ $(BUILD_DIR)/aaudio-thread64.so: test/aaudio_thread_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/aaudio-thread32.so: test/aaudio_thread_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: aaudio-thread-test
-aaudio-thread-test: lunaria $(BUILD_DIR)/aaudio-thread64.so $(BUILD_DIR)/aaudio-thread32.so
+aaudio-thread-test: stubuika $(BUILD_DIR)/aaudio-thread64.so $(BUILD_DIR)/aaudio-thread32.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/aaudio-thread64.so $(BUILD_DIR)/aaudio-thread32.so
 
 $(BUILD_DIR)/callback-mutex-wait64.so: test/callback_mutex_wait_test.c | $(BUILD_DIR)
@@ -3167,7 +3167,7 @@ $(BUILD_DIR)/callback-mutex-wait64.so: test/callback_mutex_wait_test.c | $(BUILD
 $(BUILD_DIR)/callback-mutex-wait32.so: test/callback_mutex_wait_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: callback-mutex-wait-test
-callback-mutex-wait-test: lunaria $(BUILD_DIR)/callback-mutex-wait64.so $(BUILD_DIR)/callback-mutex-wait32.so
+callback-mutex-wait-test: stubuika $(BUILD_DIR)/callback-mutex-wait64.so $(BUILD_DIR)/callback-mutex-wait32.so
 	@LUNARIA_CB_SECONDS=0.002 python3 test/run_guest_results.py $(BUILD_DIR)/callback-mutex-wait64.so $(BUILD_DIR)/callback-mutex-wait32.so
 
 $(BUILD_DIR)/callback-yield64.so: test/callback_yield_test.c | $(BUILD_DIR)
@@ -3175,7 +3175,7 @@ $(BUILD_DIR)/callback-yield64.so: test/callback_yield_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/callback-yield32.so: test/callback_yield_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: callback-yield-test
-callback-yield-test: lunaria $(BUILD_DIR)/callback-yield64.so $(BUILD_DIR)/callback-yield32.so
+callback-yield-test: stubuika $(BUILD_DIR)/callback-yield64.so $(BUILD_DIR)/callback-yield32.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/callback-yield64.so $(BUILD_DIR)/callback-yield32.so
 
 $(BUILD_DIR)/jni-many-args/code/classes.dex: test/make_jni_many_args_dex.py test/make_dex.py
@@ -3188,7 +3188,7 @@ $(BUILD_DIR)/jni-array-owner64.so: test/jni_array_owner_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/jni-array-owner32.so: test/jni_array_owner_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: jni-array-owner-test
-jni-array-owner-test: lunaria $(BUILD_DIR)/jni-array-owner/code/classes.dex $(BUILD_DIR)/jni-array-owner64.so $(BUILD_DIR)/jni-array-owner32.so
+jni-array-owner-test: stubuika $(BUILD_DIR)/jni-array-owner/code/classes.dex $(BUILD_DIR)/jni-array-owner64.so $(BUILD_DIR)/jni-array-owner32.so
 	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-array-owner/code" python3 test/run_guest_results.py $(BUILD_DIR)/jni-array-owner64.so $(BUILD_DIR)/jni-array-owner32.so
 
 $(BUILD_DIR)/jni-payload-lifetime64.so: test/jni_payload_lifetime_test.c | $(BUILD_DIR)
@@ -3196,14 +3196,14 @@ $(BUILD_DIR)/jni-payload-lifetime64.so: test/jni_payload_lifetime_test.c | $(BUI
 $(BUILD_DIR)/jni-payload-lifetime32.so: test/jni_payload_lifetime_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: jni-payload-lifetime-test
-jni-payload-lifetime-test: lunaria $(BUILD_DIR)/jni-array-owner/code/classes.dex $(BUILD_DIR)/jni-payload-lifetime64.so $(BUILD_DIR)/jni-payload-lifetime32.so
+jni-payload-lifetime-test: stubuika $(BUILD_DIR)/jni-array-owner/code/classes.dex $(BUILD_DIR)/jni-payload-lifetime64.so $(BUILD_DIR)/jni-payload-lifetime32.so
 	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-array-owner/code" python3 test/run_guest_results.py $(BUILD_DIR)/jni-payload-lifetime64.so $(BUILD_DIR)/jni-payload-lifetime32.so
 $(BUILD_DIR)/jni-many-args64.so: test/jni_many_args_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 $(BUILD_DIR)/jni-many-args32.so: test/jni_many_args_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: jni-many-args-test
-jni-many-args-test: lunaria $(BUILD_DIR)/jni-many-args/code/classes.dex $(BUILD_DIR)/jni-many-args64.so $(BUILD_DIR)/jni-many-args32.so
+jni-many-args-test: stubuika $(BUILD_DIR)/jni-many-args/code/classes.dex $(BUILD_DIR)/jni-many-args64.so $(BUILD_DIR)/jni-many-args32.so
 	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-many-args/code" python3 test/run_guest_results.py $(BUILD_DIR)/jni-many-args64.so $(BUILD_DIR)/jni-many-args32.so
 
 $(BUILD_DIR)/jni-lifecycle/code/classes.dex: test/make_jni_lifecycle_dex.py test/make_dex.py
@@ -3213,14 +3213,14 @@ $(BUILD_DIR)/jni-lifecycle64.so: test/jni_lifecycle_transaction_test.c | $(BUILD
 $(BUILD_DIR)/jni-lifecycle32.so: test/jni_lifecycle_transaction_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabi -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: jni-lifecycle-transaction-test
-jni-lifecycle-transaction-test: lunaria $(BUILD_DIR)/jni-lifecycle/code/classes.dex $(BUILD_DIR)/jni-lifecycle64.so $(BUILD_DIR)/jni-lifecycle32.so
+jni-lifecycle-transaction-test: stubuika $(BUILD_DIR)/jni-lifecycle/code/classes.dex $(BUILD_DIR)/jni-lifecycle64.so $(BUILD_DIR)/jni-lifecycle32.so
 	@ANDROID_PACKAGE_CODE_PATH="$(BUILD_DIR)/jni-lifecycle/code" ANDROID_PACKAGE_NAME=test.lifecycle ANDROID_LAUNCH_ACTIVITY=test.LifecycleParent python3 test/run_guest_results.py $(BUILD_DIR)/jni-lifecycle64.so $(BUILD_DIR)/jni-lifecycle32.so
 
 # Real A64 instruction fetch must reach the Vulkan host-call dispatcher.
 $(BUILD_DIR)/vulkan-guest64.so: test/vulkan_guest_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: vulkan-guest-test
-vulkan-guest-test: lunaria $(BUILD_DIR)/vulkan-guest64.so
+vulkan-guest-test: stubuika $(BUILD_DIR)/vulkan-guest64.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/vulkan-guest64.so
 
 $(BUILD_DIR)/mmap-abi64.so: test/mmap64_test.c | $(BUILD_DIR)
@@ -3228,7 +3228,7 @@ $(BUILD_DIR)/mmap-abi64.so: test/mmap64_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/mmap-abi32.so: test/mmap64_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-androideabi21 -mfloat-abi=softfp -mfpu=vfpv3 $(ABI_TEST_CFLAGS) -std=c11 -o $@ $<
 .PHONY: mmap-abi-test
-mmap-abi-test: lunaria $(BUILD_DIR)/mmap-abi64.so $(BUILD_DIR)/mmap-abi32.so
+mmap-abi-test: stubuika $(BUILD_DIR)/mmap-abi64.so $(BUILD_DIR)/mmap-abi32.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/mmap-abi64.so $(BUILD_DIR)/mmap-abi32.so
 
 $(BUILD_DIR)/settings-identity/code/classes.dex: test/make_settings_identity_dex.py test/make_dex.py
@@ -3238,7 +3238,7 @@ $(BUILD_DIR)/settings-identity32.so: test/settings_identity_test.c | $(BUILD_DIR
 $(BUILD_DIR)/settings-identity64.so: test/settings_identity_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: settings-identity-test
-settings-identity-test: lunaria $(BUILD_DIR)/settings-identity/code/classes.dex $(BUILD_DIR)/settings-identity32.so $(BUILD_DIR)/settings-identity64.so
+settings-identity-test: stubuika $(BUILD_DIR)/settings-identity/code/classes.dex $(BUILD_DIR)/settings-identity32.so $(BUILD_DIR)/settings-identity64.so
 	@ANDROID_PACKAGE_CODE_PATH="$(abspath $(BUILD_DIR))/settings-identity/code" ANDROID_PACKAGE_NAME=test.settings python3 test/run_guest_results.py $(BUILD_DIR)/settings-identity32.so $(BUILD_DIR)/settings-identity64.so
 
 $(BUILD_DIR)/classloader32.so: test/classloader_lifetime_test.c | $(BUILD_DIR)
@@ -3246,7 +3246,7 @@ $(BUILD_DIR)/classloader32.so: test/classloader_lifetime_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/classloader64.so: test/classloader_lifetime_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: classloader-lifetime-test
-classloader-lifetime-test: lunaria $(BUILD_DIR)/classloader32.so $(BUILD_DIR)/classloader64.so
+classloader-lifetime-test: stubuika $(BUILD_DIR)/classloader32.so $(BUILD_DIR)/classloader64.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/classloader32.so $(BUILD_DIR)/classloader64.so
 
 # /proc is the emulator's, never the host's (POLICY block above synthetic_proc_path
@@ -3257,7 +3257,7 @@ $(BUILD_DIR)/proc_ns32.so: test/proc_namespace_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/proc_ns64.so: test/proc_namespace_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: proc-namespace-test
-proc-namespace-test: lunaria $(BUILD_DIR)/proc_ns32.so $(BUILD_DIR)/proc_ns64.so
+proc-namespace-test: stubuika $(BUILD_DIR)/proc_ns32.so $(BUILD_DIR)/proc_ns64.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/proc_ns32.so $(BUILD_DIR)/proc_ns64.so
 
 # A freed small block is parked (scudo-like quarantine) before it is reused.
@@ -3266,7 +3266,7 @@ $(BUILD_DIR)/heap_q32.so: test/heap_quarantine_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/heap_q64.so: test/heap_quarantine_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -o $@ $<
 .PHONY: heap-quarantine-test
-heap-quarantine-test: lunaria $(BUILD_DIR)/heap_q32.so $(BUILD_DIR)/heap_q64.so
+heap-quarantine-test: stubuika $(BUILD_DIR)/heap_q32.so $(BUILD_DIR)/heap_q64.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/heap_q32.so $(BUILD_DIR)/heap_q64.so
 
 # kill uses a process ID and errno, unlike pthread_kill's handle/error number.
@@ -3281,7 +3281,7 @@ $(BUILD_DIR)/kill_process_worker32.so: test/kill_process_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/kill_process_worker64.so: test/kill_process_test.c | $(BUILD_DIR)
 	clang -target aarch64-linux-gnu $(ABI_TEST_CFLAGS) -std=c11 -DKILL_FROM_WORKER -o $@ $<
 KILL_PROCESS_FIXTURES += $(BUILD_DIR)/kill_process_worker32.so $(BUILD_DIR)/kill_process_worker64.so
-kill-process-test: lunaria $(KILL_PROCESS_FIXTURES)
+kill-process-test: stubuika $(KILL_PROCESS_FIXTURES)
 	@python3 test/run_kill_process_test.py $(KILL_PROCESS_FIXTURES)
 
 $(BUILD_DIR)/apk_service_manifest_probe: test/apk_service_manifest_probe.c src/apk.c src/dvm/charset.c | $(BUILD_DIR)
@@ -3326,16 +3326,16 @@ $(BUILD_DIR)/issue-compat64.so: test/issue_compat_test.c | $(BUILD_DIR)
 $(BUILD_DIR)/issue-compat32.so: test/issue_compat_test.c | $(BUILD_DIR)
 	clang -target armv7a-linux-gnueabihf -mfloat-abi=softfp $(ABI_TEST_CFLAGS) -Isrc -o $@ $<
 .PHONY: issue-compat-test
-issue-compat-test: lunaria $(BUILD_DIR)/issue-compat64.so $(BUILD_DIR)/issue-compat32.so
+issue-compat-test: stubuika $(BUILD_DIR)/issue-compat64.so $(BUILD_DIR)/issue-compat32.so
 	@for abi in 64 32; do \
 	    log="$(BUILD_DIR)/issue-compat$$abi.log"; \
 	    root="$(BUILD_DIR)/issue-compat-root-$$abi"; \
 	    mkdir -p "$$root/app/files" "$$root/external" "$$root/data" "$$root/code" "$$root/storage"; \
-	    env LUNARIA_GUEST_ROOT="$$root" ANDROID_PACKAGE_NAME=com.lunaria.issuecompat \
+	    env LUNARIA_GUEST_ROOT="$$root" ANDROID_PACKAGE_NAME=com.stubuika.issuecompat \
 	      ANDROID_PACKAGE_CODE_PATH="$$root/code" \
 	      ANDROID_EXTERNAL_STORAGE_DIR="$$root/storage" \
 	      ANDROID_FILES_DIR="$$root/app/files" ANDROID_EXTERNAL_FILES_DIR="$$root/external" \
-	      ./lunaria "$(BUILD_DIR)/issue-compat$$abi.so" > "$$log" 2>&1; \
+	      ./stubuika "$(BUILD_DIR)/issue-compat$$abi.so" > "$$log" 2>&1; \
 	    grep 'issuecompat' "$$log"; \
 	    grep -q 'RESULT PASS' "$$log" && ! grep -q 'RESULT FAIL' "$$log" || exit 1; \
 	done
@@ -3389,7 +3389,7 @@ $(BUILD_DIR)/arm_exec.o: src/aaudio_stream.h
 .PHONY: aaudio-contract-test aaudio-core-test
 aaudio-core-test: $(BUILD_DIR)/test_aaudio_stream
 	$(BUILD_DIR)/test_aaudio_stream
-aaudio-contract-test: lunaria $(BUILD_DIR)/aaudio-contract64.so $(BUILD_DIR)/aaudio-contract32.so
+aaudio-contract-test: stubuika $(BUILD_DIR)/aaudio-contract64.so $(BUILD_DIR)/aaudio-contract32.so
 	@python3 test/run_guest_results.py $(BUILD_DIR)/aaudio-contract64.so $(BUILD_DIR)/aaudio-contract32.so
 
 .PHONY: system-properties-test

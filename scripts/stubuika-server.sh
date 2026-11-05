@@ -85,7 +85,7 @@ maybe_start_qberry() {
   die "qberry started but qfkey socket did not appear ($(sock_path)); see /tmp/qberry-stubuika-server.log"
 }
 
-resolve_lunaria() {
+resolve_stubuika() {
   if [[ -n "${LUNARIA_BIN:-}" && -x "$LUNARIA_BIN" ]]; then
     printf '%s\n' "$LUNARIA_BIN"; return
   fi
@@ -113,7 +113,7 @@ if [[ -z "${LUNARIA_DATA_ROOT:-}" ]]; then
 fi
 mkdir -p "$LUNARIA_DATA_ROOT"
 
-BIN="$(resolve_lunaria)"
+BIN="$(resolve_stubuika)"
 log "instance=${LUNARIA_INSTANCE} data=${LUNARIA_DATA_ROOT} pbuffer=${LUNARIA_PBUFFER}"
 log "exec: $BIN ${LUNARIA_ARGS[*]:-}"
 # No APK argument → graphical (headless) launcher waits for a package.

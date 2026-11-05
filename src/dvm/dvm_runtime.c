@@ -47,7 +47,6 @@ extern bool luna_vk_available(void) DVM_OPTIONAL_SYMBOL;
 #include <GLES2/gl2.h>
 #include <GLES3/gl3.h>
 #include <dirent.h>
-#include <malloc.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>

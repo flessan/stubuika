@@ -54,9 +54,7 @@ Linux上で取得したゲストフレーム。ゲーム本体は改変してい
 
 <p align="center"><sub>Alchemia Story 1.0.154 · Cross Worlds のフィールド</sub></p>
 
-<p align="center">
-  <img src="shots/launcher.png" width="72%" alt="Stubuika ランチャー：APK / APKM / XAPK / APKS / AAB のドロップと設定">
-</p>
+
 
 <p align="center"><sub>ランチャーの画面はStubuikaブランドに更新中です。ギャラリーのゲーム画面は元プロジェクトの互換性テストで取得したものです。</sub></p>
 
@@ -283,17 +281,9 @@ Cancelで中止でき、通信失敗や中断時の一時ファイルは削除�
 文字入力、戻る操作、音量調整、キーボード割り当て、WebViewの設定、入力の録画・再生、
 プロファイル切り替え、再起動、フルスクリーン表示、終了などをここから操作できます。
 
-<p align="center">
-  <img src="shots/launcher.png" width="56%" alt="Stubuika ランチャー。青空の上の Open an application">
-  &nbsp;
-  <img src="shots/boot.png" width="40%" alt="Stubuika 起動カード：月のワードマークと ARM／dex 進捗">
-</p>
 
-<p align="center">
-  <img src="shots/host-menu-kikyu.png" width="56%" alt="気球！エアロノート上のホストメニュー。Keyboard Controls とキーマップ一覧">
-  &nbsp;
-  <img src="shots/host-menu.png" width="40%" alt="WebView エンジン選択。luna-browser を選択中">
-</p>
+
+
 
 <p align="center"><sub>ランチャー · 起動カード · 2013 年 APK 上のホストメニュー · WebView エンジン</sub></p>
 

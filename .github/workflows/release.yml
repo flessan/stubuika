@@ -5,6 +5,11 @@ on:
     tags:
       - 'stubuika-v*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version in YYYY.MM.DD format (for example 2026.11.05)"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -161,22 +166,33 @@ jobs:
 
       - name: Collect
         id: pack
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
         run: |
           mkdir -p out
           find artifacts -type f \( -name '*.tar.gz' -o -name '*.dmg' -o -name '*.zip' \) -exec cp {} out/ \;
           ls -la out
           if [[ "${GITHUB_REF}" == refs/tags/stubuika-v* ]]; then
-            echo "name=Stubuika ${GITHUB_REF_NAME#stubuika-v}" >> "$GITHUB_OUTPUT"
+            version="${GITHUB_REF_NAME#stubuika-v}"
+            tag="${GITHUB_REF_NAME}"
           else
-            echo "name=Stubuika (manual build)" >> "$GITHUB_OUTPUT"
+            version="${RELEASE_VERSION}"
+            if [[ ! "$version" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}$ ]]; then
+              echo "Invalid release version: $version (expected YYYY.MM.DD)" >&2
+              exit 1
+            fi
+            tag="stubuika-v$version"
           fi
+          echo "name=Stubuika $version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ steps.pack.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           name: ${{ steps.pack.outputs.name }}
-          draft: ${{ github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/tags/') }}
+          draft: false
           files: out/*
           body: |
             ## Stubuika

@@ -6,12 +6,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 #
-# Test suite for Lunaria
+# Test suite for Stubuika
 # Usage: sh test/run_tests.sh [test_name]
 #
 # All tests must be run from the project root directory.
 
-LUNARIA=./lunaria
+STUBUIKA=./stubuika
 RUNTIME_PATH=./runtime:.
 TESTDIR=./test
 PASS=0
@@ -40,18 +40,18 @@ t_build() {
 }
 
 # ---------------------------------------------------------------------------
-# t_lunaria_exists: lunaria binary must exist and be executable
+# t_stubuika_exists: lunaria binary must exist and be executable
 # ---------------------------------------------------------------------------
 t_lunaria_exists() {
-    if [ ! -x "$LUNARIA" ]; then
-        log_fail "lunaria_exists" "lunaria not found or not executable at $LUNARIA"
+    if [ ! -x "$STUBUIKA" ]; then
+        log_fail "lunaria_exists" "stubuika not found or not executable at $LUNARIA"
         return
     fi
     log_pass "lunaria_exists"
 }
 
 # ---------------------------------------------------------------------------
-# t_lunaria_usage: running without args must print usage
+# t_stubuika_usage: running without args must print usage
 # ---------------------------------------------------------------------------
 t_lunaria_usage() {
     out=$(run "$LUNARIA" 2>&1)
@@ -160,7 +160,7 @@ t_bad_elf() {
     rm -f "$tmp"
     # We expect a non-zero exit (error), but not a signal (crash = 128+N or 139)
     if [ "$status" -ge 128 ]; then
-        log_fail "bad_elf" "lunaria crashed with signal (exit $status) on non-ELF input"
+        log_fail "bad_elf" "stubuika crashed with signal (exit $status) on non-ELF input"
     else
         log_pass "bad_elf"
     fi

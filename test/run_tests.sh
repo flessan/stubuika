@@ -75,29 +75,34 @@ t_apkm_bundle() {
         log_fail "apkm_bundle" "cannot create temporary directory"
         return
     }
-    bundle="$tmp/sample.apkm"
-    if ! python3 - "$source_apk" "$bundle" <<'PY'
+    for variant in legacy current; do
+        bundle="$tmp/$variant.apkm"
+        if ! python3 - "$source_apk" "$bundle" "$variant" <<'PY'
 import sys
 import zipfile
 from pathlib import Path
-source, target = map(Path, sys.argv[1:])
+source, target = map(Path, sys.argv[1:3])
+variant = sys.argv[3]
 with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
     archive.write(source, "base.apk")
-    archive.writestr("info.json", '{"apkm_version": 2, "file": []}')
+    if variant == "current":
+        archive.writestr("info.json", '{"apkm_version": 2, "file": []}')
 PY
-    then
-        rm -rf "$tmp"
-        log_fail "apkm_bundle" "could not construct APKM fixture"
-        return
-    fi
-    out=$(run "$STUBUIKA" --config "$tmp/stubuika.conf" --data-root "$tmp/data" --prepare-profile "$bundle" 2>&1)
-    status=$?
+        then
+            rm -rf "$tmp"
+            log_fail "apkm_bundle" "could not construct $variant APKM fixture"
+            return
+        fi
+        out=$(run "$STUBUIKA" --config "$tmp/stubuika.conf" --data-root "$tmp/data-$variant" --prepare-profile "$bundle" 2>&1)
+        status=$?
+        if [ "$status" -ne 0 ] || ! echo "$out" | grep -q '^profile='; then
+            rm -rf "$tmp"
+            log_fail "apkm_bundle" "$variant APKM package preparation failed (exit $status): $out"
+            return
+        fi
+    done
     rm -rf "$tmp"
-    if [ "$status" -eq 0 ] && echo "$out" | grep -q '^profile='; then
-        log_pass "apkm_bundle"
-    else
-        log_fail "apkm_bundle" "APKM package preparation failed (exit $status): $out"
-    fi
+    log_pass "apkm_bundle"
 }
 
 # ---------------------------------------------------------------------------

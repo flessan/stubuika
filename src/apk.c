@@ -1949,7 +1949,7 @@ static int conf_default_path(char *out, size_t cap)
 #endif
    if (!apk_getcwd(cwd, sizeof cwd))
       return -1;
-   return path_join(out, cap, cwd, "lunaria.conf");
+   return path_join(out, cap, cwd, "stubuika.conf");
 }
 
 /* The line's key when it is an active `LUNARIA_*=value` line, else NULL. */
@@ -2133,7 +2133,7 @@ static int launcher_ask(int *argc, const char ***argv)
    }
    if (env_set("LUNARIA_CONF", conf, true))
       return -1;
-   synthesized[0] = *argc > 0 ? (*argv)[0] : "lunaria";
+   synthesized[0] = *argc > 0 ? (*argv)[0] : "stubuika";
    synthesized[1] = chosen;
    synthesized[2] = NULL;
    *argc = 2;

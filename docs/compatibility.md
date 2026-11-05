@@ -84,7 +84,7 @@ Distribution builds use `-O3`, `-DNDEBUG`, and LTO. Dynarmic is rebuilt separate
 
 **Contributions and reproducible reports are welcome.** For compatibility issues, please include the title, engine version, guest ABI, last working screen or stage, relevant logs, and—if possible—a captured framebuffer image.
 
-Licensed under the [Mozilla Public License 2.0](LICENSE).
+Licensed under the [Mozilla Public License 2.0](../LICENSE).
 
 Original Lunaria code © 2026 Yuichiro Nakada; Stubuika maintains the upstream MPL-2.0 notices.
 

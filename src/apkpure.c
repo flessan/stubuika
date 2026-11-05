@@ -139,7 +139,7 @@ int apkpure_parse_results(const char *html,struct apkpure_result *out,size_t cap
 
 static int request(const char *url,struct dvm_http_response *r,char *error,size_t size)
 {
-    struct dvm_http_header headers[]={ {"User-Agent","Lunaria APK launcher"},{"Accept-Encoding","identity"} };
+    struct dvm_http_header headers[]={ {"User-Agent","Stubuika Android launcher"},{"Accept-Encoding","identity"} };
     if (!dvm_http_perform("GET",url,headers,2,NULL,0,10000,true,r)) {
         snprintf(error,size,"%s",r->error);dvm_http_response_free(r);return -1;
     }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw the Lunaria icon: the boot card's winter sky, a crescent moon and snow.
+"""Draw the Stubuika icon: the boot card's winter sky, a crescent moon and snow.
 
 usage: make-icon.py OUT.icns [PNG]
 
@@ -90,13 +90,13 @@ def main():
         sys.exit(__doc__)
     out = sys.argv[1]
     png = sys.argv[2] if len(sys.argv) > 2 else None
-    work = tempfile.mkdtemp(prefix="lunaria-icon-")
+    work = tempfile.mkdtemp(prefix="stubuika-icon-")
     try:
         master = os.path.join(work, "icon_1024.png")
         write_png(master)
         if png:
             shutil.copyfile(master, png)
-        iconset = os.path.join(work, "Lunaria.iconset")
+        iconset = os.path.join(work, "Stubuika.iconset")
         os.mkdir(iconset)
         for size in (16, 32, 128, 256, 512):
             for scale in (1, 2):

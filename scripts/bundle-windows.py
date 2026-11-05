@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collect the complete PE import closure beside lunaria.exe.
+"""Collect the complete PE import closure beside stubuika.exe.
 
 WINDOWS_DLL_DIRS is a path-separated list of additional DLL directories.
 OBJDUMP may select a cross objdump. System DLLs remain provided by Windows;
@@ -35,7 +35,7 @@ def bundle(stage):
     # Native MSYS2 Python sees Windows paths, so /ucrt64 is not its install
     # prefix. Its own executable (or GCC) locates the actual toolchain bin.
     directories.append(Path(sys.executable).resolve().parent)
-    # Prefer the cross toolchain that built lunaria.exe (llvm-mingw puts
+    # Prefer the cross toolchain that built stubuika.exe (llvm-mingw puts
     # libc++.dll in $prefix/x86_64-w64-mingw32/bin; host gcc is useless here).
     for tool in (
         os.environ.get("CXX"),
@@ -66,7 +66,7 @@ def bundle(stage):
             for path in directory.iterdir():
                 if path.is_file() and path.suffix.lower() == ".dll":
                     index.setdefault(path.name.lower(), path)
-    queue = [stage / "lunaria.exe"]
+    queue = [stage / "stubuika.exe"]
     queue += sorted((stage / "runtime").glob("*.dll"))
     seen = set()
     while queue:

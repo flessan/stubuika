@@ -867,11 +867,11 @@ app-sdk-test: test/app_sdk_test.c src/jvm/jni_stubs.c src/jvm/jvm.h | $(BUILD_DI
 unity-reflection-test: test/test_unity
 	./test/test_unity
 
-# The native i386 loader is meaningful only with a Linux i386 Lunaria binary.
+# The native i386 loader is meaningful only with a Linux i386 Stubuika binary.
 # A different host must fail this explicit target rather than report a skip
 # as a passing regression check.
 native-i386-test: $(LUNARIA_BIN)
-	@test "$(LUNA_OS_NAME)" = Linux && file ./$(LUNARIA_BIN) | grep -Eq 'ELF 32-bit.*(Intel 80386|Intel i386)' || { echo 'native-i386-test requires a Linux i386 Lunaria build' >&2; exit 1; }
+	@test "$(LUNA_OS_NAME)" = Linux && file ./$(LUNARIA_BIN) | grep -Eq 'ELF 32-bit.*(Intel 80386|Intel i386)' || { echo 'native-i386-test requires a Linux i386 Stubuika build' >&2; exit 1; }
 	nasm -f elf32 test/hello_jni_i386.asm -o $(BUILD_DIR)/hello_jni_i386.o
 	ld -m elf_i386 -shared --hash-style=sysv -o $(BUILD_DIR)/hello_jni_i386.so $(BUILD_DIR)/hello_jni_i386.o
 	@./$(LUNARIA_BIN) $(BUILD_DIR)/hello_jni_i386.so > $(BUILD_DIR)/native-i386.log 2>&1; \
@@ -2164,7 +2164,7 @@ DYNARMIC_ZYD_LIB = $(DYNARMIC_BUILD)/externals/zydis/libZydis.a
 DYNARMIC_ZYC_LIB = $(DYNARMIC_BUILD)/externals/zydis/zycore/libZycore.a
 # CMake owns the individual object graph, but make still has to know when to
 # invoke CMake.  Depending only on an already-existing archive made edits to
-# Dynarmic source silently leave Lunaria linked against yesterday's code.
+# Dynarmic source silently leave Stubuika linked against yesterday's code.
 # Keep generated build/ files out of this list; only inputs may trigger it.
 # *.inc counts: dynarmic's memory emitters live in emit_x64_memory.cpp.inc, so
 # leaving that extension out is exactly the silent staleness above.

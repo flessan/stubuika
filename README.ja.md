@@ -58,7 +58,7 @@ Linux上で取得したゲストフレーム。ゲーム本体は改変してい
   <img src="shots/launcher.png" width="72%" alt="Stubuika ランチャー：APK / APKM / XAPK / APKS / AAB のドロップと設定">
 </p>
 
-<p align="center"><sub>パッケージをドラッグ＆ドロップするだけで起動できます。データ保存先や端末設定は<code>stubuika.conf</code>に保存できます。</sub></p>
+<p align="center"><sub>ランチャーの画面はStubuikaブランドに更新中です。ギャラリーのゲーム画面は元プロジェクトの互換性テストで取得したものです。</sub></p>
 
 ## Stubuikaの特徴
 
@@ -573,7 +573,7 @@ LUNARIA_SCREENSHOT_EVERY=60 \
 ./stubuika game.xapk
 ```
 
-保存形式はPNGで、`lunaria_0000.png`のような名前が付きます。`$LUNARIA_SHOT_TRIGGER`で指定したファイル（既定は`/tmp/stubuika-shot`）を作成すると、追加の1フレームを保存できます。
+保存形式はPNGで、`stubuika_0000.png`のような名前が付きます。`$LUNARIA_SHOT_TRIGGER`で指定したファイル（既定は`/tmp/stubuika-shot`）を作成すると、追加の1フレームを保存できます。
 
 通常のスクリーンショットは**F12**、またはホストメニューの**Take Screenshot**で撮影できます。保存先は`~/Pictures/Stubuika YYYY-MM-DD HH.MM.SS.png`です。
 

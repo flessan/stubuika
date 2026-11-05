@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright © 2026 Yuichiro Nakada / Project Lunaria
+# Copyright © 2026 Yuichiro Nakada / Project Stubuika
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -42,8 +42,8 @@ here=$(CDPATH= cd -- "$(dirname -- "$argv0")/.." && pwd) || err 'cannot find the
 cd "$here"
 
 case "$os" in
-    windows) executable=lunaria.exe ;;
-    linux|macos) executable=lunaria ;;
+    windows) executable=stubuika.exe ;;
+    linux|macos) executable=stubuika ;;
     *) err "unknown os \"$os\"" ;;
 esac
 exe_suffix=
@@ -58,14 +58,14 @@ mkdir -p "$stage" "$stage/runtime" "$stage/lib" "$stage/fonts"
 
 cp -p "$binary" "$stage/$executable"
 cp -R ./keymaps "$stage/"
-[ -f lunaria.conf.sample ] && cp -p lunaria.conf.sample "$stage/"
+[ -f stubuika.conf.sample ] && cp -p stubuika.conf.sample "$stage/"
 [ -f README.md ] && cp -p README.md "$stage/"
 [ -f README.ja.md ] && cp -p README.ja.md "$stage/"
 [ -f LICENSE ] && cp -p LICENSE "$stage/"
 if [ "$os" = linux ]; then
     mkdir -p "$stage/scripts" "$stage/systemd"
-    [ -f scripts/lunaria-server.sh ] && cp -p scripts/lunaria-server.sh "$stage/scripts/" && chmod 0755 "$stage/scripts/lunaria-server.sh"
-    [ -f systemd/lunaria@.service ] && cp -p systemd/lunaria@.service "$stage/systemd/"
+    [ -f scripts/stubuika-server.sh ] && cp -p scripts/stubuika-server.sh "$stage/scripts/" && chmod 0755 "$stage/scripts/stubuika-server.sh"
+    [ -f systemd/stubuika@.service ] && cp -p systemd/stubuika@.service "$stage/systemd/"
 fi
 mkdir -p "$stage/licenses"
 cp -p src/lib/musl/COPYRIGHT "$stage/licenses/musl.txt"
@@ -125,7 +125,7 @@ done
 # kernel and to the dynamic loader that is already running this process.
 bundle_linux() {
     _keep="$1"
-    for _bin in "$stage/lunaria" "$stage/luna-browser/luna-browser" "$stage"/runtime/*.so; do
+    for _bin in "$stage/stubuika" "$stage/luna-browser/luna-browser" "$stage"/runtime/*.so; do
         [ -f "$_bin" ] || continue
         ldd "$_bin" 2>/dev/null | while read -r _name _arrow _path _rest; do
             [ "$_arrow" = '=>' ] || continue

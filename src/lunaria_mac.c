@@ -32,6 +32,11 @@
 #include <fcntl.h>
 #include <stdatomic.h>
 #include <pthread.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/in.h>
 
 size_t luna_os_stack_remaining(void)
 {
@@ -75,6 +80,21 @@ static unsigned netif_prefix(const struct sockaddr *mask, size_t len)
    return bits;
 }
 
+static unsigned netif_mtu(const char *name)
+{
+   if (!name || !*name) return 0;
+   int fd = socket(AF_INET, SOCK_DGRAM, 0);
+   if (fd < 0) return 0;
+   struct ifreq request;
+   memset(&request, 0, sizeof request);
+   snprintf(request.ifr_name, sizeof request.ifr_name, "%s", name);
+   unsigned mtu = 0;
+   if (ioctl(fd, SIOCGIFMTU, &request) == 0 && request.ifr_mtu > 0)
+      mtu = (unsigned)request.ifr_mtu;
+   close(fd);
+   return mtu;
+}
+
 int luna_os_net_list(struct luna_os_netif *out, int capacity)
 {
    struct ifaddrs *list = NULL;
@@ -93,7 +113,7 @@ int luna_os_net_list(struct luna_os_netif *out, int capacity)
          out[count].loopback = (it->ifa_flags & IFF_LOOPBACK) != 0;
          out[count].multicast = (it->ifa_flags & IFF_MULTICAST) != 0;
          out[count].point_to_point = (it->ifa_flags & IFF_POINTOPOINT) != 0;
-         out[count].mtu = it->ifa_data ? ((const struct if_data *)it->ifa_data)->ifi_mtu : 0;
+         out[count].mtu = netif_mtu(it->ifa_name);
          ++count;
       }
       struct luna_os_netif *netif = &out[at];
@@ -157,13 +177,9 @@ void luna_os_backtrace_print(void *const *frames, int count)
 }
 #include <sys/mman.h>
 #include <sys/event.h>
-#include <sys/socket.h>
 #include <sys/statvfs.h>
 #include <sys/resource.h>
 #include <sys/sysctl.h>
-#include <sys/types.h>
-#include <net/if.h>
-#include <netinet/in.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>

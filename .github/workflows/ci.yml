@@ -41,3 +41,24 @@ jobs:
 
       - name: Test APKM bundle loading
         run: sh test/run_tests.sh apkm_bundle
+
+  macos-arm64:
+    name: macOS Apple Silicon build
+    runs-on: macos-14
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install OpenSSL
+        run: brew install openssl@3
+
+      - name: Fetch macOS dependencies
+        run: make macos-deps
+
+      - name: Build dynarmic
+        run: make dynarmic-build
+
+      - name: Build Stubuika
+        run: make -j"$(sysctl -n hw.ncpu)" stubuika

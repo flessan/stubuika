@@ -98,7 +98,7 @@ curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh 
 ```
 
 ```bash
-stubuika /path/to/app.apk    # or .xapk / .apks / .aab
+stubuika /path/to/app.apk    # or .apkm / .xapk / .apks / .aab
 stubuika                      # graphical launcher
 ```
 
@@ -461,7 +461,7 @@ make dist-mac    # Stubuika.app + .dmg (Darwin only)
 
 Stubuika handles package installation internally, including ZIP/ZIP64 archives, binary manifests, signature blocks, split APKs, OBB files, and extraction caches. It detects `arm64-v8a` or `armeabi-v7a`, locates the entry-point native library, and starts the Android compatibility runtime.
 
-For XAPK and APKS files, Stubuika combines split APKs into its runtime view without modifying the base APK. For AAB files, it reads the protobuf `BundleConfig` and loads the base module and available asset packs. Extracted content is cached under `cache/packages/` in the selected data directory. Set `LUNARIA_CACHE_DIR` to move the cache or `LUNARIA_NO_CACHE=1` to unpack the package on every launch.
+For APKMirror APKM, XAPK, and APKS files, Stubuika opens the ZIP container, finds the base APK from its Android manifest, validates split package IDs, and combines the selected APKs into its runtime view without modifying them. APKM `info.json` is not currently required for launch decisions, and the outer APKMirror JAR signature is not verified. For AAB files, it reads the protobuf `BundleConfig` and loads the base module and available asset packs. Extracted content is cached under `cache/packages/` in the selected data directory. Set `LUNARIA_CACHE_DIR` to move the cache or `LUNARIA_NO_CACHE=1` to unpack the package on every launch.
 
 Extraction progress includes the percentage completed, MiB processed, file count, and current filename—even while copying individual large files. OBB aliases use hard links or symbolic links where possible, avoiding repeated multi-gigabyte copies.
 
@@ -640,7 +640,7 @@ LUNARIA_SCREENSHOT_EVERY=60 \
 ./stubuika game.xapk
 ```
 
-Captured frames are saved as PNG files such as `lunaria_0000.png`. Creating the file named by `$LUNARIA_SHOT_TRIGGER` (default `/tmp/stubuika-shot`) requests one additional capture. **F12** and **Take Screenshot** from the host menu instead save to `~/Pictures/Stubuika YYYY-MM-DD HH.MM.SS.png`.
+Captured frames are saved as PNG files such as `stubuika_0000.png`. Creating the file named by `$LUNARIA_SHOT_TRIGGER` (default `/tmp/stubuika-shot`) requests one additional capture. **F12** and **Take Screenshot** from the host menu instead save to `~/Pictures/Stubuika YYYY-MM-DD HH.MM.SS.png`.
 
 ## How it works
 
@@ -844,7 +844,7 @@ Distribution builds use `-O3`, `-DNDEBUG`, and LTO. Dynarmic is rebuilt separate
 
 Licensed under the [Mozilla Public License 2.0](LICENSE).
 
-Project Stubuika © 2026 Yuichiro Nakada.
+Original Lunaria code © 2026 Yuichiro Nakada; Stubuika maintains the upstream MPL-2.0 notices.
 
 
 ## Project lineage

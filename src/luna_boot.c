@@ -1462,7 +1462,7 @@ static int launcher_form(char *path, size_t capacity,
     luna_set_text(luna_get_element_by_id("launcher-title"), title ? title : package ? "Open a profile" : "Open an application");
     if (note) luna_set_text(luna_get_element_by_id("launcher-note"), note);
     if (title) luna_set_text(luna_get_element_by_id("continue"), "Install");
-    luna_set_text(luna_get_element_by_id("launcher-sub"), package ? package : "Choose an APK, XAPK, APKS or AAB package.");
+    luna_set_text(luna_get_element_by_id("launcher-sub"), package ? package : "Choose an APK, APKM, XAPK, APKS or AAB package.");
     if (!package) {
         luna_set_on_click(luna_get_element_by_id("drop"), pick_browse);
     }

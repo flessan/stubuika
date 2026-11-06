@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version in YYYY.MM.DD format (for example 2026.11.05)"
+        description: "Release version: YYYY.MM.DD (optionally prefixed with stubuika-v)"
         required: true
         type: string
 
@@ -52,6 +52,7 @@ jobs:
         with:
           name: stubuika-linux-x86_64
           path: stubuika-*-linux-*.tar.gz
+          if-no-files-found: error
 
   macos:
     name: macOS (arm64)
@@ -87,6 +88,7 @@ jobs:
         with:
           name: stubuika-macos-arm64
           path: stubuika-*.dmg
+          if-no-files-found: error
 
   windows:
     name: Windows (x86_64, cross)
@@ -152,7 +154,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: stubuika-windows-x86_64
-          path: stubuika-*-windows.zip
+          path: stubuika-*-windows-*.zip
+          if-no-files-found: error
 
   release:
     name: Publish
@@ -172,11 +175,17 @@ jobs:
           mkdir -p out
           find artifacts -type f \( -name '*.tar.gz' -o -name '*.dmg' -o -name '*.zip' \) -exec cp {} out/ \;
           ls -la out
+          for expected in '*.tar.gz' '*.dmg' '*-windows-*.zip'; do
+            if ! compgen -G "out/$expected" > /dev/null; then
+              echo "Missing release asset matching: $expected" >&2
+              exit 1
+            fi
+          done
           if [[ "${GITHUB_REF}" == refs/tags/stubuika-v* ]]; then
             version="${GITHUB_REF_NAME#stubuika-v}"
             tag="${GITHUB_REF_NAME}"
           else
-            version="${RELEASE_VERSION}"
+            version="${RELEASE_VERSION#stubuika-v}"
             if [[ ! "$version" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}$ ]]; then
               echo "Invalid release version: $version (expected YYYY.MM.DD)" >&2
               exit 1
@@ -225,8 +234,8 @@ jobs:
 
             ### Windows (x86_64)
             ```powershell
-            Expand-Archive stubuika-*-windows.zip -DestinationPath .
-            cd stubuika-*-windows
+            Expand-Archive stubuika-*-windows-x86_64.zip -DestinationPath .
+            cd stubuika-*-windows-x86_64
             .\stubuika.exe C:\path\to\app.apk
             ```
             Or drag an APK onto `stubuika.exe`. No MSYS2, Python, or ICU install

@@ -248,6 +248,16 @@ static int http_frame_feed(struct http_frame *f, const char *data, size_t n,
 #ifndef LB_NO_TLS
 #include <openssl/err.h>
 #include <openssl/ssl.h>
+
+/* Do not treat values such as "0" or "false" as an opt-out.  Disabling
+ * certificate and hostname verification must be an unmistakable choice. */
+static int lb_tls_insecure_override(void)
+{
+   const char *value = getenv("LUNA_BROWSER_INSECURE");
+   return value && (!strcmp(value, "1") ||
+                    !strcmp(value, "true") ||
+                    !strcmp(value, "yes"));
+}
 #endif
 
 #define LB_VERSION "0.1"
@@ -985,8 +995,10 @@ static void tls_context_init(void)
    SSL_CTX_sess_set_new_cb(g_ssl_ctx, tls_new_session);
    SSL_CTX_set_min_proto_version(g_ssl_ctx, TLS1_2_VERSION);
    SSL_CTX_set_default_verify_paths(g_ssl_ctx);
-   SSL_CTX_set_verify(g_ssl_ctx, getenv("LUNA_BROWSER_INSECURE") ? SSL_VERIFY_NONE
+   SSL_CTX_set_verify(g_ssl_ctx, lb_tls_insecure_override() ? SSL_VERIFY_NONE
                                                                  : SSL_VERIFY_PEER, NULL);
+   if (lb_tls_insecure_override())
+      fprintf(stderr, "[luna-browser] WARNING: TLS certificate and hostname verification are disabled by LUNA_BROWSER_INSECURE\n");
 }
 
 static SSL_CTX *tls_context(void)
@@ -1200,7 +1212,7 @@ static int conn_open(struct conn *c, const struct url *u, char **error)
    int numeric = inet_pton(AF_INET, host, ip) == 1 || inet_pton(AF_INET6, host, ip) == 1;
    if (!numeric) SSL_set_tlsext_host_name(c->ssl, host);
    tls_resume(c->ssl, host);
-   if (!getenv("LUNA_BROWSER_INSECURE")) {
+   if (!lb_tls_insecure_override()) {
       if (numeric) X509_VERIFY_PARAM_set1_ip_asc(SSL_get0_param(c->ssl), host);
       else SSL_set1_host(c->ssl, host);
    }

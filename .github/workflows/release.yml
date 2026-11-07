@@ -11,17 +11,19 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   linux:
     name: Linux (x86_64)
+    permissions:
+      contents: read
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v4
         with:
           submodules: recursive
+          persist-credentials: false
 
       # The oldest distribution the build supports is the one it is built on:
       # the bundle uses the running system's C library, so a newer build host
@@ -48,7 +50,7 @@ jobs:
       - name: Package
         run: make dist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v4
         with:
           name: stubuika-linux-x86_64
           path: stubuika-*-linux-*.tar.gz
@@ -56,11 +58,14 @@ jobs:
 
   macos:
     name: macOS (arm64)
+    permissions:
+      contents: read
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v4
         with:
           submodules: recursive
+          persist-credentials: false
 
       # OpenSSL is the only remaining Homebrew dependency; macos-deps fetches
       # cmake, boost, GLFW and ANGLE into .deps/ without Homebrew bottles.
@@ -84,7 +89,7 @@ jobs:
       - name: Package
         run: make dist-mac
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v4
         with:
           name: stubuika-macos-arm64
           path: stubuika-*.dmg
@@ -92,12 +97,15 @@ jobs:
 
   windows:
     name: Windows (x86_64, cross)
+    permissions:
+      contents: read
     # Ubuntu apt MinGW is GCC 13 without -mcrtdll=ucrt. Use llvm-mingw (UCRT).
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v4
         with:
           submodules: recursive
+          persist-credentials: false
 
       - name: Install cross-build dependencies
         run: |
@@ -135,7 +143,7 @@ jobs:
           echo "ANDROID_SDK_ROOT=$sdk" >> "$GITHUB_ENV"
 
       - name: Setup Android NDK
-        uses: nttld/setup-ndk@v1
+        uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779 # v1
         id: setup-ndk
         with:
           ndk-version: r27c
@@ -143,7 +151,7 @@ jobs:
       - name: Export NDK path
         run: echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v4
         with:
           path: /tmp/stubuika-windows-deps
           key: windows-deps-${{ hashFiles('scripts/fetch-windows-deps.py') }}
@@ -151,7 +159,7 @@ jobs:
       - name: Cross-build Windows ZIP
         run: make -j"$(nproc)" dist-cross-win
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v4
         with:
           name: stubuika-windows-x86_64
           path: stubuika-*-windows-*.zip
@@ -159,13 +167,16 @@ jobs:
 
   release:
     name: Publish
+    permissions:
+      actions: read
+      contents: write
     # macOS is intentionally excluded from release gating; Linux and Windows
     # can be published independently while the macOS runner is unavailable.
     needs: [linux, windows]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/stubuika-v') || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v4
         with:
           path: artifacts
 
@@ -201,7 +212,7 @@ jobs:
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v2
         with:
           tag_name: ${{ steps.pack.outputs.tag }}
           target_commitish: ${{ github.sha }}

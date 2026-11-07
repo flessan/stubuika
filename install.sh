@@ -111,7 +111,24 @@ download() {
   fi
 }
 
-# Resolve browser_download_url for the matching release asset via GitHub API.
+verify_sha256() {
+  local file="$1" digest="$2" expected actual
+
+  [[ "$digest" =~ ^sha256:[[:xdigit:]]{64}$ ]] || die "Release metadata has no valid SHA-256 digest"
+  expected="\${digest#sha256:}"
+  if command -v sha256sum >/dev/null 2>&1; then
+    actual="$(sha256sum "$file")"
+  elif command -v shasum >/dev/null 2>&1; then
+    actual="$(shasum -a 256 "$file")"
+  else
+    die "sha256sum or shasum is required to verify the release asset"
+  fi
+  actual="\${actual%% *}"
+  [ "$actual" = "$expected" ] || die "SHA-256 mismatch for $(basename "$file"); refusing to install"
+  log "Verified SHA-256 for $(basename "$file")"
+}
+
+# Resolve the matching release asset and GitHub's published SHA-256 digest.
 # Asset names look like: stubuika-2026-10-15-linux-x86_64.tar.gz
 resolve_asset_url() {
   local os="$1" arch="$2" version="$3"
@@ -141,17 +158,23 @@ pat = re.compile(r'^${pattern}\$')
 for a in data.get('assets') or []:
     name = a.get('name') or ''
     if pat.match(name):
+        digest = a.get('digest') or ''
+        if not re.fullmatch(r'sha256:[0-9a-fA-F]{64}', digest):
+            continue
         print(a['browser_download_url'])
         print(name)
+        print(digest)
         sys.exit(0)
 sys.exit(1)
-" || die "No matching asset for ${os}-${aarch} in release ${version}. See https://github.com/${REPO}/releases"
+" || die "No matching asset with a SHA-256 digest for ${os}-${aarch} in release ${version}. See https://github.com/${REPO}/releases"
   elif command -v jq >/dev/null 2>&1; then
-    local name url
-    name="$(printf '%s' "$json" | jq -r --arg re "^${pattern}\$" '.assets[] | select(.name | test($re)) | .name' | head -n1)"
-    url="$(printf '%s' "$json" | jq -r --arg re "^${pattern}\$" '.assets[] | select(.name | test($re)) | .browser_download_url' | head -n1)"
-    [ -n "$url" ] && [ "$url" != "null" ] || die "No matching asset for ${os}-${aarch} in release ${version}"
-    printf '%s\n%s\n' "$url" "$name"
+    local name url digest
+    name="$(printf '%s' "$json" | jq -r --arg re "^\${pattern}\$" '.assets[] | select(.name | test($re)) | .name' | head -n1)"
+    url="$(printf '%s' "$json" | jq -r --arg re "^\${pattern}\$" '.assets[] | select(.name | test($re)) | .browser_download_url' | head -n1)"
+    digest="$(printf '%s' "$json" | jq -r --arg re "^\${pattern}\$" '.assets[] | select(.name | test($re)) | .digest // empty' | head -n1)"
+    [[ "$digest" =~ ^sha256:[[:xdigit:]]{64}$ ]] || die "No matching asset with a SHA-256 digest for \${os}-\${aarch} in release \${version}"
+    [ -n "$url" ] && [ "$url" != "null" ] || die "No matching asset for \${os}-\${aarch} in release \${version}"
+    printf '%s\n%s\n%s\n' "$url" "$name" "$digest"
   else
     die "python3 or jq is required to resolve the release asset"
   fi
@@ -334,7 +357,7 @@ install_main() {
   require_cmd mktemp
   require_cmd find
 
-  local os arch prefix app_dir url name archive
+  local os arch prefix app_dir url name digest archive
   os="$(detect_os)"
   arch="$(detect_arch)"
   prefix="${PREFIX:-$(default_prefix)}"
@@ -349,16 +372,18 @@ install_main() {
   _TMP="$(mktemp -d "${TMPDIR:-/tmp}/stubuika-install.XXXXXX")"
   trap 'rm -rf "$_TMP"' EXIT
 
-  # resolve_asset_url prints: url\nname
+  # resolve_asset_url prints: URL, asset name, and SHA-256 digest.
   {
     read -r url
     read -r name
+    read -r digest
   } < <(resolve_asset_url "$os" "$arch" "$VERSION")
 
   archive="${_TMP}/${name}"
   log "Downloading 📦 ${name}"
   log "  ${url}"
   download "$url" "$archive"
+  verify_sha256 "$archive" "$digest"
 
   if [ "$os" = "macos" ]; then
     install_macos "$prefix" "$app_dir" "$archive"

@@ -1,0 +1,54 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '37 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze C and C++
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential nasm cmake clang libclang-dev \
+            pkg-config libboost-dev libssl-dev libglfw3-dev libgles2-mesa-dev \
+            libegl1-mesa-dev libasound2-dev libbsd-dev libunwind-dev zlib1g-dev \
+            libxcb1-dev libxcb-shm0-dev libxcb-randr0-dev
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9418214df1f2c4b8128c770156c409013b07d6b9 # v3
+        with:
+          languages: cpp
+          build-mode: manual
+
+      - name: Build Dynarmic
+        run: make dynarmic-build
+
+      - name: Build Stubuika
+        run: make -j"$(nproc)" stubuika
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@9418214df1f2c4b8128c770156c409013b07d6b9 # v3
+        with:
+          category: /language:cpp

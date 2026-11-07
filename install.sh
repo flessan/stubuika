@@ -115,7 +115,7 @@ verify_sha256() {
   local file="$1" digest="$2" expected actual
 
   [[ "$digest" =~ ^sha256:[[:xdigit:]]{64}$ ]] || die "Release metadata has no valid SHA-256 digest"
-  expected="\${digest#sha256:}"
+  expected="${digest#sha256:}"
   if command -v sha256sum >/dev/null 2>&1; then
     actual="$(sha256sum "$file")"
   elif command -v shasum >/dev/null 2>&1; then
@@ -123,7 +123,7 @@ verify_sha256() {
   else
     die "sha256sum or shasum is required to verify the release asset"
   fi
-  actual="\${actual%% *}"
+  actual="${actual%% *}"
   [ "$actual" = "$expected" ] || die "SHA-256 mismatch for $(basename "$file"); refusing to install"
   log "Verified SHA-256 for $(basename "$file")"
 }
@@ -169,11 +169,11 @@ sys.exit(1)
 " || die "No matching asset with a SHA-256 digest for ${os}-${aarch} in release ${version}. See https://github.com/${REPO}/releases"
   elif command -v jq >/dev/null 2>&1; then
     local name url digest
-    name="$(printf '%s' "$json" | jq -r --arg re "^\${pattern}\$" '.assets[] | select(.name | test($re)) | .name' | head -n1)"
-    url="$(printf '%s' "$json" | jq -r --arg re "^\${pattern}\$" '.assets[] | select(.name | test($re)) | .browser_download_url' | head -n1)"
-    digest="$(printf '%s' "$json" | jq -r --arg re "^\${pattern}\$" '.assets[] | select(.name | test($re)) | .digest // empty' | head -n1)"
-    [[ "$digest" =~ ^sha256:[[:xdigit:]]{64}$ ]] || die "No matching asset with a SHA-256 digest for \${os}-\${aarch} in release \${version}"
-    [ -n "$url" ] && [ "$url" != "null" ] || die "No matching asset for \${os}-\${aarch} in release \${version}"
+    name="$(printf '%s' "$json" | jq -r --arg re "^${pattern}\$" '.assets[] | select(.name | test($re)) | .name' | head -n1)"
+    url="$(printf '%s' "$json" | jq -r --arg re "^${pattern}\$" '.assets[] | select(.name | test($re)) | .browser_download_url' | head -n1)"
+    digest="$(printf '%s' "$json" | jq -r --arg re "^${pattern}\$" '.assets[] | select(.name | test($re)) | .digest // empty' | head -n1)"
+    [[ "$digest" =~ ^sha256:[[:xdigit:]]{64}$ ]] || die "No matching asset with a SHA-256 digest for ${os}-${aarch} in release ${version}"
+    [ -n "$url" ] && [ "$url" != "null" ] || die "No matching asset for ${os}-${aarch} in release ${version}"
     printf '%s\n%s\n%s\n' "$url" "$name" "$digest"
   else
     die "python3 or jq is required to resolve the release asset"

@@ -16793,6 +16793,10 @@ static bool init_host_egl() {
     EGLNativeDisplayType native_dpy = has_window
         ? (EGLNativeDisplayType)luna_os_native_display() : EGL_DEFAULT_DISPLAY;
     EGLint major = 0, minor = 0;
+    if (has_window && !native_dpy) {
+        fprintf(stderr, "[arm_exec] init_host_egl: GLFW selected a window backend but returned no native EGL display\n");
+        return false;
+    }
 
     /* ANGLE renderer selection is explicit: Windows tries D3D11 before
      * Vulkan, while macOS tries Vulkan before Metal. An environment override
@@ -16860,17 +16864,26 @@ static bool init_host_egl() {
     if (g_egl_dpy == EGL_NO_DISPLAY) {
         g_egl_dpy = eglGetDisplay(native_dpy);
         if (g_egl_dpy == EGL_NO_DISPLAY) {
-            fprintf(stderr, "[arm_exec] init_host_egl: eglGetDisplay failed\n");
+            EGLint error = eglGetError();
+            fprintf(stderr, "[arm_exec] init_host_egl: eglGetDisplay(native=%p) failed (EGL 0x%x)\n",
+                    (void *)(uintptr_t)native_dpy, (unsigned)error);
             return false;
         }
         if (!eglInitialize(g_egl_dpy, &major, &minor)) {
-            fprintf(stderr, "[arm_exec] init_host_egl: eglInitialize failed\n");
+            EGLint error = eglGetError();
+            fprintf(stderr, "[arm_exec] init_host_egl: eglInitialize failed (EGL 0x%x)\n",
+                    (unsigned)error);
             return false;
         }
     }
 
-    // Bind GLES API explicitly: eglCreateContext otherwise targets the currently-bound API (desktop GL by default on some.
-    eglBindAPI(EGL_OPENGL_ES_API);
+    // Bind GLES API explicitly: eglCreateContext otherwise targets the currently-bound API.
+    if (!eglBindAPI(EGL_OPENGL_ES_API)) {
+        EGLint error = eglGetError();
+        fprintf(stderr, "[arm_exec] init_host_egl: eglBindAPI(OpenGL ES) failed (EGL 0x%x)\n",
+                (unsigned)error);
+        return false;
+    }
 
     /* Prefer an ES3-capable config so shared guest contexts can be ES 3.x
      * (ETC2 is core there).  Fall back to ES2-only if the host lacks ES3. */
@@ -16914,6 +16927,10 @@ static bool init_host_egl() {
     if (has_window && g_glfw) {
         EGLNativeWindowType native_win =
             (EGLNativeWindowType)luna_os_native_window(g_glfw);
+        if (!native_win) {
+            fprintf(stderr, "[arm_exec] init_host_egl: GLFW window has no native EGL window (check Wayland EGL support)\n");
+            return false;
+        }
         const char *ce = lunaria_env("LUNARIA_COMPOSITOR");
         comp_wanted = !(ce && ce[0] == '0');
         if (comp_wanted) {

@@ -60,20 +60,25 @@ jobs:
     name: macOS (arm64)
     permissions:
       contents: read
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v4
         with:
           submodules: recursive
           persist-credentials: false
 
-      # OpenSSL is the only remaining Homebrew dependency; macos-deps fetches
-      # cmake, boost, GLFW and ANGLE into .deps/ without Homebrew bottles.
+      - name: Verify runner architecture
+        run: |
+          echo "macOS: $(sw_vers -productVersion)"
+          echo "Architecture: $(uname -m)"
+          test "$(uname -m)" = "arm64" || {
+            echo "This job builds the ARM64 macOS package and requires an arm64 runner." >&2
+            exit 1
+          }
+
       - name: Install OpenSSL
         run: brew install openssl@3
 
-      # make macos-deps fetches cmake, boost, GLFW and ANGLE into .deps/ so the
-      # build does not depend on what Homebrew happens to have installed.
       - name: Fetch macOS dependencies
         run: make macos-deps
 

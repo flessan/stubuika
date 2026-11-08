@@ -2127,6 +2127,7 @@ raw_start(void *entry, int argc, const char *argv[])
 }
 
 int luna_apk_prepare(int *argc, const char ***argv);
+int luna_cli_dispatch(int *argc, const char ***argv);
 
 #ifndef _WIN32
 /* A heap check that fails inside libc ("realloc(): invalid next size") aborts with
@@ -2197,6 +2198,9 @@ main(int argc, const char *argv[])
               "(a guest descriptor must never land on stdin/stdout/stderr)\n",
               fd, null_path);
    }
+
+   int cli = luna_cli_dispatch(&argc, &argv);
+   if (cli >= 0) return cli;
 
    int launch = luna_apk_prepare(&argc, &argv);
    if (launch) return launch < 0 ? EXIT_FAILURE : EXIT_SUCCESS;

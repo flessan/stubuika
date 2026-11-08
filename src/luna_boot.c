@@ -749,6 +749,27 @@ static void progress_document(void)
     boot_document_reset();
 }
 
+static const char *launcher_egl_error_name(EGLint error)
+{
+    switch (error) {
+    case EGL_SUCCESS: return "EGL_SUCCESS";
+    case EGL_NOT_INITIALIZED: return "EGL_NOT_INITIALIZED";
+    case EGL_BAD_ACCESS: return "EGL_BAD_ACCESS";
+    case EGL_BAD_ALLOC: return "EGL_BAD_ALLOC";
+    case EGL_BAD_ATTRIBUTE: return "EGL_BAD_ATTRIBUTE";
+    case EGL_BAD_CONFIG: return "EGL_BAD_CONFIG";
+    case EGL_BAD_CONTEXT: return "EGL_BAD_CONTEXT";
+    case EGL_BAD_CURRENT_SURFACE: return "EGL_BAD_CURRENT_SURFACE";
+    case EGL_BAD_DISPLAY: return "EGL_BAD_DISPLAY";
+    case EGL_BAD_MATCH: return "EGL_BAD_MATCH";
+    case EGL_BAD_NATIVE_PIXMAP: return "EGL_BAD_NATIVE_PIXMAP";
+    case EGL_BAD_NATIVE_WINDOW: return "EGL_BAD_NATIVE_WINDOW";
+    case EGL_BAD_PARAMETER: return "EGL_BAD_PARAMETER";
+    case EGL_BAD_SURFACE: return "EGL_BAD_SURFACE";
+    default: return "unknown EGL error";
+    }
+}
+
 /* The launcher's window, EGL surface and luna-ui instance.  Shared by the
  * "open an application" screen and the installer, so one window serves the
  * whole run up to the guest taking it over.  Returns 0 when there is no
@@ -777,6 +798,8 @@ static int launcher_window_open(int width, int height)
 
     EGLint major, minor, n;
     EGLConfig config;
+    const char *failed_at = "unknown";
+    EGLint failure_error = EGL_SUCCESS;
     const EGLint context_attrs[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
 
     if (use_pbuffer) {
@@ -787,6 +810,7 @@ static int launcher_window_open(int width, int height)
             PFNEGLGETPLATFORMDISPLAYEXTPROC getPlatformDisplay =
                 (PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress("eglGetPlatformDisplayEXT");
             if (getPlatformDisplay) {
+                failed_at = "eglGetPlatformDisplayEXT(surfaceless)";
                 display = getPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA,
                                              EGL_DEFAULT_DISPLAY, NULL);
                 if (display != EGL_NO_DISPLAY && !eglInitialize(display, &major, &minor))
@@ -795,44 +819,78 @@ static int launcher_window_open(int width, int height)
         }
 #endif
         if (display == EGL_NO_DISPLAY) {
+            failed_at = "eglGetDisplay(default)";
             display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-            if (display == EGL_NO_DISPLAY || !eglInitialize(display, &major, &minor))
-                goto fail;
+            if (display == EGL_NO_DISPLAY) goto fail;
+            failed_at = "eglInitialize(default)";
+            if (!eglInitialize(display, &major, &minor)) goto fail;
         }
         const EGLint config_attrs[] = { EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
             EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_RED_SIZE, 8,
             EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_NONE };
-        if (!eglBindAPI(EGL_OPENGL_ES_API) ||
-            !eglChooseConfig(display, config_attrs, &config, 1, &n) || !n) goto fail;
+        failed_at = "eglBindAPI(pbuffer)";
+        if (!eglBindAPI(EGL_OPENGL_ES_API)) goto fail;
+        failed_at = "eglChooseConfig(pbuffer)";
+        if (!eglChooseConfig(display, config_attrs, &config, 1, &n) || !n) goto fail;
         const EGLint pb_attribs[] = { EGL_WIDTH, width, EGL_HEIGHT, height, EGL_NONE };
+        failed_at = "eglCreatePbufferSurface";
         surface = eglCreatePbufferSurface(display, config, pb_attribs);
+        if (surface == EGL_NO_SURFACE) goto fail;
+        failed_at = "eglCreateContext";
         context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attrs);
-        if (surface == EGL_NO_SURFACE || context == EGL_NO_CONTEXT ||
-            !eglMakeCurrent(display, surface, surface, context)) goto fail;
+        if (context == EGL_NO_CONTEXT) goto fail;
+        failed_at = "eglMakeCurrent";
+        if (!eglMakeCurrent(display, surface, surface, context)) goto fail;
     } else {
-        if (!glfwInit()) return 0;
+        if (!glfwInit()) {
+            fprintf(stderr, "[apk-ui] GLFW initialization failed (no usable desktop window backend)\n");
+            return 0;
+        }
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         window = glfwCreateWindow(width, height, "Stubuika — Preparing application", NULL, NULL);
-        if (!window) return 0;
-        display = eglGetDisplay((EGLNativeDisplayType)luna_os_native_display());
+        if (!window) {
+            fprintf(stderr, "[apk-ui] GLFW could not create a %dx%d window\n", width, height);
+            return 0;
+        }
+        void *native_display = luna_os_native_display();
+        if (!native_display) {
+            fprintf(stderr, "[apk-ui] native display unavailable for the GLFW-selected backend\n");
+            goto fail;
+        }
+        failed_at = "eglGetDisplay(native display)";
+        display = eglGetDisplay((EGLNativeDisplayType)native_display);
+        if (display == EGL_NO_DISPLAY) goto fail;
+        failed_at = "eglInitialize(native display)";
+        if (!eglInitialize(display, &major, &minor)) goto fail;
         const EGLint config_attrs[] = { EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
             EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT, EGL_RED_SIZE, 8,
             EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_NONE };
-        if (display == EGL_NO_DISPLAY || !eglInitialize(display, &major, &minor) ||
-            !eglBindAPI(EGL_OPENGL_ES_API) ||
-            !eglChooseConfig(display, config_attrs, &config, 1, &n) || !n) goto fail;
+        failed_at = "eglBindAPI(window)";
+        if (!eglBindAPI(EGL_OPENGL_ES_API)) goto fail;
+        failed_at = "eglChooseConfig(window)";
+        if (!eglChooseConfig(display, config_attrs, &config, 1, &n) || !n) goto fail;
+        void *native_window = luna_os_native_window(window);
+        if (!native_window) {
+            fprintf(stderr, "[apk-ui] GLFW window has no native EGL window (Wayland EGL window creation may have failed)\n");
+            failed_at = "native window acquisition";
+            goto fail;
+        }
+        failed_at = "eglCreateWindowSurface(native window)";
         surface = eglCreateWindowSurface(display, config,
-            (EGLNativeWindowType)(uintptr_t)luna_os_native_window(window), NULL);
+            (EGLNativeWindowType)(uintptr_t)native_window, NULL);
+        if (surface == EGL_NO_SURFACE) goto fail;
+        failed_at = "eglCreateContext";
         context = eglCreateContext(display, config, EGL_NO_CONTEXT, context_attrs);
-        if (surface == EGL_NO_SURFACE || context == EGL_NO_CONTEXT ||
-            !eglMakeCurrent(display, surface, surface, context)) goto fail;
+        if (context == EGL_NO_CONTEXT) goto fail;
+        failed_at = "eglMakeCurrent";
+        if (!eglMakeCurrent(display, surface, surface, context)) goto fail;
     }
 
     luna_overlay_prepare_platform();
     luna_set_gles3(1);
     LunaInitConfig cfg = {.width=width, .height=height, .frameless=1,
                           .get_proc=luna_platform_get_proc()};
-    if (!luna_init(&cfg)) goto fail;
+    if (!luna_init(&cfg)) { failed_at = "launcher UI renderer initialization"; goto fail; }
     ready = 1;
     g_installing = true;
     luna_qfkey_set_host_handlers(qfkey_host_touch, qfkey_host_key);
@@ -851,7 +909,14 @@ static int launcher_window_open(int width, int height)
     }
     return 1;
 fail:
-    fprintf(stderr, "[apk-ui] cannot initialize launch UI (EGL 0x%x)\n", eglGetError());
+    if (!strncmp(failed_at, "egl", 3)) {
+        failure_error = eglGetError();
+        fprintf(stderr, "[apk-ui] launch UI graphics initialization failed at %s (EGL 0x%x: %s)\n",
+                failed_at, (unsigned)failure_error,
+                launcher_egl_error_name(failure_error));
+    } else {
+        fprintf(stderr, "[apk-ui] launch UI graphics initialization failed at %s\n", failed_at);
+    }
     luna_launcher_end(0);
     return 0;
 }

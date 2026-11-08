@@ -1,6 +1,17 @@
 /* Stubuika command-line and keyboard-first terminal interface.
  * Copyright (c) 2026 Stubuika contributors. SPDX-License-Identifier: MPL-2.0 */
+/* Select the platform's full POSIX/BSD interfaces before any system header.
+ * Darwin gates st_*timespec, mkdtemp(), and mkstemps() behind its own feature
+ * level; _POSIX_C_SOURCE alone hides those declarations on recent SDKs. */
+#if defined(__APPLE__)
+#ifndef _DARWIN_C_SOURCE
+#define _DARWIN_C_SOURCE 1
+#endif
+#else
+#ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
+#endif
+#endif
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>

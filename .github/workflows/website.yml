@@ -1,0 +1,30 @@
+name: Website checks
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'website/**'
+      - '.github/workflows/website.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'website/**'
+      - '.github/workflows/website.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-site:
+    name: Validate static landing page
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v4
+        with:
+          persist-credentials: false
+      - name: Check local assets and semantic structure
+        run: python3 website/check_site.py
+      - name: Check JavaScript syntax
+        run: node --check website/script.js

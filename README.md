@@ -9,7 +9,7 @@ Stubuika is an experimental Android compatibility runtime that runs Android appl
 [![Guest architectures](https://img.shields.io/badge/guest-ARM32%20%7C%20ARM64-20232a.svg)](docs/architecture.md)
 [![Package formats](https://img.shields.io/badge/packages-APK%20%7C%20APKM%20%7C%20XAPK%20%7C%20APKS%20%7C%20AAB-20232a.svg)](docs/package-formats.md)
 
-[Downloads](https://github.com/flessan/stubuika/releases) · [Documentation](docs/README.md) · [Compatibility](docs/compatibility.md) · [Gallery](docs/gallery.md) · [日本語](README.ja.md)
+[Downloads](https://github.com/flessan/stubuika/releases) · [Website](website/) · [CLI / TUI guide](docs/cli.md) · [Documentation](docs/README.md) · [Compatibility](docs/compatibility.md) · [Gallery](docs/gallery.md) · [日本語](README.ja.md)
 
 > [!NOTE]
 > **Stubuika is built on Lunaria.** This repository is a downstream fork of [Lunaria](https://github.com/yui0/lunaria), originally created by [Yuichiro Nakada](https://github.com/yui0). Lunaria provides the runtime foundation and a substantial part of the underlying implementation. Stubuika continues that work; it is not an independent, from-scratch implementation. See [Attribution and project lineage](docs/attribution.md).
@@ -44,13 +44,17 @@ curl -fsSL https://raw.githubusercontent.com/flessan/stubuika/master/install.sh 
 
 Windows users can download the ZIP archive from Releases, extract it, and run stubuika.exe.
 
-Launch a package from the command line, or open the graphical launcher:
+Launch a package from the command line, or open the graphical launcher. The optional terminal dashboard and diagnostics never replace the existing desktop launcher:
 
 ```bash
 stubuika /path/to/app.apk
-stubuika /path/to/app.apkm
-stubuika
+stubuika launch /path/to/app.apkm
+stubuika tui                 # interactive, keyboard-first terminal dashboard
+stubuika diagnostics --json  # machine-readable host/runtime report
+stubuika                     # desktop launcher
 ```
+
+See the [CLI and TUI guide](docs/cli.md) for commands and keyboard controls. The static [landing page](website/) is independently deployable and fetches current assets from GitHub Releases.
 
 For manual installation, platform requirements, source builds, and configuration, see [Installation and development](docs/installation.md).
 

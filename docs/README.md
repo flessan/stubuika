@@ -5,6 +5,7 @@ The main [README](../README.md) is the short project overview. This directory ho
 | Guide | Contents |
 |---|---|
 | [Installation and development](./installation.md) | Prebuilt downloads, setup, dependencies, and building from source. |
+| [CLI and TUI](./cli.md) | Commands, keyboard navigation, recent packages, diagnostics, and support reports. |
 | [Package formats](./package-formats.md) | APK, APKM, XAPK, APKS, AAB, split selection, and ABI handling. |
 | [Compatibility](./compatibility.md) | Observed app/game results, platform status, and how to report tests. |
 | [Gallery](./gallery.md) | Screenshots and the exact stages they demonstrate. |

@@ -40,6 +40,9 @@ jobs:
           bash -n install.sh scripts/stubuika-server.sh test/run_tests.sh
           python3 -m py_compile scripts/bundle-macos.py scripts/bundle-windows.py scripts/make-icon.py
 
+      - name: Test CLI and TUI entry points
+        run: python3 test/cli_test.py ./stubuika
+
       - name: Test APKM bundle loading
         run: sh test/run_tests.sh apkm_bundle
 

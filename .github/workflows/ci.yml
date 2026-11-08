@@ -47,14 +47,23 @@ jobs:
         run: sh test/run_tests.sh apkm_bundle
 
   macos-arm64:
-    name: macOS Apple Silicon build
-    runs-on: macos-14
-    steps:
+      name: macOS Apple Silicon build
+      runs-on: macos-latest
+      steps:
       - name: Check out source
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v4
         with:
           submodules: recursive
           persist-credentials: false
+
+      - name: Verify runner architecture
+        run: |
+          echo "macOS: $(sw_vers -productVersion)"
+          echo "Architecture: $(uname -m)"
+          test "$(uname -m)" = "arm64" || {
+            echo "This job builds the ARM64 macOS package and requires an arm64 runner." >&2
+            exit 1
+          }
 
       - name: Install OpenSSL
         run: brew install openssl@3

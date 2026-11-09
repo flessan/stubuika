@@ -82,6 +82,16 @@ Check [Compatibility](docs/compatibility.md) before testing an app. For current 
 | [Troubleshooting](docs/troubleshooting.md) | Common problems and workarounds. |
 | [Attribution](docs/attribution.md) | Lunaria credits, fork history, and licenses. |
 
+## Star History
+
+<a href="https://www.star-history.com/?repos=flessan%2Fstubuika&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=flessan/stubuika&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=flessan/stubuika&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=flessan/stubuika&type=date&legend=top-left" />
+ </picture>
+</a>
+
 ## License
 
 [MPL-2.0](LICENSE). See [Attribution](docs/attribution.md) for upstream credits and third-party notices.

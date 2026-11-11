@@ -16236,7 +16236,10 @@ static bool list_hashCode(struct dvm *vm, dvm_ref self, const union dvm_value *a
 
 static bool list_sublist(struct dvm *, dvm_ref, const union dvm_value *, int, union dvm_value *);
 
+#include "dvm_stream.h"
+
 static const struct rt_method rt_list_methods[] = {
+   M("stream", "()Ljava/util/stream/Stream;", coll_stream),
    M("toString", "()Ljava/lang/String;", list_toString),
    M("subList", "(II)Ljava/util/List;", list_sublist),
    M("equals", "(Ljava/lang/Object;)Z", list_equals),
@@ -79722,6 +79725,11 @@ static const struct rt_extra rt_extras[] = {
 };
 
 static const struct rt_class rt_classes[] = {
+   { "Ljava/util/Optional;", "Ljava/lang/Object;", rt_optional, rt_optional_fields, NULL },
+   { "Ljava/util/stream/Stream;", "Ljava/lang/Object;", rt_stream, rt_stream_fields, NULL },
+   { "Ljava/util/stream/IntStream;", "Ljava/lang/Object;", rt_int_stream, rt_stream_fields, NULL },
+   { "Ljava/util/stream/Collectors;", "Ljava/lang/Object;", rt_collectors, NULL, NULL },
+   { "Ljava/util/stream/Collector;", "Ljava/lang/Object;", NULL, rt_collector_fields, NULL },
    { .desc="Landroid/app/AlarmManager;", .super="Ljava/lang/Object;", .methods=rt_alarm_manager, .sfields=rt_alarm_static },
    { .desc="Landroid/app/AlarmManager$OnAlarmListener;", .super="Ljava/lang/Object;", .methods=rt_alarm_listener, .is_interface=true },
    { "Llunaria/AlarmDelivery;", "Ljava/lang/Object;", rt_alarm_delivery, rt_alarm_delivery_fields, rt_iface_runnable },

@@ -392,15 +392,21 @@ $(SYSLIB_GUEST): src/lib/guest.c Makefile
 	    src/lib/guest.c -o $@
 	@echo "guestlib: $@ ready"
 
-# Placeholder ART runtime images: /proc/self/maps of a zygote child lists them.
+# Zygote runtime images. libartbase also carries the VM's guest file transport.
 ART_IMAGES := libart.so libartbase.so libdexfile.so libnativeloader.so
 SYSLIB_ART := $(addprefix $(SYSLIB_DIR)/,$(ART_IMAGES))
 artlib: $(SYSLIB_ART)
-$(SYSLIB_ART): src/lib/art_image.c Makefile
+$(filter-out $(SYSLIB_DIR)/libartbase.so,$(SYSLIB_ART)): src/lib/stub.c Makefile
 	@mkdir -p $(SYSLIB_DIR)
 	clang -target aarch64-linux-gnu -fPIC -shared -nostdlib -nostdlibinc -ffreestanding -O1 \
 	    -fuse-ld=lld -Wl,-soname,$(notdir $@) -Wall -Wextra \
-	    -DART_IMAGE_SYMBOL=lunaria_image_$(basename $(notdir $@)) $< -o $@
+	    -DLUNARIA_STUB_ART_IMAGE -DART_IMAGE_SYMBOL=lunaria_image_$(basename $(notdir $@)) $< -o $@
+
+$(SYSLIB_DIR)/libartbase.so: src/lib/stub.c Makefile
+	@mkdir -p $(SYSLIB_DIR)
+	clang -target aarch64-linux-gnu -fPIC -shared -nostdlib -nostdlibinc -ffreestanding -O1 \
+	    -fuse-ld=lld -Wl,-soname,libartbase.so -Wl,--hash-style=both -Wall -Wextra \
+	    -DLUNARIA_STUB_ARTBASE $< -o $@
 
 syslib-clean:
 	rm -rf $(SYSLIB_DIR)
@@ -509,7 +515,7 @@ runtime/libOpenSLES.so: src/trace.h
 DVM_SRC = src/apkpure.c src/dvm/calendar.c src/dvm/dvm_path.c src/luna_unicode.c src/dvm/dex.c src/dvm/dvm.c src/dvm/dvm_runtime.c src/dvm/dvm_jni.c \
           src/dvm/dvm_net.c src/dvm/dvm_media.c src/dvm/regex.c src/dvm/charset.c src/dvm/apk_signers.c src/dvm/dvm_sqlite.c \
           src/webview_cdp.c $(WEBVIEW_CDP_HOST_SRC)
-DVM_SRC += src/luna_process_ipc.c
+DVM_SRC += src/luna_process_ipc.c src/luna_certs.c
 DVM_HDR = src/jvm/jvm.h src/dvm/dvm_parcel.h src/dvm/dvm_lib.h src/luna_overlay.h src/dvm/dvm_lib.h src/lunaria_file.h src/simplewebp.h src/luna_unicode.h src/unicode/character_data.h src/dvm/dvm.h src/dvm/dvm.h src/dvm/dvm_internal.h \
           src/dvm/dvm_net.h src/lunaria_os.h src/dvm/dvm_media.h src/dvm/dvm.h \
           src/dvm/dvm_lib.h src/dvm/dvm_lib.h src/dvm/locale_names.h src/dvm/date_symbols_data.h src/dvm/framework.h \

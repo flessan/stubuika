@@ -175,11 +175,11 @@ jobs:
     permissions:
       actions: read
       contents: write
-    # macOS is intentionally excluded from release gating; Linux and Windows
-    # can be published independently while the macOS runner is unavailable.
-    needs: [linux, windows]
+    # Linux and Windows are required; include the macOS DMG when that
+    # independent build succeeds, without blocking the other desktop assets.
+    needs: [linux, macos, windows]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/stubuika-v') || github.event_name == 'workflow_dispatch'
+    if: always() && (startsWith(github.ref, 'refs/tags/stubuika-v') || github.event_name == 'workflow_dispatch') && needs.linux.result == 'success' && needs.windows.result == 'success'
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v4
         with:
@@ -199,9 +199,7 @@ jobs:
               exit 1
             fi
           done
-          # macOS is optional and is not included in this release workflow's
-          # required asset set. Ignore any DMG produced by its independent job.
-          find out -maxdepth 1 -type f -name '*.dmg' -delete
+          # macOS is optional: keep its DMG when the independent job succeeds.
           if [[ "${GITHUB_REF}" == refs/tags/stubuika-v* ]]; then
             version="${GITHUB_REF_NAME#stubuika-v}"
             tag="${GITHUB_REF_NAME}"
@@ -247,8 +245,9 @@ jobs:
             was built against and its fonts; it uses the running system's C
             library, so it needs a distribution no older than Ubuntu 22.04.
 
-            ### macOS
-            A macOS build is not included in this release.
+            ### macOS (Apple Silicon)
+            Open the `.dmg` asset and drag Stubuika into Applications.
+            The current release target is Apple Silicon (arm64).
 
             ### Windows (x86_64)
             ```powershell

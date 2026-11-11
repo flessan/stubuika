@@ -46,6 +46,65 @@ jobs:
       - name: Test APKM bundle loading
         run: sh test/run_tests.sh apkm_bundle
 
+  windows-x86_64-cross:
+    name: Windows x86_64 package build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Install cross-build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential nasm cmake ninja-build python3 curl zip bzip2 zstd unzip xz-utils
+          ver=20261006
+          archive="llvm-mingw-${ver}-ucrt-ubuntu-22.04-x86_64.tar.xz"
+          curl -fsSL -o "/tmp/${archive}" \
+            "https://github.com/mstorsjo/llvm-mingw/releases/download/${ver}/${archive}"
+          sudo tar -xJf "/tmp/${archive}" -C /opt
+          sudo ln -sfn "/opt/llvm-mingw-${ver}-ucrt-ubuntu-22.04-x86_64" /opt/llvm-mingw
+          rm -f "/tmp/${archive}"
+          echo /opt/llvm-mingw/bin >> "$GITHUB_PATH"
+          export PATH="/opt/llvm-mingw/bin:$PATH"
+          x86_64-w64-mingw32-gcc --version
+          printf 'int main(void){return 0;}\\n' > /tmp/ucrt-probe.c
+          x86_64-w64-mingw32-gcc /tmp/ucrt-probe.c -o /tmp/ucrt-probe.exe
+          x86_64-w64-mingw32-objdump -p /tmp/ucrt-probe.exe \
+            | grep -Eiq 'ucrtbase|api-ms-win-crt-'
+
+      - name: Fetch Android build-tools
+        run: |
+          sdk="$HOME/Android/Sdk"
+          mkdir -p "$sdk"
+          curl -fsSL -o /tmp/build-tools.zip \
+            https://dl.google.com/android/repository/build-tools_r34-linux.zip
+          unzip -q /tmp/build-tools.zip -d "$sdk"
+          rm -f /tmp/build-tools.zip
+          test -n "$(find "$sdk" -path '*/renderscript/lib/intermediates/arm64-v8a/libm.so' | head -1)"
+          echo "ANDROID_HOME=$sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$sdk" >> "$GITHUB_ENV"
+
+      - name: Set up Android NDK
+        uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779 # v1
+        id: setup-ndk
+        with:
+          ndk-version: r27c
+
+      - name: Export NDK path
+        run: echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v4
+        with:
+          path: /tmp/stubuika-windows-deps
+          key: windows-deps-${{ hashFiles('scripts/fetch-windows-deps.py') }}
+
+      - name: Build Windows package
+        run: make -j"$(nproc)" dist-cross-win
+
   macos-arm64:
       name: macOS Apple Silicon build
       runs-on: macos-latest

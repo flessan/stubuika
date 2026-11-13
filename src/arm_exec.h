@@ -125,7 +125,8 @@ static inline unsigned luna_pcm_mix(struct luna_pcm_queue *q, int32_t *mix, unsi
   while (produced < frames && q->count) {
     struct luna_pcm_buffer *b = &q->buffers[q->head];
     if (mix) {
-      const uint8_t *src = b->data + b->position * q->channels * sizeof(int16_t);
+      const size_t frame_stride = (size_t)q->channels * sizeof(int16_t);
+      const uint8_t *src = b->data + (size_t)b->position * frame_stride;
       for (unsigned c = 0; c < output_channels; ++c) {
         int32_t sample;
         if (output_channels == 1 && q->channels > 1) {

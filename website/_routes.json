@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "description": "Stubuika is a fully static site: no route should ever invoke a Pages Function.",
+  "include": ["/*"],
+  "exclude": ["/*"]
+}

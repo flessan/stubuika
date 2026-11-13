@@ -69,6 +69,8 @@ for path in parser.local:
 required_files = (
     "styles.css",
     "script.js",
+    "assets/anime.min.js",
+    "assets/anime.LICENSE.md",
     "assets/favicon.svg",
     "assets/desktop-launcher.png",
     "assets/stubuika-paper-landscape.jpg",
@@ -76,5 +78,11 @@ required_files = (
 for filename in required_files:
     if not (ROOT / filename).is_file():
         sys.exit(f"missing required site file: {filename}")
+
+html_text = html
+if "assets/anime.min.js" not in html_text or "assets/anime.LICENSE.md" not in str(required_files):
+    sys.exit("Anime.js asset is not wired into the page")
+if 'id="release-list"' not in html_text or 'id="release-status"' not in html_text:
+    sys.exit("live release panel markup is missing")
 
 print(f"Website checks passed ({len(parser.local)} local asset references, {len(parser.fragments)} anchor links)")

@@ -19,16 +19,14 @@ The page is styled as a papercraft poster, following the supplied references:
 
 The desktop launcher image is from the repository's existing `shots/launcher.png`. The terminal panel is an explicitly labeled interface preview, not a captured runtime screenshot.
 
-## Animation — a scroll film (damped scrub)
+## Animation — a scroll film
 
-Motion is powered by [Anime.js](https://animejs.com) 3.2.2, vendored at `assets/anime.min.js` (MIT License, `assets/anime.LICENSE.md`) — no CDN, no build step. The wordmark uses **Baloo 2** (`assets/baloo-2-*.woff2`, SIL OFL 1.1, `assets/baloo-2.LICENSE.md`), a chunky rounded font matching the artwork's lettering.
+Motion is powered by [Anime.js](https://animejs.com) 3.2.2, vendored at `assets/anime.min.js` (MIT License, `assets/anime.LICENSE.md`) — no CDN, no build step. Nothing autoplays and nothing is pinned: every Anime.js timeline is paused and `seek()`-ed from scroll position, and progress is computed from layout offsets (`offsetTop`), which transforms cannot change, so an animated element can never feed back into its own progress (the classic cause of scroll jitter).
 
-The scroll engine follows current best practice for butter-smooth scroll animation:
+- **Hero journey:** scrolling sends the paper cube rolling and hopping across the valley while clouds and hills parallax and the headline lifts away.
+- **Companion cube:** a fixed cube rides a rainbow paper trail at the edge of the viewport down the whole page, rotating as it goes, with a chapter label (SKY → RUNTIME → FEATURES → …) tracking where you are.
+- **Marquee band:** the formats/hosts ticker slides in proportion to overall page progress.
+- **Scenes:** runtime steps activate in sequence with a filling progress line; feature note cards cascade; terminal lines arrive in order; the giant STUBUIKA letters bounce in one by one; live release cards join the same scrub system when they render.
+- A rainbow progress strip at the top tracks total progress.
 
-- **Native scroll stays native; animation values are damped.** Every driver's progress chases its scroll target with a lerp (`cur += (target - cur) * 0.085`, the cinematic range used by smooth-scroll libraries), so motion glides and settles instead of snapping to the raw scroll position.
-- **One `requestAnimationFrame` loop** starts on scroll/resize and stops once all drivers settle — no idle CPU burn, no scroll-event storms (passive listeners only).
-- **Transform/opacity only**, with progress computed from layout offsets cached on resize/load/fonts-ready, so animated elements can never feed back into their own progress.
-- **Native CSS scroll-timelines** drive the top progress bar on the compositor where supported (`@supports (animation-timeline: scroll())`); the JS engine detects that and leaves the bar alone there.
-- Scroll velocity adds a subtle skew to the marquee; the companion cube, chapter label (with matching active-nav highlighting), and a back-to-top paper button all ride the same smoothed progress.
-
-Scenes: the hero paper valley (native SVG, see Design) parallaxes while its cube hops and its letters pop in; runtime steps activate in sequence; feature cards cascade; terminal lines arrive in order; the giant STUBUIKA letters bounce in; live release cards join the same scrub system when they render. All content remains fully readable if JavaScript or Anime.js fails to load.
+Motion runs for every visitor (no reduced-motion gating, per project direction) and all content remains fully readable if JavaScript or Anime.js fails to load.

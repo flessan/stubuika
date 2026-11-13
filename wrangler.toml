@@ -1,7 +1,0 @@
-# Cloudflare Pages configuration for the Stubuika static site.
-# The site is fully static (see website/_routes.json): no Functions,
-# no bindings. This file exists so Pages deployments always pick up
-# an explicit, valid configuration instead of any stale dashboard one.
-name = "stubuika"
-pages_build_output_dir = "website"
-compatibility_date = "2026-11-01"

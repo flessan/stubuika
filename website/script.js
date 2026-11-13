@@ -137,7 +137,7 @@
     releaseList.replaceChildren(...sorted.slice(0, 3).map(renderRelease));
     setStatus('Live from GitHub', 'is-ready');
     registerItems(releaseList.querySelectorAll('.scrub-item'));
-    measure(); kick();
+    requestUpdate();
   };
 
   if (releaseList) {
@@ -162,50 +162,31 @@
       });
   }
 
-  /* ================= scroll film engine v3 (damped scrub) =================
-     Research-backed recipe for butter-smooth scroll animation:
-       - Native scroll stays native; the *animation values* are damped.
-         Each driver's progress chases its scroll target with lerp
-         (cur += (target - cur) * 0.085), the "cinematic" range used by
-         smooth-scroll libraries, so motion glides instead of snapping.
-       - One requestAnimationFrame loop, started on scroll/resize and
-         stopped once every driver has settled (no idle CPU burn).
-       - Only transform/opacity are animated (compositor-friendly), and
-         progress comes from layout offsets cached on resize/load --
-         transforms never feed back into progress.
-       - Where the browser supports native CSS scroll-timelines, the
-         top progress bar runs on the compositor and JS leaves it alone. */
+  /* ================= scroll film (Anime.js, offset-driven) =================
+     Every animation is scrubbed by scroll position. Progress is computed
+     from layout offsets (offsetTop), which CSS transforms cannot change,
+     so an animated element can never feed back into its own progress.
+     No pinning, no autoplay, no loops. */
   const anime = window.anime;
+  const drivers = [];
   const clamp01 = v => Math.min(1, Math.max(0, v));
-  const cssScrollTimeline = window.CSS && CSS.supports && CSS.supports('animation-timeline: scroll()');
-
-  const drivers = [];        // {timeline, el|null, span, top, cur, target, hero}
-  let docHeight = 1;
-
   const docTop = el => {
     let y = 0;
     for (let n = el; n; n = n.offsetParent) y += n.offsetTop;
     return y;
   };
-  function measure() {
-    docHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    drivers.forEach(d => { if (d.el) d.top = docTop(d.el); });
-  }
-  function retarget() {
-    const y = window.scrollY;
-    drivers.forEach(d => {
-      d.target = d.hero
-        ? clamp01(y / (window.innerHeight * .9))
-        : clamp01((y + window.innerHeight * .92 - d.top) / (window.innerHeight * d.span));
-    });
+  const enter = (el, span = .55) =>
+    clamp01((window.scrollY + window.innerHeight * .92 - docTop(el)) / (window.innerHeight * span));
+  const globalP = () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    return max > 0 ? clamp01(window.scrollY / max) : 0;
+  };
+
+  function addDriver(timeline, progressFn) {
+    drivers.push({timeline, progressFn});
+    timeline.seek(0);
   }
 
-  function addDriver(timeline, opts) {
-    const d = Object.assign({timeline, el: null, span: .55, top: 0, cur: 0, target: 0, hero: false}, opts);
-    drivers.push(d);
-    timeline.seek(0);
-    return d;
-  }
   function registerItems(nodeList) {
     if (!anime) return;
     nodeList.forEach(el => {
@@ -213,75 +194,51 @@
       el.dataset.scrub = '1';
       const tl = anime.timeline({autoplay: false})
         .add({targets: el, opacity: [0, 1], translateY: [36, 0], duration: 500, easing: 'easeOutQuad'});
-      addDriver(tl, {el});
+      addDriver(tl, () => enter(el));
     });
   }
 
-  /* --- smoothed global state (progress bar, companion, marquee) --- */
-  let gCur = 0, lastY = window.scrollY, velocity = 0;
-  const bar = document.querySelector('#scroll-progress-bar');
-  const pill = document.querySelector('.nav-pill');
-  const cubeEl = document.querySelector('#companion-cube');
-  const trailEl = document.querySelector('.companion-trail');
-  const fillEl = document.querySelector('#companion-fill');
-  const labelEl = document.querySelector('#companion-label');
-  const marqueeEl = document.querySelector('#marquee-track');
-  const toTop = document.querySelector('#to-top');
-  const navLinks = [...document.querySelectorAll('.main-nav a[href^="#"]')];
-  const chapters = [...document.querySelectorAll('[data-chapter]')];
-  let chapterTops = [];
-  function measureChapters() { chapterTops = chapters.map(sec => ({top: docTop(sec), name: sec.dataset.chapter, id: sec.id})); }
+  let ticking = false;
+  function update() {
+    ticking = false;
+    drivers.forEach(d => d.timeline.seek(d.timeline.duration * d.progressFn()));
 
-  toTop?.addEventListener('click', () => window.scrollTo({top: 0, behavior: 'smooth'}));
+    const p = globalP();
+    const bar = document.querySelector('#scroll-progress-bar');
+    if (bar) bar.style.transform = 'scaleX(' + p + ')';
 
-  let running = false;
-  function frame() {
-    retarget();
-    let settled = Math.abs((window.scrollY / docHeight) - gCur) < .0004;
-    const gTarget = clamp01(window.scrollY / docHeight);
-    velocity = velocity * .88 + (window.scrollY - lastY) * .12;
-    lastY = window.scrollY;
-    gCur += (gTarget - gCur) * .085;
-    if (Math.abs(gTarget - gCur) < .0004) gCur = gTarget;
-
-    drivers.forEach(d => {
-      const diff = d.target - d.cur;
-      if (Math.abs(diff) > .0004) { settled = false; d.cur += diff * .085; }
-      else d.cur = d.target;
-      d.timeline.seek(d.timeline.duration * d.cur);
-    });
-
-    if (!cssScrollTimeline && bar) bar.style.transform = 'scaleX(' + gCur + ')';
-    if (fillEl) fillEl.style.transform = 'scaleY(' + gCur + ')';
-    if (cubeEl && trailEl && anime) {
-      anime.set(cubeEl, {translateY: -(1 - gCur) * (trailEl.clientHeight + 10), rotate: gCur * 540});
+    /* companion cube rides its paper trail down the whole page */
+    const cube = document.querySelector('#companion-cube');
+    const trail = document.querySelector('.companion-trail');
+    const fill = document.querySelector('#companion-fill');
+    if (cube && trail && anime) {
+      if (fill) fill.style.transform = 'scaleY(' + p + ')';
+      anime.set(cube, {translateY: -(1 - p) * (trail.clientHeight + 10), rotate: p * 540});
     }
-    if (marqueeEl) {
-      const skew = Math.max(-6, Math.min(6, velocity * .04));
-      marqueeEl.style.transform = 'translateX(' + (-gCur * 420) + 'px) skewX(' + skew + 'deg)';
+    const label = document.querySelector('#companion-label');
+    if (label) {
+      let chapter = 'SKY';
+      document.querySelectorAll('[data-chapter]').forEach(sec => {
+        if (docTop(sec) <= window.scrollY + window.innerHeight * .45) chapter = sec.dataset.chapter;
+      });
+      if (label.textContent !== chapter) label.textContent = chapter;
     }
+
+    /* marquee band slides with scroll */
+    const track = document.querySelector('#marquee-track');
+    if (track) track.style.transform = 'translateX(' + (-p * 420) + 'px)';
+
+    const pill = document.querySelector('.nav-pill');
     if (pill) pill.style.boxShadow = window.scrollY > 40
       ? '0 20px 40px -14px rgba(34, 80, 120, .55)'
       : '0 14px 34px -14px rgba(34, 80, 120, .45)';
-    if (toTop) toTop.classList.toggle('is-visible', window.scrollY > 600);
-
-    if (labelEl || navLinks.length) {
-      let chapter = 'SKY', activeId = '';
-      chapterTops.forEach(c => {
-        if (c.top <= window.scrollY + window.innerHeight * .45) { chapter = c.name; activeId = c.id; }
-      });
-      if (labelEl && labelEl.textContent !== chapter) labelEl.textContent = chapter;
-      navLinks.forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === '#' + activeId));
-    }
-
-    if (!settled) requestAnimationFrame(frame);
-    else running = false;
   }
-  function kick() {
-    if (!running) { running = true; requestAnimationFrame(frame); }
+  function requestUpdate() {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
   }
 
   if (anime) {
+    /* hero: layers drift apart, cube rolls across the valley (hop on the img) */
     const heroTl = anime.timeline({autoplay: false})
       .add({targets: '.cloud-a', translateX: [0, 90], duration: 1000, easing: 'linear'}, 0)
       .add({targets: '.cloud-b', translateX: [0, -70], duration: 1000, easing: 'linear'}, 0)
@@ -302,31 +259,35 @@
       .add({targets: '.sticker-formats', translateX: [0, 26], duration: 1000, easing: 'linear'}, 0)
       .add({targets: '.journey-cube', translateX: [0, () => Math.min(window.innerWidth * .76, 1080)], rotate: [0, 300], duration: 1000, easing: 'easeInOutQuad'}, 0)
       .add({targets: '.journey-cube img', keyframes: [{translateY: 0}, {translateY: -52}, {translateY: 0}, {translateY: -36}, {translateY: 0}], duration: 1000, easing: 'linear'}, 0);
-    addDriver(heroTl, {hero: true});
+    addDriver(heroTl, () => clamp01(window.scrollY / (window.innerHeight * .9)));
 
+    /* runtime: steps activate in sequence, line fills */
     const stepsWrap = document.querySelector('.steps-wrap');
     if (stepsWrap) {
       const stepsTl = anime.timeline({autoplay: false})
         .add({targets: '#steps-fill', scaleY: [0, 1], duration: 1000, easing: 'linear'}, 0)
         .add({targets: '.scrub-step', opacity: [.18, 1], translateX: [-24, 0], duration: 260, easing: 'easeOutQuad', delay: anime.stagger(240)}, 80)
         .add({targets: '#runtime .runtime-copy, #runtime .paper-panel', opacity: [0, 1], translateY: [40, 0], duration: 350, easing: 'easeOutQuad', delay: anime.stagger(120)}, 0);
-      addDriver(stepsTl, {el: stepsWrap, span: .8});
+      addDriver(stepsTl, () => enter(stepsWrap, .8));
     }
 
+    /* features: note cards cascade in */
     const cardGrid = document.querySelector('#card-track');
     if (cardGrid) {
       const cardsTl = anime.timeline({autoplay: false})
         .add({targets: '#card-track .note-card', opacity: [0, 1], translateY: [70, 0], duration: 300, easing: 'easeOutQuad', delay: anime.stagger(160)});
-      addDriver(cardsTl, {el: cardGrid, span: .7});
+      addDriver(cardsTl, () => enter(cardGrid, .7));
     }
 
+    /* terminal: lines arrive in sequence */
     const term = document.querySelector('.terminal-card');
     if (term) {
       const termTl = anime.timeline({autoplay: false})
         .add({targets: '.term-line', opacity: [0, 1], translateX: [-16, 0], duration: 110, easing: 'easeOutQuad', delay: anime.stagger(100)});
-      addDriver(termTl, {el: term, span: .7});
+      addDriver(termTl, () => enter(term, .7));
     }
 
+    /* giant wordmark letters bounce in one by one */
     const letters = document.querySelector('#letters');
     if (letters) {
       const lettersTl = anime.timeline({autoplay: false})
@@ -334,24 +295,16 @@
               rotate: [(el, i) => (i % 2 ? 7 : -7), 0],
               duration: 260, easing: 'easeOutBack', delay: anime.stagger(90)})
         .add({targets: '.letters-caption', opacity: [0, 1], translateY: [16, 0], duration: 240, easing: 'easeOutQuad'}, '-=80');
-      addDriver(lettersTl, {el: letters, span: .65});
+      addDriver(lettersTl, () => enter(letters, .65));
     }
 
+    /* remaining cards/sections scrub in individually */
     registerItems(document.querySelectorAll(
       '.reveal:not(#runtime .reveal):not(#features .reveal), .guide-card, .lineage-art, .join-card'));
   }
 
-  measure(); measureChapters(); retarget();
-  drivers.forEach(d => { d.cur = d.target; });   // start exactly at rest state for current scroll
-  gCur = clamp01(window.scrollY / docHeight);
-  kick();
-
-  let resizeTimer;
-  window.addEventListener('scroll', kick, {passive: true});
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { measure(); measureChapters(); kick(); }, 160);
-  });
-  window.addEventListener('load', () => { measure(); measureChapters(); kick(); });
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); kick(); });
+  window.addEventListener('scroll', requestUpdate, {passive: true});
+  window.addEventListener('resize', requestUpdate);
+  window.addEventListener('load', requestUpdate);
+  requestUpdate();
 })();

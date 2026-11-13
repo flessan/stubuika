@@ -574,9 +574,10 @@ main + .site-footer .footer-hills { background: #fdf8ec; }
 }
 .scene-svg { display: block; width: 100%; height: 100%; }
 .scene-letters text {
-  stroke: #fffdf6; stroke-width: 17px; paint-order: stroke;
+  stroke: #fffdf6; stroke-width: 19px; paint-order: stroke;
   stroke-linejoin: round; stroke-linecap: round;
 }
+.scene-letters { filter: drop-shadow(0 7px 0 rgba(46, 105, 38, .28)); }
 .paper-scene-mini { aspect-ratio: 1376 / 768; transform: rotate(-1deg); }
 .hero .paper-scene { text-align: left; }
 .scene-cloud, .scene-hill, .scene-cube { will-change: transform; }

@@ -81,10 +81,11 @@
             <svg class="scene-svg" viewBox="0 0 1376 768" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
               <defs>
                 <linearGradient id="hsky" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#5fb2ec"/><stop offset=".7" stop-color="#79c6f4"/><stop offset="1" stop-color="#93d4f8"/>
+                  <stop offset="0" stop-color="#63b8ec"/><stop offset=".7" stop-color="#79c6f4"/><stop offset="1" stop-color="#a5dcf9"/>
                 </linearGradient>
                 <g id="htuft">
-                  <path d="M0 0 C-5-22-12-34-22-46 M0 0 C-2-27 0-40 4-54 M0 0 C4-20 12-30 22-38 M0 0 C-9-14-16-20-24-24 M0 0 C8-12 15-17 24-20" fill="none" stroke-linecap="round" stroke-width="6"/>
+                  <path transform="translate(3 4)" d="M0 0 C-5-22-12-34-22-46 M0 0 C-2-27 0-40 4-54 M0 0 C4-20 12-30 22-38 M0 0 C-9-14-16-20-24-24 M0 0 C8-12 15-17 24-20" fill="none" stroke="#b9e79c" stroke-linecap="round" stroke-width="6"/>
+                  <path d="M0 0 C-5-22-12-34-22-46 M0 0 C-2-27 0-40 4-54 M0 0 C4-20 12-30 22-38 M0 0 C-9-14-16-20-24-24 M0 0 C8-12 15-17 24-20" fill="none" stroke="#57a047" stroke-linecap="round" stroke-width="6"/>
                 </g>
                 <filter id="hgrain"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .6 .6 .6 0 0"/></filter>
               </defs>
@@ -92,6 +93,10 @@
               <rect width="1376" height="768" fill="url(#hsky)"/>
 
               <!-- flat paper clouds -->
+              <g fill="#3d7ca8" opacity=".28">
+                <path transform="translate(6 10)" d="M-20 44 L120 30 L210 6 L330 22 L430 8 L560 26 L596 44 L560 58 L60 62 Z"/>
+                <path transform="translate(6 10)" d="M838 36 L960 22 L1064 4 L1188 18 L1304 6 L1404 30 L1396 52 L880 58 Z"/>
+              </g>
               <g fill="#ffffff">
                 <path class="scene-cloud scene-cloud-1" d="M-20 44 L120 30 L210 6 L330 22 L430 8 L560 26 L596 44 L560 58 L60 62 Z" opacity=".97"/>
                 <path class="scene-cloud scene-cloud-2" d="M838 36 L960 22 L1064 4 L1188 18 L1304 6 L1404 30 L1396 52 L880 58 Z" opacity=".97"/>
@@ -103,17 +108,21 @@
                 <path d="M0 196 L0 148 L42 138 L58 112 L86 140 L118 122 L138 148 L176 140 L196 168 L230 176 L230 210 Z"/>
                 <path d="M1130 208 L1136 150 L1172 128 L1196 96 L1232 82 L1258 108 L1296 92 L1324 124 L1376 112 L1376 218 Z"/>
                 <circle cx="1216" cy="128" r="44"/><circle cx="1286" cy="140" r="36"/><circle cx="1158" cy="152" r="30"/>
+                <circle cx="1248" cy="112" r="52" fill="#5da24c"/>
+                <circle cx="1188" cy="140" r="38" fill="#6db356"/>
+                <circle cx="1318" cy="128" r="42" fill="#549647"/>
+                <circle cx="1272" cy="158" r="34" fill="#79bd5c"/>
               </g>
 
               <!-- rolling hills, back to front, each with a paper seam shadow -->
-              <path fill="#79bd52" transform="translate(0 14)" opacity=".55" d="M0 252 C180 206 360 244 560 214 C760 184 940 238 1140 208 C1240 194 1320 204 1376 196 L1376 768 L0 768 Z"/>
-              <path class="scene-hill scene-hill-1" fill="#8cd162" d="M0 244 C180 198 360 236 560 206 C760 176 940 230 1140 200 C1240 186 1320 196 1376 188 L1376 768 L0 768 Z"/>
+              <path fill="#8fce62" transform="translate(0 14)" opacity=".55" d="M0 252 C180 206 360 244 560 214 C760 184 940 238 1140 208 C1240 194 1320 204 1376 196 L1376 768 L0 768 Z"/>
+              <path class="scene-hill scene-hill-1" fill="#a6de7f" d="M0 244 C180 198 360 236 560 206 C760 176 940 230 1140 200 C1240 186 1320 196 1376 188 L1376 768 L0 768 Z"/>
 
-              <path fill="#5da244" transform="translate(0 16)" opacity=".5" d="M0 388 C220 322 430 386 660 340 C890 296 1100 368 1376 322 L1376 768 L0 768 Z"/>
-              <path class="scene-hill scene-hill-2" fill="#7cc453" d="M0 380 C220 314 430 378 660 332 C890 288 1100 360 1376 314 L1376 768 L0 768 Z"/>
+              <path fill="#7ab854" transform="translate(0 16)" opacity=".5" d="M0 388 C220 322 430 386 660 340 C890 296 1100 368 1376 322 L1376 768 L0 768 Z"/>
+              <path class="scene-hill scene-hill-2" fill="#98d66d" d="M0 380 C220 314 430 378 660 332 C890 288 1100 360 1376 314 L1376 768 L0 768 Z"/>
 
-              <path fill="#4f9840" transform="translate(0 16)" opacity=".5" d="M0 540 C260 470 520 540 790 492 C1030 450 1210 508 1376 478 L1376 768 L0 768 Z"/>
-              <path class="scene-hill scene-hill-3" fill="#68b74b" d="M0 532 C260 462 520 532 790 484 C1030 442 1210 500 1376 470 L1376 768 L0 768 Z"/>
+              <path fill="#6fb34c" transform="translate(0 16)" opacity=".5" d="M0 540 C260 470 520 540 790 492 C1030 450 1210 508 1376 478 L1376 768 L0 768 Z"/>
+              <path class="scene-hill scene-hill-3" fill="#89cb62" d="M0 532 C260 462 520 532 790 484 C1030 442 1210 500 1376 470 L1376 768 L0 768 Z"/>
 
               <!-- grass tufts on the slopes -->
               <g stroke="#4f9e43">
@@ -139,6 +148,15 @@
                 <use href="#htuft" transform="translate(1330 560) scale(0.9)"/>
               </g>
 
+              <!-- horizon fringe + field joints -->
+              <g stroke="#7cc453" stroke-width="5" stroke-linecap="round">
+                <path d="M30 218 l4-16 M80 222 l4-18 M150 216 l4-15 M240 224 l4-17 M340 218 l4-16 M450 222 l4-18 M560 216 l4-15 M680 222 l4-17 M800 218 l4-16 M920 222 l4-18 M1040 216 l4-15 M1160 220 l4-16"/>
+              </g>
+              <g stroke="#5da24c" stroke-width="4" opacity=".28" fill="none">
+                <path d="M662 214 C660 280 664 340 658 402"/>
+                <path d="M986 330 C982 396 988 452 980 512"/>
+                <path d="M330 386 C334 448 328 500 336 560"/>
+              </g>
               <!-- the cube -->
               <g class="scene-cube">
                 <polygon fill="#3f7d34" opacity=".5" points="118,606 486,606 648,668 300,702"/>
@@ -148,15 +166,15 @@
               </g>
 
               <!-- sticker wordmark -->
-              <g class="scene-letters" font-family="'Arial Rounded MT Bold','SF Pro Rounded',ui-rounded,system-ui,sans-serif" font-weight="900" font-size="180">
-                <text x="490" y="508" fill="#22a99e" transform="rotate(-2 548 462)">S</text>
-                <text x="600" y="516" fill="#f7c948" transform="rotate(2 646 470)">t</text>
-                <text x="666" y="512" fill="#8661c5" transform="rotate(-2 726 466)">u</text>
-                <text x="752" y="516" fill="#4a90d9" transform="rotate(2 818 470)">b</text>
-                <text x="846" y="512" fill="#3598db" transform="rotate(-2 910 466)">u</text>
-                <text x="938" y="508" fill="#ef6fae" transform="rotate(3 976 462)">i</text>
-                <text x="982" y="516" fill="#ef6fae" transform="rotate(-2 1046 470)">k</text>
-                <text x="1078" y="512" fill="#e85d8a" transform="rotate(2 1150 466)">a</text>
+              <g class="scene-letters" font-family="'Arial Rounded MT Bold','SF Pro Rounded',ui-rounded,system-ui,sans-serif" font-weight="900" font-size="198">
+                <text x="478" y="522" fill="#22a99e" transform="rotate(-2 548 462)">S</text>
+                <text x="592" y="530" fill="#f7c948" transform="rotate(2 646 470)">t</text>
+                <text x="660" y="526" fill="#8661c5" transform="rotate(-2 726 466)">u</text>
+                <text x="748" y="530" fill="#4a90d9" transform="rotate(2 818 470)">b</text>
+                <text x="840" y="526" fill="#3598db" transform="rotate(-2 910 466)">u</text>
+                <text x="930" y="522" fill="#ef6fae" transform="rotate(3 976 462)">i</text>
+                <text x="972" y="530" fill="#ef6fae" transform="rotate(-2 1046 470)">k</text>
+                <text x="1064" y="526" fill="#e85d8a" transform="rotate(2 1150 466)">a</text>
               </g>
 
               <!-- foreground blades -->
@@ -170,7 +188,7 @@
               <polygon fill="#57a83e" points="0,768 0,676 150,724 260,768"/>
               <polygon fill="#57a83e" points="1376,768 1376,660 1210,720 1100,768"/>
 
-              <rect width="1376" height="768" filter="url(#hgrain)" opacity=".05"/>
+              <rect width="1376" height="768" filter="url(#hgrain)" opacity=".08"/>
             </svg>
           </div>
 
@@ -382,10 +400,11 @@
             <svg class="scene-svg" viewBox="0 0 1376 768" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
               <defs>
                 <linearGradient id="msky" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#5fb2ec"/><stop offset=".7" stop-color="#79c6f4"/><stop offset="1" stop-color="#93d4f8"/>
+                  <stop offset="0" stop-color="#63b8ec"/><stop offset=".7" stop-color="#79c6f4"/><stop offset="1" stop-color="#a5dcf9"/>
                 </linearGradient>
                 <g id="mtuft">
-                  <path d="M0 0 C-5-22-12-34-22-46 M0 0 C-2-27 0-40 4-54 M0 0 C4-20 12-30 22-38 M0 0 C-9-14-16-20-24-24 M0 0 C8-12 15-17 24-20" fill="none" stroke-linecap="round" stroke-width="6"/>
+                  <path transform="translate(3 4)" d="M0 0 C-5-22-12-34-22-46 M0 0 C-2-27 0-40 4-54 M0 0 C4-20 12-30 22-38 M0 0 C-9-14-16-20-24-24 M0 0 C8-12 15-17 24-20" fill="none" stroke="#b9e79c" stroke-linecap="round" stroke-width="6"/>
+                  <path d="M0 0 C-5-22-12-34-22-46 M0 0 C-2-27 0-40 4-54 M0 0 C4-20 12-30 22-38 M0 0 C-9-14-16-20-24-24 M0 0 C8-12 15-17 24-20" fill="none" stroke="#57a047" stroke-linecap="round" stroke-width="6"/>
                 </g>
                 <filter id="mgrain"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .6 .6 .6 0 0"/></filter>
               </defs>
@@ -393,6 +412,10 @@
               <rect width="1376" height="768" fill="url(#msky)"/>
 
               <!-- flat paper clouds -->
+              <g fill="#3d7ca8" opacity=".28">
+                <path transform="translate(6 10)" d="M-20 44 L120 30 L210 6 L330 22 L430 8 L560 26 L596 44 L560 58 L60 62 Z"/>
+                <path transform="translate(6 10)" d="M838 36 L960 22 L1064 4 L1188 18 L1304 6 L1404 30 L1396 52 L880 58 Z"/>
+              </g>
               <g fill="#ffffff">
                 <path class="scene-cloud scene-cloud-1" d="M-20 44 L120 30 L210 6 L330 22 L430 8 L560 26 L596 44 L560 58 L60 62 Z" opacity=".97"/>
                 <path class="scene-cloud scene-cloud-2" d="M838 36 L960 22 L1064 4 L1188 18 L1304 6 L1404 30 L1396 52 L880 58 Z" opacity=".97"/>
@@ -404,17 +427,21 @@
                 <path d="M0 196 L0 148 L42 138 L58 112 L86 140 L118 122 L138 148 L176 140 L196 168 L230 176 L230 210 Z"/>
                 <path d="M1130 208 L1136 150 L1172 128 L1196 96 L1232 82 L1258 108 L1296 92 L1324 124 L1376 112 L1376 218 Z"/>
                 <circle cx="1216" cy="128" r="44"/><circle cx="1286" cy="140" r="36"/><circle cx="1158" cy="152" r="30"/>
+                <circle cx="1248" cy="112" r="52" fill="#5da24c"/>
+                <circle cx="1188" cy="140" r="38" fill="#6db356"/>
+                <circle cx="1318" cy="128" r="42" fill="#549647"/>
+                <circle cx="1272" cy="158" r="34" fill="#79bd5c"/>
               </g>
 
               <!-- rolling hills, back to front, each with a paper seam shadow -->
-              <path fill="#79bd52" transform="translate(0 14)" opacity=".55" d="M0 252 C180 206 360 244 560 214 C760 184 940 238 1140 208 C1240 194 1320 204 1376 196 L1376 768 L0 768 Z"/>
-              <path class="scene-hill scene-hill-1" fill="#8cd162" d="M0 244 C180 198 360 236 560 206 C760 176 940 230 1140 200 C1240 186 1320 196 1376 188 L1376 768 L0 768 Z"/>
+              <path fill="#8fce62" transform="translate(0 14)" opacity=".55" d="M0 252 C180 206 360 244 560 214 C760 184 940 238 1140 208 C1240 194 1320 204 1376 196 L1376 768 L0 768 Z"/>
+              <path class="scene-hill scene-hill-1" fill="#a6de7f" d="M0 244 C180 198 360 236 560 206 C760 176 940 230 1140 200 C1240 186 1320 196 1376 188 L1376 768 L0 768 Z"/>
 
-              <path fill="#5da244" transform="translate(0 16)" opacity=".5" d="M0 388 C220 322 430 386 660 340 C890 296 1100 368 1376 322 L1376 768 L0 768 Z"/>
-              <path class="scene-hill scene-hill-2" fill="#7cc453" d="M0 380 C220 314 430 378 660 332 C890 288 1100 360 1376 314 L1376 768 L0 768 Z"/>
+              <path fill="#7ab854" transform="translate(0 16)" opacity=".5" d="M0 388 C220 322 430 386 660 340 C890 296 1100 368 1376 322 L1376 768 L0 768 Z"/>
+              <path class="scene-hill scene-hill-2" fill="#98d66d" d="M0 380 C220 314 430 378 660 332 C890 288 1100 360 1376 314 L1376 768 L0 768 Z"/>
 
-              <path fill="#4f9840" transform="translate(0 16)" opacity=".5" d="M0 540 C260 470 520 540 790 492 C1030 450 1210 508 1376 478 L1376 768 L0 768 Z"/>
-              <path class="scene-hill scene-hill-3" fill="#68b74b" d="M0 532 C260 462 520 532 790 484 C1030 442 1210 500 1376 470 L1376 768 L0 768 Z"/>
+              <path fill="#6fb34c" transform="translate(0 16)" opacity=".5" d="M0 540 C260 470 520 540 790 492 C1030 450 1210 508 1376 478 L1376 768 L0 768 Z"/>
+              <path class="scene-hill scene-hill-3" fill="#89cb62" d="M0 532 C260 462 520 532 790 484 C1030 442 1210 500 1376 470 L1376 768 L0 768 Z"/>
 
               <!-- grass tufts on the slopes -->
               <g stroke="#4f9e43">
@@ -440,6 +467,15 @@
                 <use href="#mtuft" transform="translate(1330 560) scale(0.9)"/>
               </g>
 
+              <!-- horizon fringe + field joints -->
+              <g stroke="#7cc453" stroke-width="5" stroke-linecap="round">
+                <path d="M30 218 l4-16 M80 222 l4-18 M150 216 l4-15 M240 224 l4-17 M340 218 l4-16 M450 222 l4-18 M560 216 l4-15 M680 222 l4-17 M800 218 l4-16 M920 222 l4-18 M1040 216 l4-15 M1160 220 l4-16"/>
+              </g>
+              <g stroke="#5da24c" stroke-width="4" opacity=".28" fill="none">
+                <path d="M662 214 C660 280 664 340 658 402"/>
+                <path d="M986 330 C982 396 988 452 980 512"/>
+                <path d="M330 386 C334 448 328 500 336 560"/>
+              </g>
               <!-- the cube -->
               <g class="scene-cube">
                 <polygon fill="#3f7d34" opacity=".5" points="118,606 486,606 648,668 300,702"/>
@@ -449,15 +485,15 @@
               </g>
 
               <!-- sticker wordmark -->
-              <g class="scene-letters" font-family="'Arial Rounded MT Bold','SF Pro Rounded',ui-rounded,system-ui,sans-serif" font-weight="900" font-size="180">
-                <text x="490" y="508" fill="#22a99e" transform="rotate(-2 548 462)">S</text>
-                <text x="600" y="516" fill="#f7c948" transform="rotate(2 646 470)">t</text>
-                <text x="666" y="512" fill="#8661c5" transform="rotate(-2 726 466)">u</text>
-                <text x="752" y="516" fill="#4a90d9" transform="rotate(2 818 470)">b</text>
-                <text x="846" y="512" fill="#3598db" transform="rotate(-2 910 466)">u</text>
-                <text x="938" y="508" fill="#ef6fae" transform="rotate(3 976 462)">i</text>
-                <text x="982" y="516" fill="#ef6fae" transform="rotate(-2 1046 470)">k</text>
-                <text x="1078" y="512" fill="#e85d8a" transform="rotate(2 1150 466)">a</text>
+              <g class="scene-letters" font-family="'Arial Rounded MT Bold','SF Pro Rounded',ui-rounded,system-ui,sans-serif" font-weight="900" font-size="198">
+                <text x="478" y="522" fill="#22a99e" transform="rotate(-2 548 462)">S</text>
+                <text x="592" y="530" fill="#f7c948" transform="rotate(2 646 470)">t</text>
+                <text x="660" y="526" fill="#8661c5" transform="rotate(-2 726 466)">u</text>
+                <text x="748" y="530" fill="#4a90d9" transform="rotate(2 818 470)">b</text>
+                <text x="840" y="526" fill="#3598db" transform="rotate(-2 910 466)">u</text>
+                <text x="930" y="522" fill="#ef6fae" transform="rotate(3 976 462)">i</text>
+                <text x="972" y="530" fill="#ef6fae" transform="rotate(-2 1046 470)">k</text>
+                <text x="1064" y="526" fill="#e85d8a" transform="rotate(2 1150 466)">a</text>
               </g>
 
               <!-- foreground blades -->
@@ -471,7 +507,7 @@
               <polygon fill="#57a83e" points="0,768 0,676 150,724 260,768"/>
               <polygon fill="#57a83e" points="1376,768 1376,660 1210,720 1100,768"/>
 
-              <rect width="1376" height="768" filter="url(#mgrain)" opacity=".05"/>
+              <rect width="1376" height="768" filter="url(#mgrain)" opacity=".08"/>
             </svg>
           </div>
           <div class="lineage-copy reveal">

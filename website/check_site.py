@@ -71,6 +71,11 @@ required_files = (
     "script.js",
     "assets/anime.min.js",
     "assets/anime.LICENSE.md",
+    "assets/baloo-2-latin-700-normal.woff2",
+    "assets/baloo-2-latin-800-normal.woff2",
+    "assets/baloo-2.LICENSE.md",
+    "_routes.json",
+    "_headers",
     "assets/favicon.svg",
     "assets/desktop-launcher.png",
     "assets/stubuika-paper-landscape.jpg",
@@ -94,5 +99,10 @@ for marker in ('class="paper-scene"', 'class="scene-cube"', 'class="scene-letter
                'class="journey-cube"'):
     if marker not in html_text:
         sys.exit(f"scroll-driven scene markup is missing: {marker}")
+
+import json as _json
+_routes = _json.loads((ROOT / "_routes.json").read_text(encoding="utf-8"))
+if _routes.get("include") != ["/*"] or _routes.get("exclude") != ["/*"]:
+    sys.exit("_routes.json must keep the site fully static (include /*, exclude /*)")
 
 print(f"Website checks passed ({len(parser.local)} local asset references, {len(parser.fragments)} anchor links)")

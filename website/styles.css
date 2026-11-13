@@ -560,3 +560,23 @@ main + .site-footer .footer-hills { background: #fdf8ec; }
 .l-blue{color:var(--blue)} .l-teal2{color:#3bc0b4} .l-pink{color:var(--pink)}
 .l-yellow2{color:#f0a832} .l-pink2{color:#e85d8a}
 .letters-caption { color: var(--ink-soft); font-style: italic; font-family: var(--font-serif); font-size: 1.1rem; }
+
+/* ---------- native paper-cut scene (the artwork, rebuilt as code) ---------- */
+
+.paper-scene {
+  position: relative;
+  aspect-ratio: 1376 / 768;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #a8dcf7;
+  border: 6px solid #fffdf6;
+  box-shadow: 0 34px 70px -30px rgba(23, 70, 45, .55), 0 3px 0 rgba(34,48,60,.06);
+}
+.scene-svg { display: block; width: 100%; height: 100%; }
+.scene-letters text {
+  stroke: #fffdf6; stroke-width: 17px; paint-order: stroke;
+  stroke-linejoin: round; stroke-linecap: round;
+}
+.paper-scene-mini { aspect-ratio: 1376 / 768; transform: rotate(-1deg); }
+.hero .paper-scene { text-align: left; }
+.scene-cloud, .scene-hill, .scene-cube { will-change: transform; }

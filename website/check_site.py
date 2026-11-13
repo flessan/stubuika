@@ -80,12 +80,16 @@ for filename in required_files:
         sys.exit(f"missing required site file: {filename}")
 
 html_text = html
+for tag in html_text.split("<img")[1:]:
+    if tag.split(">", 1)[0].find("stubuika-paper-landscape") != -1:
+        sys.exit("paper landscape must be rendered natively, not as an <img>")
 if "assets/anime.min.js" not in html_text or "assets/anime.LICENSE.md" not in str(required_files):
     sys.exit("Anime.js asset is not wired into the page")
 if 'id="release-list"' not in html_text or 'id="release-status"' not in html_text:
     sys.exit("live release panel markup is missing")
 
-for marker in ('id="scroll-progress-bar"', 'id="companion-cube"', 'id="companion-fill"',
+for marker in ('class="paper-scene"', 'class="scene-cube"', 'class="scene-letters"',
+               'id="scroll-progress-bar"', 'id="companion-cube"', 'id="companion-fill"',
                'id="marquee-track"', 'id="letters"', 'id="card-track"', 'id="steps-fill"',
                'class="journey-cube"'):
     if marker not in html_text:

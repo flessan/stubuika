@@ -12,7 +12,6 @@
   <meta name="twitter:card" content="summary_large_image">
   <title>Stubuika — Android apps, at home on your desktop</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" as="image" href="assets/stubuika-paper-landscape.jpg">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -78,9 +77,51 @@
         <p class="scroll-hint" aria-hidden="true">Scroll <span>↓</span> the cube is going places</p>
 
         <div class="hero-stage">
-          <div class="hero-window" data-depth="3">
-            <div class="window-bar"><i></i><i></i><i></i><span>stubuika — paper valley</span></div>
-            <img src="assets/stubuika-paper-landscape.jpg" alt="Stubuika's colorful paper-cut landscape artwork with layered green hills, a bright blue sky, and the project wordmark" width="1376" height="768" fetchpriority="high">
+          <div class="paper-scene" role="img" aria-label="A paper-cut valley built from web elements: layered green hills, a pink, yellow and blue paper cube, and the multicolour Stubuika wordmark under a blue paper sky">
+            <svg class="scene-svg" viewBox="0 0 1376 768" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <defs>
+                <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#6fc0f0"/><stop offset="1" stop-color="#b5e2fa"/>
+                </linearGradient>
+                <g id="tuft">
+                  <path d="M0 0 C-4-20-10-30-18-40 M0 0 C-1-24 1-36 5-48 M0 0 C4-18 11-27 19-34" fill="none" stroke-linecap="round" stroke-width="6"/>
+                </g>
+                <g id="cloudpaper">
+                  <path d="M0 34 L14 12 L44 6 L70-8 L108-6 L132 8 L168 12 L184 30 L172 44 L16 46 Z" fill="#ffffff"/>
+                </g>
+              </defs>
+              <rect width="1376" height="768" fill="url(#sky)"/>
+              <g class="scene-cloud scene-cloud-1" transform="translate(60 52) scale(1.15)"><use href="#cloudpaper"/></g>
+              <g class="scene-cloud scene-cloud-2" transform="translate(830 20) scale(1.5)"><use href="#cloudpaper"/></g>
+              <g class="scene-cloud scene-cloud-3" transform="translate(640 116) scale(.62)" opacity=".9"><use href="#cloudpaper"/></g>
+              <polygon class="scene-hill scene-hill-0" fill="#5da24e" points="0,238 170,176 330,224 520,168 730,222 920,164 1100,214 1250,170 1376,208 1376,768 0,768"/>
+              <polygon class="scene-hill scene-hill-1" fill="#83c96b" points="0,330 210,268 430,322 650,262 880,320 1090,272 1376,326 1376,768 0,768"/>
+              <polygon class="scene-hill scene-hill-2" fill="#74bd58" points="0,452 260,386 540,448 820,382 1080,444 1376,402 1376,768 0,768"/>
+              <polygon class="scene-hill scene-hill-3" fill="#63ad4a" points="0,600 300,536 620,598 940,540 1376,596 1376,768 0,768"/>
+              <g stroke="#4f9e43">
+                <use href="#tuft" transform="translate(240 428)"/><use href="#tuft" transform="translate(560 486) scale(.8)"/>
+                <use href="#tuft" transform="translate(1010 452) scale(1.15)"/><use href="#tuft" transform="translate(1210 520) scale(.85)"/>
+                <use href="#tuft" transform="translate(120 560) scale(1.2)"/><use href="#tuft" transform="translate(760 620) scale(1.05)"/>
+                <use href="#tuft" transform="translate(1330 640) scale(1.25)"/><use href="#tuft" transform="translate(430 660) scale(.9)"/>
+              </g>
+              <g class="scene-cube">
+                <polygon fill="#4c9440" points="170,660 350,586 520,650 330,724" opacity=".55"/>
+                <polygon fill="#f27bb1" points="160,330 318,252 486,330 326,408"/>
+                <polygon fill="#3d9bd6" points="160,330 326,408 326,628 160,548"/>
+                <polygon fill="#ffd93b" points="326,408 486,330 486,548 326,628"/>
+              </g>
+              <g class="scene-letters" font-family="'Arial Rounded MT Bold','SF Pro Rounded',ui-rounded,system-ui,sans-serif" font-weight="900" font-size="148">
+                <text x="545" y="512" fill="#25a79d" transform="rotate(-3 590 470)">S</text>
+                <text x="648" y="520" fill="#f6c945" transform="rotate(2 682 478)">t</text>
+                <text x="716" y="516" fill="#8b6cc1" transform="rotate(-2 756 474)">u</text>
+                <text x="806" y="520" fill="#4a90d9" transform="rotate(2 848 478)">b</text>
+                <text x="898" y="516" fill="#3d9bd6" transform="rotate(-2 938 474)">u</text>
+                <text x="986" y="512" fill="#ef7aa0" transform="rotate(3 1006 470)">i</text>
+                <text x="1032" y="520" fill="#f27bb1" transform="rotate(-2 1074 478)">k</text>
+                <text x="1128" y="516" fill="#e85d8a" transform="rotate(2 1170 474)">a</text>
+              </g>
+              <rect width="1376" height="768" fill="#ffffff" opacity=".05"/>
+            </svg>
           </div>
 
           <div class="sticker sticker-hosts floaty" data-depth="10">
@@ -287,7 +328,24 @@
       <!-- ================= LINEAGE ================= -->
       <section class="sheet sheet-paper-art" aria-labelledby="lineage-title">
         <div class="section-inner lineage-grid">
-          <img class="lineage-art reveal" src="assets/stubuika-paper-landscape.jpg" alt="" loading="lazy" width="1376" height="768">
+          <div class="paper-scene paper-scene-mini lineage-art reveal" role="img" aria-label="Miniature paper-cut Stubuika valley">
+            <svg class="scene-svg" viewBox="0 0 1376 768" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <rect width="1376" height="768" fill="#a8dcf7"/>
+              <polygon fill="#83c96b" points="0,330 260,268 560,326 860,266 1120,322 1376,284 1376,768 0,768"/>
+              <polygon fill="#63ad4a" points="0,540 340,472 700,540 1040,482 1376,534 1376,768 0,768"/>
+              <g class="scene-cube">
+                <polygon fill="#f27bb1" points="160,330 318,252 486,330 326,408"/>
+                <polygon fill="#3d9bd6" points="160,330 326,408 326,628 160,548"/>
+                <polygon fill="#ffd93b" points="326,408 486,330 486,548 326,628"/>
+              </g>
+              <g font-family="'Arial Rounded MT Bold',ui-rounded,system-ui,sans-serif" font-weight="900" font-size="148">
+                <text x="545" y="512" fill="#25a79d">S</text><text x="648" y="520" fill="#f6c945">t</text>
+                <text x="716" y="516" fill="#8b6cc1">u</text><text x="806" y="520" fill="#4a90d9">b</text>
+                <text x="898" y="516" fill="#3d9bd6">u</text><text x="986" y="512" fill="#ef7aa0">i</text>
+                <text x="1032" y="520" fill="#f27bb1">k</text><text x="1128" y="516" fill="#e85d8a">a</text>
+              </g>
+            </svg>
+          </div>
           <div class="lineage-copy reveal">
             <p class="kicker"><span class="kicker-num">✿</span> Credit where it's due</p>
             <h2 id="lineage-title">Built on good roots.</h2>

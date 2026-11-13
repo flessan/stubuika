@@ -20,6 +20,8 @@ Instead of starting a virtual Android device, Stubuika loads the app's own packa
 
 It accepts APK, APKM, XAPK, APKS, and AAB packages. See [Package formats](docs/package-formats.md) for the exact loading behavior and current limitations.
 
+Stubuika tracks the [Lunaria](https://github.com/yui0/lunaria) runtime rather than freezing at a fork point. The current tree carries upstream's latest engine work: hash-indexed maps and cached native symbol lookup, parallel canvas rasterisation, `java.util.stream` support in the bytecode emulator, per-application Google services environments, a dedicated NDK media implementation (`AMediaFormat`, native codec plumbing, an AAC encoder loaded from the host's FDK AAC library), host CA-bundle discovery for guest TLS, and a positional-I/O read-ahead cache for asset reads. On top of that baseline Stubuika keeps its own CLI and terminal dashboard, APKMirror APKM container support, and a handful of platform fixes — see [Attribution](docs/attribution.md) for exactly what is upstream and what is ours.
+
 ## Screenshots
 
 <p align="center">
@@ -76,6 +78,7 @@ Check [Compatibility](docs/compatibility.md) before testing an app. For current 
 | [Package formats](docs/package-formats.md) | APK, APKM, XAPK, APKS, AAB, split APKs, and ABI selection. |
 | [Compatibility](docs/compatibility.md) | What has been tested and what remains unverified. |
 | [Gallery](docs/gallery.md) | Screenshots with context for each demonstrated stage. |
+| [CLI and TUI](docs/cli.md) | `stubuika launch`, `tui`, `apps`, `logs`, and `diagnostics`. |
 | [Controls and capture](docs/controls.md) | Keyboard maps, macros, recording, and screenshots. |
 | [Runtime architecture](docs/architecture.md) | How the loader and Android compatibility layers fit together. |
 | [Configuration](docs/configuration.md) | Runtime variables and diagnostics. |

@@ -1,3 +1,11 @@
+/*
+ * Copyright © 2026 Yuichiro Nakada / Project Lunaria
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* Chrome DevTools Protocol pipe framing.  C11, with no browser or OS headers.
  * The platform launcher supplies byte-stream read/write callbacks. */
 #ifndef LUNARIA_WEBVIEW_CDP_H
@@ -9,11 +17,11 @@ typedef ptrdiff_t (*lunaria_cdp_read_fn)(void *context, void *dst, size_t size);
 typedef ptrdiff_t (*lunaria_cdp_write_fn)(void *context, const void *src, size_t size);
 
 struct lunaria_cdp {
-   void *context;
-   lunaria_cdp_read_fn read;
-   lunaria_cdp_write_fn write;
-   unsigned char *buffer;
-   size_t used, capacity;
+  void *context;
+  lunaria_cdp_read_fn read;
+  lunaria_cdp_write_fn write;
+  unsigned char *buffer;
+  size_t used, capacity;
 };
 
 /* The caller owns the returned NUL-terminated JSON message and frees it. */
@@ -29,13 +37,13 @@ void lunaria_cdp_close(struct lunaria_cdp *cdp);
 #include <stddef.h>
 
 struct lunaria_cdp_page {
-   struct lunaria_cdp *transport;
-   char session_id[128];
-   unsigned next_id;
-   char target_id[128];
-   unsigned setup_id;
-   unsigned navigation_id; /* latest Page.navigate reply; older loads may be cancelled */
-   int stage;
+  struct lunaria_cdp *transport;
+  char session_id[128];
+  unsigned next_id;
+  char target_id[128];
+  unsigned setup_id;
+  unsigned navigation_id; /* latest Page.navigate reply; older loads may be cancelled */
+  int stage;
 };
 
 /* Creates and attaches to one browser page. These calls perform pipe I/O and
@@ -54,7 +62,7 @@ int lunaria_cdp_page_capture(struct lunaria_cdp_page *page,
 int lunaria_cdp_page_mouse(struct lunaria_cdp_page *page,
                            int x, int y, int pressed,
                            unsigned *request_id);
-/* action: 1 down, -1 move, 0 up. */
+/* action: 1 down, -1 move, 0 up, 2 cancel. */
 int lunaria_cdp_page_touch(struct lunaria_cdp_page *page,
                            int x, int y, int action);
 int lunaria_cdp_page_insert_text(struct lunaria_cdp_page *page,
@@ -90,6 +98,10 @@ char *lunaria_cdp_json_string_at(const char *p);
 /* Requests to this host are the page's synchronous JavaScript-interface calls. */
 #define LUNARIA_CDP_BRIDGE_HOST "lunaria-bridge.invalid"
 int lunaria_cdp_page_enable_fetch(struct lunaria_cdp_page *page);
+/* Supplies inline document bytes at their original URL and origin. No CORS
+ * permissions are added; MIME and byte length are explicit. */
+int lunaria_cdp_page_fetch_response(struct lunaria_cdp_page *page,const char *request_id,
+                                     const char *mime,const void *body,size_t length);
 /* Answers a paused request with a 200 JSON body (CORS-open: the page is cross-origin). */
 int lunaria_cdp_page_fetch_fulfill(struct lunaria_cdp_page *page, const char *request_id,
                                    const char *body);
@@ -113,14 +125,14 @@ unsigned char *lunaria_cdp_json_image(const char *json, size_t *length);
 
 
 struct lunaria_cdp_host {
-   struct lunaria_cdp cdp;
+  struct lunaria_cdp cdp;
 #ifdef _WIN32
-   void *input_handle, *output_handle, *process_handle;
+  void *input_handle, *output_handle, *process_handle;
 #else
-   int input_fd, output_fd;
-   long process_id;
+  int input_fd, output_fd;
+  long process_id;
 #endif
-   int nonblocking;
+  int nonblocking;
 };
 
 /* browser_binary must name the browser executable, not a shell wrapper which

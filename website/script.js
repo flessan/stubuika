@@ -162,44 +162,72 @@
       });
   }
 
-  /* ================= scroll-driven motion (Anime.js) =================
-     No autoplay, no loops: every timeline is paused and seek()-ed from
-     the scroll position, so the page is a storyboard the visitor drives.
-     Without Anime.js / with reduced motion, content simply stays put. */
+  /* ================= scroll film (Anime.js, offset-driven) =================
+     Every animation is scrubbed by scroll position. Progress is computed
+     from layout offsets (offsetTop), which CSS transforms cannot change,
+     so an animated element can never feed back into its own progress.
+     No pinning, no autoplay, no loops. */
   const anime = window.anime;
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const drivers = [];   // {timeline, progress: () => 0..1}
+  const drivers = [];
   const clamp01 = v => Math.min(1, Math.max(0, v));
+  const docTop = el => {
+    let y = 0;
+    for (let n = el; n; n = n.offsetParent) y += n.offsetTop;
+    return y;
+  };
+  const enter = (el, span = .55) =>
+    clamp01((window.scrollY + window.innerHeight * .92 - docTop(el)) / (window.innerHeight * span));
+  const globalP = () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    return max > 0 ? clamp01(window.scrollY / max) : 0;
+  };
 
-  const sceneProgress = el => {           // tall pinned scene
-    const r = el.getBoundingClientRect();
-    return clamp01(-r.top / Math.max(1, r.height - window.innerHeight));
-  };
-  const enterProgress = el => {           // element travelling through viewport
-    const r = el.getBoundingClientRect();
-    return clamp01((window.innerHeight * .92 - r.top) / (window.innerHeight * .55));
-  };
+  function addDriver(timeline, progressFn) {
+    drivers.push({timeline, progressFn});
+    timeline.seek(0);
+  }
 
   function registerItems(nodeList) {
-    if (!anime || reduceMotion) return;
+    if (!anime) return;
     nodeList.forEach(el => {
       if (el.dataset.scrub) return;
       el.dataset.scrub = '1';
       const tl = anime.timeline({autoplay: false})
         .add({targets: el, opacity: [0, 1], translateY: [36, 0], duration: 500, easing: 'easeOutQuad'});
-      drivers.push({timeline: tl, progress: () => enterProgress(el)});
+      addDriver(tl, () => enter(el));
     });
   }
 
   let ticking = false;
   function update() {
     ticking = false;
-    drivers.forEach(d => d.timeline.seek(d.timeline.duration * d.progress()));
+    drivers.forEach(d => d.timeline.seek(d.timeline.duration * d.progressFn()));
+
+    const p = globalP();
     const bar = document.querySelector('#scroll-progress-bar');
-    if (bar) {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      bar.style.transform = 'scaleX(' + (max > 0 ? clamp01(window.scrollY / max) : 0) + ')';
+    if (bar) bar.style.transform = 'scaleX(' + p + ')';
+
+    /* companion cube rides its paper trail down the whole page */
+    const cube = document.querySelector('#companion-cube');
+    const trail = document.querySelector('.companion-trail');
+    const fill = document.querySelector('#companion-fill');
+    if (cube && trail && anime) {
+      if (fill) fill.style.transform = 'scaleY(' + p + ')';
+      anime.set(cube, {translateY: -(1 - p) * (trail.clientHeight + 10), rotate: p * 540});
     }
+    const label = document.querySelector('#companion-label');
+    if (label) {
+      let chapter = 'SKY';
+      document.querySelectorAll('[data-chapter]').forEach(sec => {
+        if (docTop(sec) <= window.scrollY + window.innerHeight * .45) chapter = sec.dataset.chapter;
+      });
+      if (label.textContent !== chapter) label.textContent = chapter;
+    }
+
+    /* marquee band slides with scroll */
+    const track = document.querySelector('#marquee-track');
+    if (track) track.style.transform = 'translateX(' + (-p * 420) + 'px)';
+
     const pill = document.querySelector('.nav-pill');
     if (pill) pill.style.boxShadow = window.scrollY > 40
       ? '0 20px 40px -14px rgba(34, 80, 120, .55)'
@@ -209,78 +237,63 @@
     if (!ticking) { ticking = true; requestAnimationFrame(update); }
   }
 
-  if (anime && !reduceMotion) {
-    const hero = document.querySelector('.hero');
-    const runtimeScene = document.querySelector('#runtime');
-    const featureScene = document.querySelector('#features');
-    const desktop = window.matchMedia('(min-width: 861px)').matches;
+  if (anime) {
+    /* hero: layers drift apart, cube rolls across the valley (hop on the img) */
+    const heroTl = anime.timeline({autoplay: false})
+      .add({targets: '.cloud-a', translateX: [0, 90], duration: 1000, easing: 'linear'}, 0)
+      .add({targets: '.cloud-b', translateX: [0, -70], duration: 1000, easing: 'linear'}, 0)
+      .add({targets: '.cloud-c', translateX: [0, 50], duration: 1000, easing: 'linear'}, 0)
+      .add({targets: '.hill-back', translateY: [0, 26], duration: 1000, easing: 'linear'}, 0)
+      .add({targets: '.hill-front', translateY: [0, 44], duration: 1000, easing: 'linear'}, 0)
+      .add({targets: '.hero-title', translateY: [0, -64], opacity: [1, .15], duration: 700, easing: 'linear'}, 0)
+      .add({targets: '.hero-lede, .hero-actions, .hero-note, .scroll-hint', translateY: [0, -40], opacity: [1, 0], duration: 600, easing: 'linear'}, 0)
+      .add({targets: '.hero-window', translateY: [0, -30], scale: [1, .97], duration: 1000, easing: 'linear'}, 0)
+      .add({targets: '.sticker-hosts', translateX: [0, -30], duration: 1000, easing: 'linear'}, 0)
+      .add({targets: '.sticker-formats', translateX: [0, 26], duration: 1000, easing: 'linear'}, 0)
+      .add({targets: '.journey-cube', translateX: [0, () => Math.min(window.innerWidth * .76, 1080)], rotate: [0, 300], duration: 1000, easing: 'easeInOutQuad'}, 0)
+      .add({targets: '.journey-cube img', keyframes: [{translateY: 0}, {translateY: -52}, {translateY: 0}, {translateY: -36}, {translateY: 0}], duration: 1000, easing: 'linear'}, 0);
+    addDriver(heroTl, () => clamp01(window.scrollY / (window.innerHeight * .9)));
 
-    /* --- hero: scroll sends the cube across the paper valley --- */
-    if (hero) {
-      const vw = () => Math.min(window.innerWidth * .78, 1100);
-      const heroTl = anime.timeline({autoplay: false})
-        .add({targets: '.cloud-a', translateX: [0, 90], duration: 1000, easing: 'linear'}, 0)
-        .add({targets: '.cloud-b', translateX: [0, -70], duration: 1000, easing: 'linear'}, 0)
-        .add({targets: '.cloud-c', translateX: [0, 50], duration: 1000, easing: 'linear'}, 0)
-        .add({targets: '.hill-back', translateY: [0, 26], duration: 1000, easing: 'linear'}, 0)
-        .add({targets: '.hill-front', translateY: [0, 44], duration: 1000, easing: 'linear'}, 0)
-        .add({targets: '.hero-title', translateY: [0, -70], opacity: [1, .1], duration: 700, easing: 'easeInQuad'}, 0)
-        .add({targets: '.hero-lede, .hero-actions, .hero-note', translateY: [0, -46], opacity: [1, 0], duration: 600, easing: 'easeInQuad'}, 0)
-        .add({targets: '.hero-window', translateY: [0, -34], scale: [1, .965], duration: 1000, easing: 'linear'}, 0)
-        .add({targets: '.sticker-hosts', translateX: [0, -34], translateY: [0, -18], rotate: [-3, -7], duration: 1000, easing: 'linear'}, 0)
-        .add({targets: '.sticker-formats', translateX: [0, 30], translateY: [0, 16], rotate: [2.2, 6], duration: 1000, easing: 'linear'}, 0)
-        .add({targets: '.journey-cube', translateX: [0, vw()], rotate: [0, 300], duration: 1000, easing: 'easeInOutQuad'}, 0)
-        .add({targets: '.journey-cube', keyframes: [
-          {translateY: 0}, {translateY: -54}, {translateY: 0}, {translateY: -38}, {translateY: 0}
-        ], duration: 1000, easing: 'linear'}, 0)
-        .add({targets: '.scroll-hint span', translateY: [0, 8], duration: 1000, easing: 'linear'}, 0);
-      drivers.push({
-        timeline: heroTl,
-        progress: () => {
-          const r = hero.getBoundingClientRect();
-          return clamp01(-r.top / Math.max(1, r.height * .75));
-        }
-      });
-    }
-
-    /* --- runtime: pinned scene, steps light up as you scroll --- */
-    if (runtimeScene && desktop) {
+    /* runtime: steps activate in sequence, line fills */
+    const stepsWrap = document.querySelector('.steps-wrap');
+    if (stepsWrap) {
       const stepsTl = anime.timeline({autoplay: false})
         .add({targets: '#steps-fill', scaleY: [0, 1], duration: 1000, easing: 'linear'}, 0)
-        .add({targets: '.scrub-step', opacity: [.22, 1], translateX: [-26, 0], scale: [.97, 1],
-              duration: 300, easing: 'easeOutQuad', delay: anime.stagger(280)}, 60)
-        .add({targets: '#runtime .runtime-copy', translateY: [44, 0], opacity: [0, 1], duration: 380, easing: 'easeOutQuad'}, 0)
-        .add({targets: '#runtime .paper-panel', translateY: [60, 0], opacity: [0, 1], rotate: [1.6, .4], duration: 420, easing: 'easeOutQuad'}, 40);
-      drivers.push({timeline: stepsTl, progress: () => sceneProgress(runtimeScene)});
-    } else {
-      registerItems(document.querySelectorAll('#runtime .scrub-step'));
+        .add({targets: '.scrub-step', opacity: [.18, 1], translateX: [-24, 0], duration: 260, easing: 'easeOutQuad', delay: anime.stagger(240)}, 80)
+        .add({targets: '#runtime .runtime-copy, #runtime .paper-panel', opacity: [0, 1], translateY: [40, 0], duration: 350, easing: 'easeOutQuad', delay: anime.stagger(120)}, 0);
+      addDriver(stepsTl, () => enter(stepsWrap, .8));
     }
 
-    /* --- features: pinned scene, cards ride a horizontal rail --- */
-    const track = document.querySelector('#card-track');
-    if (featureScene && track && desktop) {
-      const travel = () => Math.max(0, track.scrollWidth - track.parentElement.clientWidth);
-      const railTl = anime.timeline({autoplay: false})
-        .add({targets: '#features .section-head', translateY: [36, 0], opacity: [0, 1], duration: 200, easing: 'easeOutQuad'}, 0)
-        .add({targets: track, translateX: [0, () => -travel()], duration: 1000, easing: 'easeInOutQuad'}, 120)
-        .add({targets: '#card-track .note-card', keyframes: [{translateY: 0}, {translateY: -12}, {translateY: 0}],
-              duration: 900, easing: 'linear', delay: anime.stagger(120)}, 120);
-      drivers.push({timeline: railTl, progress: () => sceneProgress(featureScene)});
+    /* features: note cards cascade in */
+    const cardGrid = document.querySelector('#card-track');
+    if (cardGrid) {
+      const cardsTl = anime.timeline({autoplay: false})
+        .add({targets: '#card-track .note-card', opacity: [0, 1], translateY: [70, 0], duration: 300, easing: 'easeOutQuad', delay: anime.stagger(160)});
+      addDriver(cardsTl, () => enter(cardGrid, .7));
     }
 
-    /* --- terminal: lines "type in" with scroll --- */
+    /* terminal: lines arrive in sequence */
     const term = document.querySelector('.terminal-card');
     if (term) {
-      const lines = term.querySelectorAll('.term-line');
       const termTl = anime.timeline({autoplay: false})
-        .add({targets: lines, opacity: [0, 1], translateX: [-16, 0], duration: 120,
-              easing: 'easeOutQuad', delay: anime.stagger(110)});
-      drivers.push({timeline: termTl, progress: () => enterProgress(term)});
+        .add({targets: '.term-line', opacity: [0, 1], translateX: [-16, 0], duration: 110, easing: 'easeOutQuad', delay: anime.stagger(100)});
+      addDriver(termTl, () => enter(term, .7));
     }
 
-    /* --- everything else: scrub-in while entering --- */
+    /* giant wordmark letters bounce in one by one */
+    const letters = document.querySelector('#letters');
+    if (letters) {
+      const lettersTl = anime.timeline({autoplay: false})
+        .add({targets: '#letters span', opacity: [0, 1], translateY: [110, 0],
+              rotate: [(el, i) => (i % 2 ? 7 : -7), 0],
+              duration: 260, easing: 'easeOutBack', delay: anime.stagger(90)})
+        .add({targets: '.letters-caption', opacity: [0, 1], translateY: [16, 0], duration: 240, easing: 'easeOutQuad'}, '-=80');
+      addDriver(lettersTl, () => enter(letters, .65));
+    }
+
+    /* remaining cards/sections scrub in individually */
     registerItems(document.querySelectorAll(
-      '.reveal:not(#runtime .reveal):not(#features .reveal), .desktop-shot img, .guide-card'));
+      '.reveal:not(#runtime .reveal):not(#features .reveal), .guide-card, .lineage-art, .join-card'));
   }
 
   window.addEventListener('scroll', requestUpdate, {passive: true});

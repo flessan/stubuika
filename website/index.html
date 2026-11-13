@@ -18,6 +18,11 @@
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="scroll-progress" aria-hidden="true"><i id="scroll-progress-bar"></i></div>
+  <div class="companion" aria-hidden="true">
+    <i class="companion-trail"><b id="companion-fill"></b></i>
+    <div class="companion-cube" id="companion-cube"><img src="assets/favicon.svg" alt="" width="46" height="46"></div>
+    <span class="companion-label" id="companion-label">SKY</span>
+  </div>
 
   <div class="page-frame">
     <!-- ================= HERO / PAPER SKY ================= -->
@@ -94,8 +99,11 @@
     </section>
 
     <main id="main">
+      <div class="marquee" aria-hidden="true"><div class="marquee-track" id="marquee-track">
+        <span>APK</span><i>✿</i><span>APKM</span><i>★</i><span>XAPK</span><i>✿</i><span>APKS</span><i>★</i><span>AAB</span><i>✿</i><span>ARM32</span><i>★</i><span>ARM64</span><i>✿</i><span>LINUX</span><i>★</i><span>WINDOWS</span><i>✿</i><span>MACOS</span><i>★</i><span>APK</span><i>✿</i><span>APKM</span><i>★</i><span>XAPK</span><i>✿</i><span>APKS</span><i>★</i><span>AAB</span><i>✿</i>
+      </div></div>
       <!-- ================= RUNTIME ================= -->
-      <section class="sheet sheet-cream scene scene-runtime" id="runtime" aria-labelledby="runtime-title">
+      <section class="sheet sheet-cream scene scene-runtime" id="runtime" data-chapter="RUNTIME" aria-labelledby="runtime-title">
        <div class="scene-sticky">
         <div class="section-inner runtime-grid">
           <div class="runtime-copy reveal">
@@ -121,7 +129,7 @@
       </section>
 
       <!-- ================= FEATURES ================= -->
-      <section class="sheet sheet-sky scene scene-features" id="features" aria-labelledby="features-title">
+      <section class="sheet sheet-sky scene scene-features" id="features" data-chapter="FEATURES" aria-labelledby="features-title">
         <div class="torn torn-sky" aria-hidden="true"></div>
        <div class="scene-sticky">
         <div class="section-inner">
@@ -164,7 +172,7 @@
       </section>
 
       <!-- ================= DESKTOP ================= -->
-      <section class="sheet sheet-cream" id="desktop" aria-labelledby="desktop-title">
+      <section class="sheet sheet-cream" id="desktop" data-chapter="DESKTOP" aria-labelledby="desktop-title">
         <div class="section-inner desktop-grid">
           <div class="desktop-shot reveal">
             <div class="window-bar"><i></i><i></i><i></i><span>STUBUIKA / DESKTOP LAUNCHER</span></div>
@@ -186,7 +194,7 @@
       </section>
 
       <!-- ================= TERMINAL ================= -->
-      <section class="sheet sheet-night" id="terminal" aria-labelledby="terminal-title">
+      <section class="sheet sheet-night" id="terminal" data-chapter="TERMINAL" aria-labelledby="terminal-title">
         <div class="section-inner terminal-grid">
           <div class="terminal-copy reveal">
             <p class="kicker kicker-light"><span class="kicker-num">04</span> For the keyboard</p>
@@ -215,7 +223,7 @@
       </section>
 
       <!-- ================= DOWNLOADS ================= -->
-      <section class="sheet sheet-grass" id="downloads" aria-labelledby="downloads-title">
+      <section class="sheet sheet-grass" id="downloads" data-chapter="DOWNLOADS" aria-labelledby="downloads-title">
         <div class="torn torn-grass" aria-hidden="true"></div>
         <div class="section-inner">
           <div class="section-head reveal">
@@ -250,7 +258,7 @@
       </section>
 
       <!-- ================= GUIDES ================= -->
-      <section class="sheet sheet-cream" id="docs" aria-labelledby="docs-title">
+      <section class="sheet sheet-cream" id="docs" data-chapter="GUIDES" aria-labelledby="docs-title">
         <div class="section-inner">
           <div class="section-head reveal">
             <div>
@@ -270,6 +278,12 @@
         </div>
       </section>
 
+      <section class="letters-scene" aria-hidden="true">
+        <div class="letters" id="letters">
+          <span class="l-teal">S</span><span class="l-yellow">t</span><span class="l-purple">u</span><span class="l-blue">b</span><span class="l-teal2">u</span><span class="l-pink">i</span><span class="l-yellow2">k</span><span class="l-pink2">a</span>
+        </div>
+        <p class="letters-caption">eight letters, five colours, one very determined cube</p>
+      </section>
       <!-- ================= LINEAGE ================= -->
       <section class="sheet sheet-paper-art" aria-labelledby="lineage-title">
         <div class="section-inner lineage-grid">

@@ -18,14 +18,14 @@ The page is styled as a papercraft poster, following the supplied references:
 
 The desktop launcher image is from the repository's existing `shots/launcher.png`. The terminal panel is an explicitly labeled interface preview, not a captured runtime screenshot.
 
-## Animation — scroll-driven
+## Animation — a scroll film
 
-Motion is powered by [Anime.js](https://animejs.com) 3.2.2, vendored at `assets/anime.min.js` (MIT License, `assets/anime.LICENSE.md`) so the site works offline with no CDN dependency. Nothing autoplays: every Anime.js timeline is paused and `seek()`-ed from the scroll position, so the visitor drives the storyboard.
+Motion is powered by [Anime.js](https://animejs.com) 3.2.2, vendored at `assets/anime.min.js` (MIT License, `assets/anime.LICENSE.md`) — no CDN, no build step. Nothing autoplays and nothing is pinned: every Anime.js timeline is paused and `seek()`-ed from scroll position, and progress is computed from layout offsets (`offsetTop`), which transforms cannot change, so an animated element can never feed back into its own progress (the classic cause of scroll jitter).
 
-- **Hero journey:** scrolling sends the paper cube rolling across the valley (with hops), while clouds and hills parallax, the headline lifts away, and the window card settles.
-- **Runtime scene (pinned):** the three pipeline steps light up in sequence and the progress line fills as you scroll through the scene.
-- **Feature rail (pinned):** the note cards ride a horizontal rail scrubbed by scroll.
-- **Terminal:** lines "type in" in proportion to scroll, and all remaining cards scrub in as they enter the viewport.
-- A rainbow scroll-progress strip at the top of the viewport tracks overall progress.
+- **Hero journey:** scrolling sends the paper cube rolling and hopping across the valley while clouds and hills parallax and the headline lifts away.
+- **Companion cube:** a fixed cube rides a rainbow paper trail at the edge of the viewport down the whole page, rotating as it goes, with a chapter label (SKY → RUNTIME → FEATURES → …) tracking where you are.
+- **Marquee band:** the formats/hosts ticker slides in proportion to overall page progress.
+- **Scenes:** runtime steps activate in sequence with a filling progress line; feature note cards cascade; terminal lines arrive in order; the giant STUBUIKA letters bounce in one by one; live release cards join the same scrub system when they render.
+- A rainbow progress strip at the top tracks total progress.
 
-Pinned scenes and the rail are disabled on narrow screens, all motion is progressive enhancement (content is fully visible if JavaScript or Anime.js fails to load), and everything is skipped when the visitor prefers reduced motion.
+Motion runs for every visitor (no reduced-motion gating, per project direction) and all content remains fully readable if JavaScript or Anime.js fails to load.

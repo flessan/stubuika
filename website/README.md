@@ -13,7 +13,7 @@ The release panel queries the public GitHub Releases API at page load and links 
 The page is styled as a papercraft poster, following the supplied references:
 
 - A sky-blue hero with halftone clouds, layered paper hills, and torn-paper edges (in the spirit of the Craft landing page).
-- The Stubuika paper-cut landscape is **not an image**: it is rebuilt natively as inline SVG + CSS (`.paper-scene`) — gradient paper sky, cut-out clouds, four layered hills, grass tufts, the pink/yellow/blue cube, and the multicolour wordmark as stroked SVG letters with a white sticker outline. Its layers parallax and its letters pop in with scroll. A miniature of the same native scene appears in the lineage section. The original JPG remains only as the social/OG preview card.
+- The Stubuika paper-cut landscape is **not an image**: the hero artwork is a hand-tuned traced vector of the paper landscape, inlined directly as SVG code (`.paper-scene.paper-valley`, SVGO-optimized from 438 KB to ~97 KB with integer path precision) — gradient paper sky, cut-out clouds, four layered hills, grass tufts, the pink/yellow/blue cube, and the multicolour wordmark as stroked SVG letters with a white sticker outline. Its layers parallax and its letters pop in with scroll. A miniature of the same native scene appears in the lineage section. The original JPG remains only as the social/OG preview card.
 - The wordmark artwork's palette — teal, yellow, purple, blue, pink on grass green — is reused for sticker cards, note cards, and guide tiles across the page.
 - A floating frosted-glass pill navigation with a dark call-to-action button, echoing the reference layout without copying its content or branding.
 

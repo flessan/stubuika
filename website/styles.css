@@ -625,3 +625,7 @@ html { scroll-padding-top: 118px; }
     animation-timeline: scroll(root block);
   }
 }
+
+/* traced paper-valley artwork (inline SVG): gentle saturation lift to
+   match the vivid reference print */
+.paper-valley { filter: saturate(1.14) contrast(1.02); }

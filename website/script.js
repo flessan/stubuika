@@ -229,8 +229,22 @@
   const toTop = document.querySelector('#to-top');
   const navLinks = [...document.querySelectorAll('.main-nav a[href^="#"]')];
   const chapters = [...document.querySelectorAll('[data-chapter]')];
-  let chapterTops = [];
-  function measureChapters() { chapterTops = chapters.map(sec => ({top: docTop(sec), name: sec.dataset.chapter, id: sec.id})); }
+  const setChapter = (id, name) => {
+    if (labelEl && name && labelEl.textContent !== name) labelEl.textContent = name;
+    navLinks.forEach(a => {
+      const active = a.getAttribute('href') === '#' + id;
+      a.classList.toggle('is-active', active);
+      if (active) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
+  };
+  if ('IntersectionObserver' in window && chapters.length) {
+    const spy = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) setChapter(e.target.id, e.target.dataset.chapter); });
+    }, {rootMargin: '-45% 0px -50% 0px', threshold: 0});
+    chapters.forEach(sec => spy.observe(sec));
+  }
+  function measureChapters() { /* chapter state is observer-driven; kept for resize/load hooks */ }
 
   toTop?.addEventListener('click', () => window.scrollTo({top: 0, behavior: 'smooth'}));
 
@@ -265,14 +279,6 @@
       : '0 14px 34px -14px rgba(34, 80, 120, .45)';
     if (toTop) toTop.classList.toggle('is-visible', window.scrollY > 600);
 
-    if (labelEl || navLinks.length) {
-      let chapter = 'SKY', activeId = '';
-      chapterTops.forEach(c => {
-        if (c.top <= window.scrollY + window.innerHeight * .45) { chapter = c.name; activeId = c.id; }
-      });
-      if (labelEl && labelEl.textContent !== chapter) labelEl.textContent = chapter;
-      navLinks.forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === '#' + activeId));
-    }
 
     if (!settled) requestAnimationFrame(frame);
     else running = false;

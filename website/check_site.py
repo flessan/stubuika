@@ -106,4 +106,14 @@ _routes = _json.loads((ROOT / "_routes.json").read_text(encoding="utf-8"))
 if _routes.get("include") != ["/*"] or _routes.get("exclude") != ["/*"]:
     sys.exit("_routes.json must keep the site fully static (include /*, exclude /*)")
 
+css = (ROOT / "styles.css").read_text(encoding="utf-8")
+js = (ROOT / "script.js").read_text(encoding="utf-8")
+for needle, where in (("@container", "container queries in styles.css"),
+                      ("animation-timeline: scroll()", "native scroll-timeline in styles.css"),
+                      ("IntersectionObserver", "observer-driven scrollspy in script.js"),
+                      ("aria-current", "aria-current mirroring in script.js")):
+    haystack = css if where.endswith("styles.css") else js
+    if needle not in haystack:
+        sys.exit(f"modern-web-guidance pattern missing: {where}")
+
 print(f"Website checks passed ({len(parser.local)} local asset references, {len(parser.fragments)} anchor links)")

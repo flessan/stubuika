@@ -12,6 +12,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <title>Stubuika — Android apps, at home on your desktop</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" as="font" type="font/woff2" href="assets/baloo-2-latin-800-normal.woff2" crossorigin>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -719,7 +720,7 @@
         <div class="section-inner desktop-grid">
           <div class="desktop-shot reveal">
             <div class="window-bar"><i></i><i></i><i></i><span>STUBUIKA / DESKTOP LAUNCHER</span></div>
-            <img src="assets/desktop-launcher.png" alt="Stubuika desktop launcher showing Android package setup and application options" loading="lazy" width="1024" height="640">
+            <img src="assets/desktop-launcher.png" alt="Stubuika desktop launcher showing Android package setup and application options" loading="lazy" decoding="async" fetchpriority="low" width="1024" height="640">
             <span class="shot-caption">THE GRAPHICAL LAUNCHER</span>
           </div>
           <div class="desktop-copy reveal">
@@ -830,7 +831,7 @@
       <!-- ================= LINEAGE ================= -->
       <section class="sheet sheet-paper-art" aria-labelledby="lineage-title">
         <div class="section-inner lineage-grid">
-          <img class="lineage-art reveal" src="assets/paper-valley.svg" alt="Stubuika paper-cut valley artwork" loading="lazy" width="1376" height="768">
+          <img class="lineage-art reveal" src="assets/paper-valley.svg" alt="Stubuika paper-cut valley artwork" loading="lazy" decoding="async" fetchpriority="low" width="1376" height="768">
           <div class="lineage-copy reveal">
             <p class="kicker"><span class="kicker-num">✿</span> Credit where it's due</p>
             <h2 id="lineage-title">Built on good roots.</h2>

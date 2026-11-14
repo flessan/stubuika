@@ -652,3 +652,17 @@ html { scroll-padding-top: 118px; }
 .bl-4 { color: #4a90d9; } .bl-5 { color: #3598db; } .bl-6 { color: #ef6fae; }
 .bl-7 { color: #ef6fae; } .bl-8 { color: #e85d8a; }
 .brand-footer .brand-word .bl { text-shadow: 0 2px 0 rgba(34, 80, 40, .25); }
+
+/* ---------- container queries (components respond to their own space) ---------- */
+.section-inner { container-type: inline-size; }
+@container (max-width: 940px) {
+  .card-grid, .guide-grid { grid-template-columns: 1fr 1fr; }
+  .runtime-grid, .desktop-grid, .terminal-grid, .lineage-grid { grid-template-columns: 1fr; }
+  .terminal-card, .terminal-note { grid-column: auto; }
+}
+@container (max-width: 600px) {
+  .card-grid, .guide-grid { grid-template-columns: 1fr; }
+  .section-head { align-items: start; }
+}
+/* scrollspy state (mirrored to assistive tech with aria-current from JS) */
+.main-nav a[aria-current="true"] { background: var(--ink); color: #fff; }

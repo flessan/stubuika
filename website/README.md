@@ -32,3 +32,13 @@ The scroll engine follows current best practice for butter-smooth scroll animati
 - Scroll velocity adds a subtle skew to the marquee; the companion cube, chapter label (with matching active-nav highlighting), and a back-to-top paper button all ride the same smoothed progress.
 
 Scenes: the hero paper valley (native SVG, see Design) parallaxes while its cube hops and its letters pop in; runtime steps activate in sequence; feature cards cascade; terminal lines arrive in order; the giant STUBUIKA letters bounce in; live release cards join the same scrub system when they render. All content remains fully readable if JavaScript or Anime.js fails to load.
+
+## Modern Web Guidance
+
+This site follows Google Chrome's [Modern Web Guidance](https://github.com/GoogleChrome/modern-web-guidance) (searched/retrieved with `npx modern-web-guidance` during development):
+
+- **Scrollspy** is an `IntersectionObserver` with a `-45%/-50%` root margin, and the active nav link's visual state is mirrored with `aria-current="true"` for assistive technology.
+- **Parallax/scroll effects** animate only compositor properties (`transform`, `opacity`); the top progress bar uses the native CSS `scroll()` timeline where supported (declared after the `animation` shorthand so it is not reset), with the damped JS engine as the cross-browser driver.
+- **Responsive components** use container queries (`.section-inner` is the container) so cards respond to their own space, with viewport media queries as the base layer.
+- **Performance:** the above-the-fold brand font (Baloo 2 800) is preloaded; below-fold images use `loading="lazy"`, `decoding="async"`, and `fetchpriority="low"`. `content-visibility` is deliberately *not* used: the guidance reserves it for large complex pages, and this page's cached-offset scroll engine depends on stable layout.
+- Project motion policy (explicit, per site owner): scroll animations run for every visitor; there is no reduced-motion gate.

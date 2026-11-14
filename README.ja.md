@@ -1,3 +1,5 @@
+<img alt="Stubuika paper-cut valley artwork" src="website/assets/paper-valley.svg" width="100%" />
+
 # Stubuika
 
 ### Android アプリやゲームをデスクトップで実行するための実験的な互換レイヤーです。

@@ -74,6 +74,7 @@ required_files = (
     "assets/baloo-2-latin-700-normal.woff2",
     "assets/baloo-2-latin-800-normal.woff2",
     "assets/baloo-2.LICENSE.md",
+    "assets/paper-valley.svg",
     "_routes.json",
     "_headers",
     "assets/favicon.svg",
@@ -93,7 +94,7 @@ if "assets/anime.min.js" not in html_text or "assets/anime.LICENSE.md" not in st
 if 'id="release-list"' not in html_text or 'id="release-status"' not in html_text:
     sys.exit("live release panel markup is missing")
 
-for marker in ('class="paper-scene"', 'class="scene-cube"', 'class="scene-letters"',
+for marker in ('class="paper-scene"', 'class="scene-svg paper-valley"', 'assets/paper-valley.svg',
                'id="scroll-progress-bar"', 'id="companion-cube"', 'id="companion-fill"',
                'id="marquee-track"', 'id="letters"', 'id="card-track"', 'id="steps-fill"',
                'class="journey-cube"'):

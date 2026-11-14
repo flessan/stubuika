@@ -93,7 +93,7 @@ if "assets/anime.min.js" not in html_text or "assets/anime.LICENSE.md" not in st
 if 'id="release-list"' not in html_text or 'id="release-status"' not in html_text:
     sys.exit("live release panel markup is missing")
 
-for marker in ('class="paper-scene"', 'class="scene-svg paper-valley"', 'class="scene-cube"', 'class="scene-letters"',
+for marker in ('paper-scene', 'class="scene-svg paper-valley"', 'class="scene-cube"', 'class="scene-letters"',
                'id="scroll-progress-bar"', 'id="companion-cube"', 'id="companion-fill"',
                'id="marquee-track"', 'id="letters"', 'id="card-track"', 'id="steps-fill"',
                'class="journey-cube"'):

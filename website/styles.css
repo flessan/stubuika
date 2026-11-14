@@ -625,3 +625,30 @@ html { scroll-padding-top: 118px; }
     animation-timeline: scroll(root block);
   }
 }
+
+/* ---------- brand lockup (reworked) ---------- */
+.brand { gap: 11px; }
+.brand img {
+  border-radius: 11px;
+  border: 2px solid #fffdf6;
+  box-shadow: 0 6px 14px -6px rgba(34, 80, 120, .55);
+  transform: rotate(-3deg);
+  transition: transform .25s ease;
+}
+.brand:hover img { transform: rotate(3deg) scale(1.06); }
+.brand-word {
+  font-family: "Baloo 2", var(--font-sans);
+  font-weight: 800; font-size: 1.55rem; letter-spacing: .005em; line-height: 1;
+  display: inline-flex;
+}
+.brand-word::first-letter { color: inherit; }
+.brand-word .bl { display: inline-block; transition: transform .22s ease; }
+.brand:hover .bl { transform: translateY(-3px); }
+.brand:hover .bl-2 { transition-delay: .03s; } .brand:hover .bl-3 { transition-delay: .06s; }
+.brand:hover .bl-4 { transition-delay: .09s; } .brand:hover .bl-5 { transition-delay: .12s; }
+.brand:hover .bl-6 { transition-delay: .15s; } .brand:hover .bl-7 { transition-delay: .18s; }
+.brand:hover .bl-8 { transition-delay: .21s; }
+.bl-1 { color: #22a99e; } .bl-2 { color: #eda92c; } .bl-3 { color: #8661c5; }
+.bl-4 { color: #4a90d9; } .bl-5 { color: #3598db; } .bl-6 { color: #ef6fae; }
+.bl-7 { color: #ef6fae; } .bl-8 { color: #e85d8a; }
+.brand-footer .brand-word .bl { text-shadow: 0 2px 0 rgba(34, 80, 40, .25); }

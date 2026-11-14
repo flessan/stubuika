@@ -38,9 +38,27 @@ This page describes the execution path and the main source directories. For user
 - **Assets:** `AssetManager` reads DEFLATE/STORE entries from APKs and OBB
   expansion files.
 - **Audio:** OpenSL ES, AAudio, and Java `AudioTrack` share a mixer that outputs through ALSA. Blocking `AudioTrack.write()` calls do not stall the frame pump.
-- **Media:** `android.media.MediaCodec` decodes H.264 with openh264 and AAC
-  with libavcodec when available (`LUNARIA_OPENH264` / `LUNARIA_LIBAVCODEC`
-  override the shared-library paths).
+- **Media:** the NDK media support lives in its own translation units instead
+  of per-call stubs. `src/luna_media_format.c` implements `AMediaFormat` over
+  an opaque native representation, with the NDK key names coming from
+  `src/luna_media_format_keys.inc`. `src/luna_media_codec.c` builds the
+  encoder state machine on top of it and loads the FDK AAC encoder
+  (`libAACenc`) with `dlopen` through the shim in `src/luna_aac_encoder.c`.
+  `src/luna_native_codec.c` is the component plumbing the `AMediaCodec*`
+  entry points dispatch through. H.264 decoding still goes to openh264 and
+  AAC decoding to libavcodec when present; `LUNARIA_OPENH264` and
+  `LUNARIA_LIBAVCODEC` override those shared-library paths, and when a
+  library is absent the component reports itself unavailable instead of
+  failing the launch.
+- **Certificates:** `src/luna_certs.c` points the guest's trust store at the
+  host's CA bundle (honouring `SSL_CERT_FILE`, then the usual distribution
+  paths) and writes the hashed-subject layout `X509_STORE` expects, which is
+  what guest TLS — and therefore most app networking — validates against.
+- **Asset reads:** `src/file_read_cache.h` is a 64 KiB positional-I/O
+  read-ahead cache for immutable assets. It never moves the caller's seek
+  position, so a guest that reads the same package region repeatedly stops
+  paying for a syscall per access. `src/luna_raster_jobs.h` is a small worker
+  pool that lets canvas rasterisation for one frame run on several cores.
 - **WebView:** `android.webkit.WebView` talks to a host browser over the
   DevTools pipe. `LUNARIA_WEB_ENGINE` is `auto` (Chrome or Chromium if one is
   installed, otherwise luna-browser), `chrome`, `luna`, or `off`.
@@ -63,6 +81,17 @@ This page describes the execution path and the main source directories. For user
 | `src/jvm/` | lightweight JVM/JNI object model and stubs |
 | `src/lib/` | host implementations exposed to Android native code; `guest.c` is the in-guest libc |
 | `src/luna_vulkan.c` | Vulkan bridge, enabled when a host driver is available |
+| `src/luna_media_codec.c` | native media encoder state machine (FDK AAC via `dlopen`) |
+| `src/luna_media_format.c` | `AMediaFormat` over an opaque native representation |
+| `src/luna_media_format_keys.inc` | the `AMediaFormat` key-name table |
+| `src/luna_native_codec.c` | component plumbing behind the `AMediaCodec*` entry points |
+| `src/luna_aac_encoder.c` | `libAACenc` shim used by the media codec |
+| `src/luna_certs.c` | host CA bundle discovery and hashed-subject trust store |
+| `src/file_read_cache.h` | positional-I/O read-ahead cache for immutable assets |
+| `src/luna_raster_jobs.h` | worker pool for parallel canvas rasterisation |
+| `src/dvm/dvm_stream.h` | `java.util.stream` support for the bytecode emulator |
+| `src/dvm/dvm_shortcut.h` | `ShortcutInfo` values and builder bindings |
+| `src/cli.c` | Stubuika CLI and terminal dashboard (`stubuika launch|tui|apps|logs|diagnostics`) |
 | `src/luna_overlay.c` | Launcher overlays, startup display, host menu, and guest-frame compositing |
 | `src/luna_boot.c` | the boot card: sky, snow, progress ring, wordmark, translation and dex lines |
 | `src/luna_ime.c` | host IME bridge into guest text input |

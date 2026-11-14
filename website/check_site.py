@@ -111,7 +111,9 @@ js = (ROOT / "script.js").read_text(encoding="utf-8")
 for needle, where in (("@container", "container queries in styles.css"),
                       ("animation-timeline: scroll()", "native scroll-timeline in styles.css"),
                       ("IntersectionObserver", "observer-driven scrollspy in script.js"),
-                      ("aria-current", "aria-current mirroring in script.js")):
+                      ("aria-current", "aria-current mirroring in script.js"),
+                      ("overflow-x: clip", "horizontal overflow guard in styles.css"),
+                      ("--gutter", "shared gutter token in styles.css")):
     haystack = css if where.endswith("styles.css") else js
     if needle not in haystack:
         sys.exit(f"modern-web-guidance pattern missing: {where}")

@@ -4,7 +4,9 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
+ */
+
+/*
  * Dalvik bytecode emulator.
  *
  * Lunaria runs an APK's *native* code under a JIT and answers its JNI calls
@@ -50,13 +52,13 @@ struct dvm_object;
 typedef uint32_t dvm_ref;
 
 union dvm_value {
-   int32_t  i;
-   uint32_t u;
-   int64_t  j;
-   uint64_t ju;
-   float    f;
-   double   d;
-   dvm_ref  l;
+  int32_t  i;
+  uint32_t u;
+  int64_t  j;
+  uint64_t ju;
+  float    f;
+  double   d;
+  dvm_ref  l;
 };
 
 /* --- host hooks ---------------------------------------------------------
@@ -65,68 +67,68 @@ union dvm_value {
  * against Lunaria's JNI layer; the unit tests fill in a smaller set.
  */
 struct dvm_hooks {
-   void *user;
+  void *user;
 
-   /* A method on a class with no dex definition (android.*, java.* that the
-    * VM does not implement itself).  Return false to make the call throw
-    * NoSuchMethodError; return true and leave `out` zeroed for void. */
-   bool (*call_external)(void *user, struct dvm *vm, const char *class_name,
-                         const char *method, const char *sig, dvm_ref self,
-                         const union dvm_value *args, int nargs,
-                         union dvm_value *out);
+  /* A method on a class with no dex definition (android.*, java.* that the
+   * VM does not implement itself).  Return false to make the call throw
+   * NoSuchMethodError; return true and leave `out` zeroed for void. */
+  bool (*call_external)(void *user, struct dvm *vm, const char *class_name,
+                        const char *method, const char *sig, dvm_ref self,
+                        const union dvm_value *args, int nargs,
+                        union dvm_value *out);
 
-   /* `new-instance` of a class with no dex definition.  Returns 0 to let the
-    * VM allocate a plain opaque object instead. */
-   dvm_ref (*new_external)(void *user, struct dvm *vm, const char *class_name);
+  /* `new-instance` of a class with no dex definition.  Returns 0 to let the
+   * VM allocate a plain opaque object instead. */
+  dvm_ref (*new_external)(void *user, struct dvm *vm, const char *class_name);
 
-   /* Read/write a static field of an external class.  Return false when
-    * unknown (the VM then treats it as zero / ignores the store). */
-   bool (*get_external_static)(void *user, struct dvm *vm, const char *class_name,
-                               const char *field, const char *type,
-                               union dvm_value *out);
+  /* Read/write a static field of an external class.  Return false when
+   * unknown (the VM then treats it as zero / ignores the store). */
+  bool (*get_external_static)(void *user, struct dvm *vm, const char *class_name,
+                              const char *field, const char *type,
+                              union dvm_value *out);
 
-   /* A method declared `native` in the dex: resolve it to the guest's
-    * implementation and call it.  Returns false when the guest has not
-    * registered or exported it. Called with the interpreter lock held for
-    * VM argument/result conversion; release it around actual guest execution. */
-   bool (*call_native)(void *user, struct dvm *vm, const char *class_name,
-                       const char *method, const char *sig, bool is_static,
-                       dvm_ref self, const union dvm_value *args, int nargs,
-                       union dvm_value *out);
+  /* A method declared `native` in the dex: resolve it to the guest's
+   * implementation and call it.  Returns false when the guest has not
+   * registered or exported it. Called with the interpreter lock held for
+   * VM argument/result conversion; release it around actual guest execution. */
+  bool (*call_native)(void *user, struct dvm *vm, const char *class_name,
+                      const char *method, const char *sig, bool is_static,
+                      dvm_ref self, const union dvm_value *args, int nargs,
+                      union dvm_value *out);
 
-   /* java.lang.System.loadLibrary().  The bytecode VM owns System, while the
-    * guest ELF loader owns the APK ABI directory and JNI symbol namespace. */
-   bool (*load_library)(void *user, struct dvm *vm, const char *name);
+  /* java.lang.System.loadLibrary().  The bytecode VM owns System, while the
+   * guest ELF loader owns the APK ABI directory and JNI symbol namespace. */
+  bool (*load_library)(void *user, struct dvm *vm, const char *name);
 
-   /* A native method that has just returned.  JNI says a native which returns
-    * with an exception pending raises it in its caller; the host side keeps
-    * that state, so ask it.  Returns the Throwable (and clears the host's
-    * pending state), or 0 when there is none. */
-   dvm_ref (*take_pending_exception)(void *user, struct dvm *vm);
+  /* A native method that has just returned.  JNI says a native which returns
+   * with an exception pending raises it in its caller; the host side keeps
+   * that state, so ask it.  Returns the Throwable (and clears the host's
+   * pending state), or 0 when there is none. */
+  dvm_ref (*take_pending_exception)(void *user, struct dvm *vm);
 
-   /* android.app.NativeActivity lifecycle (DVM_NATIVE_ACTIVITY_*).  The
-    * framework half of a NativeActivity — loading the app's native library,
-    * calling ANativeActivity_onCreate and delivering the activity's native
-    * callbacks — lives with the guest, not in bytecode.  Returns false when
-    * the process has no native activity entry point (a pure-Java app). */
-   bool (*native_activity)(void *user, struct dvm *vm, int stage,
-                           dvm_ref activity);
+  /* android.app.NativeActivity lifecycle (DVM_NATIVE_ACTIVITY_*).  The
+   * framework half of a NativeActivity — loading the app's native library,
+   * calling ANativeActivity_onCreate and delivering the activity's native
+   * callbacks — lives with the guest, not in bytecode.  Returns false when
+   * the process has no native activity entry point (a pure-Java app). */
+  bool (*native_activity)(void *user, struct dvm *vm, int stage,
+                          dvm_ref activity);
 };
 
 enum {
-   DVM_NATIVE_ACTIVITY_CREATE = 0,   /* NativeActivity.onCreate  */
-   DVM_NATIVE_ACTIVITY_START  = 1,   /* NativeActivity.onStart   */
-   DVM_NATIVE_ACTIVITY_RESUME = 2,   /* NativeActivity.onResume  */
+  DVM_NATIVE_ACTIVITY_CREATE = 0,   /* NativeActivity.onCreate  */
+  DVM_NATIVE_ACTIVITY_START  = 1,   /* NativeActivity.onStart   */
+  DVM_NATIVE_ACTIVITY_RESUME = 2,   /* NativeActivity.onResume  */
 };
 
 /* Device/system-UI state, independent of app-owned Java objects. A new
  * virtual device has no enrolled credential or displayed lock screen. The
  * device owner publishes changes; this API never verifies credentials. */
 enum {
-   DVM_KEYGUARD_SHOWING=1u,
-   DVM_KEYGUARD_DEVICE_SECURE=2u,
-   DVM_KEYGUARD_SIM_LOCKED=4u,
-   DVM_KEYGUARD_DEVICE_LOCKED=8u,
+  DVM_KEYGUARD_SHOWING=1u,
+  DVM_KEYGUARD_DEVICE_SECURE=2u,
+  DVM_KEYGUARD_SIM_LOCKED=4u,
+  DVM_KEYGUARD_DEVICE_LOCKED=8u,
 };
 void dvm_set_keyguard_state(struct dvm *vm,unsigned state);
 
@@ -198,7 +200,7 @@ struct dvm_method *dvm_find_method(struct dvm *vm, struct dvm_class *cls,
  * the name and the parameter list are.  For callers that name a framework
  * method whose return type is a class an obfuscated app has renamed. */
 struct dvm_method *dvm_find_method_by_params(struct dvm *vm, struct dvm_class *cls,
-                                             const char *name, const char *sig);
+    const char *name, const char *sig);
 /* Convenience: class name + method name + signature in one go. */
 struct dvm_method *dvm_lookup(struct dvm *vm, const char *class_name,
                               const char *method, const char *sig);
@@ -238,6 +240,8 @@ dvm_ref dvm_new_string_n(struct dvm *vm, const char *utf8, size_t len);
 struct luna_touch_event;
 dvm_ref dvm_motion_event_new(struct dvm *vm, const struct luna_touch_event *sample);
 bool dvm_motion_event_read(struct dvm *vm, dvm_ref event, struct luna_touch_event *out);
+/* Refresh the current state of an event retained across the JNI boundary. */
+bool dvm_jni_motion_event_read(uint32_t host,struct luna_touch_event *out);
 bool dvm_ui_dispatch_touch(struct dvm *vm, const struct luna_touch_event *sample);
 
 /* Element kind is one of Z B C S I J F D L. */
@@ -258,6 +262,15 @@ void dvm_unpin(struct dvm *vm, dvm_ref ref);
 dvm_ref dvm_wrap_external(struct dvm *vm, const char *class_name, uint32_t host_handle);
 /* Non-zero when `ref` wraps a host handle. */
 uint32_t dvm_external_handle(struct dvm *vm, dvm_ref ref);
+/* The dvm object a JNI handle refers to (see dvm_jni.c's wrapper table). */
+dvm_ref dvm_host_wrapper_ref(uint32_t host);
+/* android/bitmap.h (libjnigraphics) backend, implemented next to the Bitmap
+ * class.  Return 0 on success, -2 when `host` is not a live Bitmap
+ * (ANDROIDBITMAP_RESULT_BAD_PARAMETER) and -1 when allocation failed. */
+int dvm_android_bitmap_info(uint32_t host, uint32_t *w, uint32_t *h,
+                            uint32_t *stride, int32_t *fmt, uint32_t *flags);
+int dvm_android_bitmap_lock(uint32_t host, uint8_t **out, uint32_t *bytes_out);
+int dvm_android_bitmap_unlock(uint32_t host, const uint8_t *bytes, uint32_t n);
 
 /* --- fields (for the JNI bridge) ---------------------------------------- */
 
@@ -298,6 +311,11 @@ int dvm_webview_count(void);
 /* One turn of the main thread's Looper — see dvm.c.  The frame pump calls it
  * so a Handler.postDelayed() callback runs near its due time instead of
  * waiting for the guest to call into Java. */
+bool dvm_main_work_due(struct dvm *vm);
+void dvm_pump_wake(void);
+bool dvm_pump_wait_us(unsigned us);
+bool dvm_ui_input_pending(void);
+void dvm_media_start_event_thread(struct dvm *vm);
 void dvm_main_looper_tick(struct dvm *vm);
 
 /* Caps runaway bytecode (a spin loop in Java would otherwise hang the pump
@@ -384,6 +402,7 @@ void dvm_gil_wait(struct dvm *vm, unsigned ms);
 void dvm_gil_wait_for(struct dvm *vm, uintptr_t channel, unsigned ms);
 /* UINT64_MAX waits until notification without a timeout. */
 void dvm_gil_wait_for_ns(struct dvm *vm, uintptr_t channel, uint64_t ns);
+void dvm_gil_wait_for_looper_ns(struct dvm *vm, uintptr_t channel, uint64_t ns);
 
 /* Enter/leave the VM from guest code that holds the ARM execution lock; see
  * the definition for the lock-order argument.  The cookie is opaque and must
@@ -435,16 +454,30 @@ void dvm_service_set_submit(struct dvm *,int (*submit)(void *,const char *,const
 /* Provided by the launcher (apk.c): the ';'-separated content authorities an APK's
  * manifest declares, malloc'd; 0 on success, -1 when it cannot be read. */
 int luna_apk_content_authorities(const char *apk_path, char **out);
+/* System registered-service metadata, resolved from the installed APK's own
+ * resource table. Returns 1 match, 0 absent, -1 unreadable/invalid. */
+int luna_apk_find_registered_service(const char *apk, const char *action, const char *metadata,
+                                     const char *attribute, const char *value, unsigned sdk,
+                                     char *component, size_t cap);
 /* A whole Cursor as bytes and back (dvm_sqlite.c): how a ContentProvider's result
  * crosses a process boundary.  The snapshot is malloc'd; 0 / NULL on failure. */
 int dvm_sqlite_cursor_snapshot(struct dvm *,uint32_t cursor,void **bytes,size_t *size);
 uint32_t dvm_sqlite_cursor_from_snapshot(struct dvm *,const void *bytes,size_t size);
+/* Publish the manifest provider batch before Application.onCreate. Remote
+ * acquisitions release the interpreter lock while installation is pending. */
+void dvm_content_providers_startup(struct dvm *,bool);
+bool dvm_content_providers_wait(struct dvm *);
 void dvm_binder_set_transport(int (*send)(void *,const char *,const void *,size_t),void *user);
+void dvm_binder_set_fd_transport(int (*send)(void *,const char *,const void *,size_t,const int *,size_t),void *user);
 void dvm_binder_set_pump(void (*pump)(void));
 void dvm_binder_set_provider_server(int (*serve)(struct dvm *,uint32_t,uint32_t,const uint8_t *,size_t));
 int dvm_binder_request(struct dvm *,const char *package,const char *magic,const void *body,size_t body_size,
                        int32_t *status,uint8_t **payload,size_t *payload_size);
 int dvm_binder_receive(struct dvm *,const char *name,const void *bytes,size_t size);
+int dvm_binder_receive_fds(struct dvm *,const char *,const void *,size_t,const int *,size_t);
+/* Dispatch transactions/provider calls and synchronous replies off the main
+ * thread; return 0 for lifecycle commands and ServiceConnection callbacks. */
+int dvm_binder_receive_io(struct dvm *,const void *bytes,size_t size);
 int dvm_binder_remote_bind(struct dvm *,const char *package,uint32_t intent,uint32_t connection);
 
 /* ---- DEX / APK container readers (dex.c, apk_signers.c) ---- */
@@ -471,104 +504,104 @@ int dvm_binder_remote_bind(struct dvm *,const char *package,uint32_t intent,uint
 #define DEX_NO_INDEX 0xffffffffu
 
 struct dex_file {
-   const uint8_t *p;
-   size_t len;
-   char *path;      /* owned; for diagnostics */
-   uint8_t *owned;  /* owned mapping when dex_open() read the file */
+  const uint8_t *p;
+  size_t len;
+  char *path;      /* owned; for diagnostics */
+  uint8_t *owned;  /* owned mapping when dex_open() read the file */
 
-   uint32_t string_ids_size, string_ids_off;
-   uint32_t type_ids_size, type_ids_off;
-   uint32_t proto_ids_size, proto_ids_off;
-   uint32_t field_ids_size, field_ids_off;
-   uint32_t method_ids_size, method_ids_off;
-   uint32_t class_defs_size, class_defs_off;
+  uint32_t string_ids_size, string_ids_off;
+  uint32_t type_ids_size, type_ids_off;
+  uint32_t proto_ids_size, proto_ids_off;
+  uint32_t field_ids_size, field_ids_off;
+  uint32_t method_ids_size, method_ids_off;
+  uint32_t class_defs_size, class_defs_off;
 
-   /* Decoded string pool: one pointer per string_id, filled lazily.  The
-    * pointers alias the mapping (MUTF-8 is NUL-terminated in the file), except
-    * where a string contains an encoded surrogate pair or an embedded NUL, in
-    * which case the entry owns a converted copy (see `fixups`). */
-   const char **strings;
-   char **fixups;
+  /* Decoded string pool: one pointer per string_id, filled lazily.  The
+   * pointers alias the mapping (MUTF-8 is NUL-terminated in the file), except
+   * where a string contains an encoded surrogate pair or an embedded NUL, in
+   * which case the entry owns a converted copy (see `fixups`). */
+  const char **strings;
+  char **fixups;
 
-   /* descriptor → class_def index, built on the first lookup.  Without it
-    * dex_find_class() is a strcmp against every class in the file, and
-    * dvm_class_is_known() runs that over every dex — which the JNI bridge
-    * does on each Call*Method.  With three dexes and 16,500 classes that was
-    * the single largest non-guest cost in a profile of world loading. */
-   uint32_t *cls_hash;      /* open addressing; 0 empty, else index + 1 */
-   uint32_t  cls_hash_cap;  /* power of two */
+  /* descriptor → class_def index, built on the first lookup.  Without it
+   * dex_find_class() is a strcmp against every class in the file, and
+   * dvm_class_is_known() runs that over every dex — which the JNI bridge
+   * does on each Call*Method.  With three dexes and 16,500 classes that was
+   * the single largest non-guest cost in a profile of world loading. */
+  uint32_t *cls_hash;      /* open addressing; 0 empty, else index + 1 */
+  uint32_t  cls_hash_cap;  /* power of two */
 };
 
 struct dex_method_id {
-   uint16_t class_idx;
-   uint16_t proto_idx;
-   uint32_t name_idx;
+  uint16_t class_idx;
+  uint16_t proto_idx;
+  uint32_t name_idx;
 };
 
 struct dex_field_id {
-   uint16_t class_idx;
-   uint16_t type_idx;
-   uint32_t name_idx;
+  uint16_t class_idx;
+  uint16_t type_idx;
+  uint32_t name_idx;
 };
 
 struct dex_class_def {
-   uint32_t class_idx;
-   uint32_t access_flags;
-   uint32_t superclass_idx;
-   uint32_t interfaces_off;
-   uint32_t source_file_idx;
-   uint32_t annotations_off;
-   uint32_t class_data_off;
-   uint32_t static_values_off;
+  uint32_t class_idx;
+  uint32_t access_flags;
+  uint32_t superclass_idx;
+  uint32_t interfaces_off;
+  uint32_t source_file_idx;
+  uint32_t annotations_off;
+  uint32_t class_data_off;
+  uint32_t static_values_off;
 };
 
 struct dex_code {
-   uint16_t registers_size;
-   uint16_t ins_size;
-   uint16_t outs_size;
-   uint16_t tries_size;
-   uint32_t insns_size;      /* in 16-bit code units */
-   const uint16_t *insns;
-   const uint8_t *tries;     /* try_item[tries_size], or NULL */
-   const uint8_t *handlers;  /* encoded_catch_handler_list, or NULL */
+  uint16_t registers_size;
+  uint16_t ins_size;
+  uint16_t outs_size;
+  uint16_t tries_size;
+  uint32_t insns_size;      /* in 16-bit code units */
+  const uint16_t *insns;
+  const uint8_t *tries;     /* try_item[tries_size], or NULL */
+  const uint8_t *handlers;  /* encoded_catch_handler_list, or NULL */
 };
 
 /* One decoded entry of a class_data_item. */
 struct dex_encoded_field {
-   uint32_t field_idx;
-   uint32_t access_flags;
+  uint32_t field_idx;
+  uint32_t access_flags;
 };
 
 struct dex_encoded_method {
-   uint32_t method_idx;
-   uint32_t access_flags;
-   uint32_t code_off;
+  uint32_t method_idx;
+  uint32_t access_flags;
+  uint32_t code_off;
 };
 
 struct dex_class_data {
-   struct dex_encoded_field *static_fields;
-   struct dex_encoded_field *instance_fields;
-   struct dex_encoded_method *direct_methods;
-   struct dex_encoded_method *virtual_methods;
-   uint32_t static_fields_size, instance_fields_size;
-   uint32_t direct_methods_size, virtual_methods_size;
+  struct dex_encoded_field *static_fields;
+  struct dex_encoded_field *instance_fields;
+  struct dex_encoded_method *direct_methods;
+  struct dex_encoded_method *virtual_methods;
+  uint32_t static_fields_size, instance_fields_size;
+  uint32_t direct_methods_size, virtual_methods_size;
 };
 
 /* An encoded_value, as found in a static_values array. */
 enum dex_value_type {
-   DEX_VALUE_BYTE = 0x00, DEX_VALUE_SHORT = 0x02, DEX_VALUE_CHAR = 0x03,
-   DEX_VALUE_INT = 0x04, DEX_VALUE_LONG = 0x06, DEX_VALUE_FLOAT = 0x10,
-   DEX_VALUE_DOUBLE = 0x11, DEX_VALUE_METHOD_TYPE = 0x15,
-   DEX_VALUE_METHOD_HANDLE = 0x16, DEX_VALUE_STRING = 0x17,
-   DEX_VALUE_TYPE = 0x18, DEX_VALUE_FIELD = 0x19, DEX_VALUE_METHOD = 0x1a,
-   DEX_VALUE_ENUM = 0x1b, DEX_VALUE_ARRAY = 0x1c,
-   DEX_VALUE_ANNOTATION = 0x1d, DEX_VALUE_NULL = 0x1e,
-   DEX_VALUE_BOOLEAN = 0x1f,
+  DEX_VALUE_BYTE = 0x00, DEX_VALUE_SHORT = 0x02, DEX_VALUE_CHAR = 0x03,
+  DEX_VALUE_INT = 0x04, DEX_VALUE_LONG = 0x06, DEX_VALUE_FLOAT = 0x10,
+  DEX_VALUE_DOUBLE = 0x11, DEX_VALUE_METHOD_TYPE = 0x15,
+  DEX_VALUE_METHOD_HANDLE = 0x16, DEX_VALUE_STRING = 0x17,
+  DEX_VALUE_TYPE = 0x18, DEX_VALUE_FIELD = 0x19, DEX_VALUE_METHOD = 0x1a,
+  DEX_VALUE_ENUM = 0x1b, DEX_VALUE_ARRAY = 0x1c,
+  DEX_VALUE_ANNOTATION = 0x1d, DEX_VALUE_NULL = 0x1e,
+  DEX_VALUE_BOOLEAN = 0x1f,
 };
 
 struct dex_value {
-   enum dex_value_type type;
-   uint64_t bits;   /* primitive payload, or the pool index for string/type/… */
+  enum dex_value_type type;
+  uint64_t bits;   /* primitive payload, or the pool index for string/type/… */
 };
 
 /* --- container ---------------------------------------------------------- */
@@ -604,23 +637,23 @@ const char *dex_class_enclosing_type(struct dex_file *d,
                                      uint32_t class_def_idx);
 /* EnclosingMethod's method_id, including constructors and class initializers. */
 bool dex_class_enclosing_method(struct dex_file *d, uint32_t class_def_idx,
-                                 uint32_t *method_idx);
+                                uint32_t *method_idx);
 
 /* Member classes declare EnclosingClass; local/anonymous classes use EnclosingMethod. */
 bool dex_class_is_member(struct dex_file *d, uint32_t class_def_idx);
 
 /* InnerClass.name: true when present, with NULL for an anonymous class. */
 bool dex_class_inner_name(struct dex_file *d, uint32_t class_def_idx,
-                           const char **name);
+                          const char **name);
 
 /* Source-level access flags retained in the InnerClass system annotation. */
 bool dex_class_inner_flags(struct dex_file *d, uint32_t class_def_idx,
-                            uint32_t *flags);
+                           uint32_t *flags);
 
 /* MemberClasses system metadata: total count, or -1 for malformed data.
  * Fill up to max descriptors; NULL/0 queries the count. */
 int dex_class_member_types(struct dex_file *d, uint32_t class_def_idx,
-                            const char **types, int max);
+                           const char **types, int max);
 
 /* Runtime-visible class annotations.  `encoded_off` points at the
  * encoded_annotation (its type_idx, not the preceding visibility byte).
@@ -640,8 +673,8 @@ bool dex_field_annotation(struct dex_file *d, uint32_t class_def_idx,
 /* Runtime-visible annotations on the named field; same count/capacity
  * convention as dex_class_annotations. */
 int dex_field_annotations(struct dex_file *d, uint32_t class_def_idx,
-                           const char *field_name, uint32_t *encoded_offs,
-                           const char **types, int max);
+                          const char *field_name, uint32_t *encoded_offs,
+                          const char **types, int max);
 /* A method's annotations, named by its name and signature
  * ("(Ljava/lang/String;I)V").  Same conventions as the class forms. */
 int dex_method_annotations(struct dex_file *d, uint32_t class_def_idx,
@@ -714,18 +747,27 @@ int dex_value_array(const struct dex_file *d, const struct dex_value *array,
 
 static inline uint32_t dex_u32_at(const struct dex_file *d, size_t off)
 {
-   if (off + 4 > d->len) return 0;
-   uint32_t v;
-   __builtin_memcpy(&v, d->p + off, 4);
-   return v;
+  if (off + 4 > d->len) return 0;
+  uint32_t v;
+  __builtin_memcpy(&v, d->p + off, 4);
+  return v;
 }
 
 static inline uint16_t dex_u16_at(const struct dex_file *d, size_t off)
 {
-   if (off + 2 > d->len) return 0;
-   uint16_t v;
-   __builtin_memcpy(&v, d->p + off, 2);
-   return v;
+  if (off + 2 > d->len) return 0;
+  uint16_t v;
+  __builtin_memcpy(&v, d->p + off, 2);
+  return v;
+}
+
+/* FNV-1a over a NUL-terminated string: the one hash behind the class registry,
+ * the intern table and each dex file's descriptor index. */
+static inline uint32_t dvm_str_hash(const char *s)
+{
+  uint32_t h = 2166136261u;
+  for (; *s; ++s) h = (h ^ (uint8_t)*s) * 16777619u;
+  return h;
 }
 
 size_t dex_uleb(const struct dex_file *d, size_t off, uint32_t *out);
@@ -741,6 +783,10 @@ struct stack_st_X509;
  * This reads installed-package metadata; it is not an APK installation verifier. */
 int dvm_apk_signers_read(const char *path, unsigned sdk,
                          struct stack_st_X509 **current, struct stack_st_X509 **history);
+/* v1 (JAR) signers of an APK with no v2/v3 block: the certificates named by
+ * META-INF/<name>.RSA|DSA|EC.  NULL when there is none.  Metadata only, the
+ * JAR digests are not checked.  The caller owns the returned stack. */
+struct stack_st_X509 *dvm_apk_v1_signers_read(const char *path);
 
 /* ---- JNI bridge to the guest (dvm_jni.c) ---- */
 void dvm_jni_shutdown(void);
@@ -758,8 +804,8 @@ bool dvm_jni_invoke(JNIEnv *env, const char *class_name, const char *method,
                     const char *sig, jobject self, bool is_static,
                     va_list *ap, const jvalue *jargs, jvalue *out);
 bool dvm_jni_invoke_nonvirtual(JNIEnv *env, const char *class_name, const char *method,
-                    const char *sig, jobject self, bool is_static,
-                    va_list *ap, const jvalue *jargs, jvalue *out);
+                               const char *sig, jobject self, bool is_static,
+                               va_list *ap, const jvalue *jargs, jvalue *out);
 
 /* Called by arm_exec once the guest's libraries are loaded, so bytecode can
  * reach methods the guest declared `native`. */
@@ -791,6 +837,23 @@ jobject dvm_jni_application_info(JNIEnv *env, jstring name, jint flags);
 /* True when the device we present has the class: the APK's dex or the
  * platform (see dvm_class_exists()).  What FindClass answers from. */
 bool dvm_jni_class_exists(const char *class_name);
+
+/* Runtime method metadata used by the guest's ART reflection view. */
+struct dvm_jni_method_metadata {
+  uint32_t declaring_class, access, dex_method_index, method_index;
+  const char *declaring_name;
+  const unsigned char *dex_data;
+  size_t dex_size;
+  uint32_t code_offset;
+};
+bool dvm_jni_describe_method(JNIEnv *env, jmethodID method,
+                              struct dvm_jni_method_metadata *out);
+/* Invoke an ART quick bridge using VM references, not JNI handles. */
+bool dvm_jni_quick_invoke(JNIEnv *env, jmethodID method, dvm_ref self,
+                           const union dvm_value *args, int nargs,
+                           union dvm_value *out);
+
+
 
 /* True when the APK's dex carries bytecode for this method (`sig` may be NULL
  * to match on the name alone).  A canned answer in the stub layer must never
@@ -842,6 +905,8 @@ bool dvm_jni_class_assignable(const char *sub, const char *sup);
 struct dvm;
 struct luna_touch_event;
 bool dvm_ui_dispatch_touch(struct dvm *vm, const struct luna_touch_event *sample);
+/* A key from the window system to the focused window's dispatchKeyEvent(). */
+bool dvm_ui_dispatch_key(struct dvm *vm, int action, int keycode, int meta, int repeat);
 void dvm_jni_show_activity(JNIEnv *env, jobject activity);
 struct lm_sink;
 jobject dvm_jni_surface_from_sink(JNIEnv *env, struct lm_sink *sink);

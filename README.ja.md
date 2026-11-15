@@ -1,3 +1,5 @@
+<img alt="Stubuika paper-cut valley artwork" src="website/assets/paper-valley.svg" width="100%" />
+
 # Stubuika
 
 ### Android アプリやゲームをデスクトップで実行するための実験的な互換レイヤーです。
@@ -18,6 +20,10 @@ Stubuika は Android のシステムイメージを起動せず、APK などの 
 
 APKM の読み込み方法や制限は[パッケージ形式](docs/package-formats.md)を参照してください。
 
+## Lunaria 上流の取り込み
+
+Stubuika は [Lunaria](https://github.com/yui0/lunaria) のランタイムを固定した時点で止めず、継続的に追従しています。現在のツリーには上流の最新のエンジン改善が入っています。ハッシュ化されたマップとネイティブシンボル参照のキャッシュ、キャンバス描画の並列化、バイトコードエミュレータでの `java.util.stream` 対応、アプリごとの Google サービス環境、独自の NDK メディア実装(`AMediaFormat`、ネイティブコーデックの接続、ホストの FDK AAC ライブラリを使う AAC エンコーダ)、ゲスト TLS のためのホスト CA バンドル検出、アセット読み込みの先読みキャッシュです。その上に Stubuika 独自の CLI とターミナルダッシュボード、APKMirror APKM コンテナ対応、いくつかのプラットフォーム修正を保持しています。上流由来かどうかの内訳は[プロジェクトの由来とクレジット](docs/attribution.md)に記載しています。
+
 ## スクリーンショット
 
 <p align="center">
@@ -36,6 +42,7 @@ Linux / macOS のインストール、Windows 版、ソースからのビルド�
 - [パッケージ形式と APKM](docs/package-formats.md)
 - [互換性](docs/compatibility.md)
 - [ギャラリー](docs/gallery.md)
+- [CLI と TUI](docs/cli.md)
 - [キーボード操作とキャプチャ](docs/controls.md)
 - [ランタイム構成](docs/architecture.md)
 - [設定](docs/configuration.md)

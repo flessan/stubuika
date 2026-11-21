@@ -12,7 +12,7 @@ The following options cover everyday use and common diagnostics. Additional deve
 |---|---:|---|
 | `LUNARIA_ARCH` | auto | `armeabi-v7a` or `arm64-v8a` |
 | `LUNARIA_WIDTH` / `LUNARIA_HEIGHT` | `1024` / `768` (landscape app: `768`/`1024` swapped) | Window or EGL surface size — see `LUNARIA_SCALE` for scaling the device panel instead |
-| `LUNARIA_PBUFFER` | auto fallback | Set `1` to skip GLFW and force headless EGL |
+| `LUNARIA_PBUFFER` | auto fallback | Set `1` to skip GLFW and force headless EGL. If GLFW binds a window backend but returns no native EGL display, the launcher and the guest EGL initialiser now report which call failed and the EGL error code |
 | `LUNARIA_MAX_FRAMES` | unlimited | Stop the render loop after *N* frames |
 | `LUNARIA_MEM_TOTAL_MB` | `6144` | RAM reported to the guest |
 | `LUNARIA_HEAP_MB` | A32 `256` / A64 window (~`2560`) | Guest malloc arena; A64 defaults to the full `[HEAP_BASE, MMAP2)` window |
@@ -54,7 +54,12 @@ The following options cover everyday use and common diagnostics. Additional deve
 | `LUNARIA_DEX_START` | on | Start the APK’s Activity lifecycle from dex; set `0` only when comparing the legacy hand-written launch sequence |
 | `LUNARIA_NET` | on | Set `0` to deny all guest sockets |
 | `LUNARIA_CACHE_DIR` | `cache/packages/` under the data root selected at startup | Persistent package cache; independently relocatable |
-| `LUNARIA_NO_CACHE` | off | Force a fresh APK/XAPK/APKS unpack |
+| `LUNARIA_NO_CACHE` | off | Force a fresh APK/XAPK/APKS/APKM unpack |
+| `LUNARIA_OPENH264` | bundled `runtime/libopenh264.*` | Path to the H.264 decoder. Missing library = the component reports itself unavailable rather than failing launch |
+| `LUNARIA_LIBAVCODEC` | host library if present | Path to libavcodec, used for AAC decoding |
+| `LUNARIA_SHARED_ASSETS` | unset | Named profiles only: colon-separated resource names hard-linked from the package's external files into a new profile (asset bundles are read-only, so a link costs no space) |
+| `LUNARIA_PROFILE_SEED_FILES` | unset | Named profiles only: colon-separated marker files *copied* into a new profile, for patch systems that rewrite them in place |
+| `LUNARIA_GMS_PROFILE` | unset | Pin one Google services environment (`gms-2`), independent of `--profile` |
 
 Stubuika launches apps from their manifests, passing the launcher activity as `ANDROID_LAUNCH_ACTIVITY` and the application class as `ANDROID_APPLICATION_CLASS`. Their lifecycles run through the bytecode VM, and native engines are loaded by the app’s own `System.loadLibrary`.
 

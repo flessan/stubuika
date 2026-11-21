@@ -1,1 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="19" fill="#a9dcf7"/><path d="M8 47c9-13 17-14 26-5 8-12 16-11 23 5v11H8z" fill="#69b75e"/><path d="M20 23 32 13l13 10-13 9z" fill="#ffdc70" stroke="#fff3bd" stroke-width="2"/><path d="M20 23v18l12 8V32z" fill="#ed8193"/><path d="m32 32 13-9v18l-13 8z" fill="#f2a64e"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6fc0f0"/><stop offset="1" stop-color="#a8dcf7"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#sky)"/>
+  <path d="M0 50c8-6 16-7 24-3 7-6 15-6 22-1 7-4 13-3 18 1v17H0z" fill="#79c25f"/>
+  <path d="M0 56c10-5 20-5 30-1 9-5 20-4 34 2v7H0z" fill="#5da24c"/>
+  <g stroke-linejoin="round">
+    <path d="M32 7 55 18v27L32 56 9 45V18Z" fill="#fffdf6"/>
+    <path d="M32 10 52 19.5 32 29 12 19.5Z" fill="#ef6fae"/>
+    <path d="M12 19.5 32 29v24L12 43.5Z" fill="#3598db"/>
+    <path d="M32 29l20-9.5v24L32 53Z" fill="#ffd83d"/>
+  </g>
+  <path d="M14 55c1-4 3-6 5-8M48 56c0-4 1-6 3-8" stroke="#4f9e43" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+</svg>
